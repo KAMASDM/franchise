@@ -1,5 +1,4 @@
-// src/components/brand/BrandCard.jsx
-import React from 'react'
+import React from "react";
 import {
   Card,
   CardContent,
@@ -9,30 +8,24 @@ import {
   Button,
   Chip,
   Avatar,
-  Divider
-} from '@mui/material'
-import {
-  LocationOn,
-  TrendingUp,
-  AccessTime,
-  Star
-} from '@mui/icons-material'
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+  Divider,
+} from "@mui/material";
+import { LocationOn, TrendingUp, AccessTime, Star } from "@mui/icons-material";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
-const MotionCard = motion(Card)
+const MotionCard = motion(Card);
 
 const BrandCard = ({ brand, index = 0 }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleLearnMore = () => {
-    navigate(`/brand/${brand.id}`)
-  }
+    navigate(`/brand/${brand.id}`);
+  };
 
   const handleInquiry = () => {
-    // This would open a contact form or modal
-    navigate(`/brand/${brand.id}?inquiry=true`)
-  }
+    navigate(`/brand/${brand.id}?inquiry=true`);
+  };
 
   return (
     <MotionCard
@@ -42,16 +35,16 @@ const BrandCard = ({ brand, index = 0 }) => {
       viewport={{ once: true }}
       whileHover={{ y: -10, scale: 1.02 }}
       sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
         borderRadius: 3,
-        overflow: 'hidden',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          boxShadow: '0 8px 40px rgba(0,0,0,0.2)'
-        }
+        overflow: "hidden",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+        transition: "all 0.3s ease",
+        "&:hover": {
+          boxShadow: "0 8px 40px rgba(0,0,0,0.2)",
+        },
       }}
     >
       <CardMedia
@@ -59,12 +52,19 @@ const BrandCard = ({ brand, index = 0 }) => {
         height="200"
         image={brand.image}
         alt={brand.name}
-        sx={{ objectFit: 'cover' }}
+        sx={{ objectFit: "cover" }}
       />
 
       <CardContent sx={{ flexGrow: 1, p: 3 }}>
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            mb: 2,
+          }}
+        >
           <Box>
             <Typography variant="h5" fontWeight="bold" sx={{ mb: 1 }}>
               {brand.name}
@@ -73,10 +73,10 @@ const BrandCard = ({ brand, index = 0 }) => {
               label={brand.category}
               size="small"
               color="primary"
-              sx={{ fontWeight: 'bold' }}
+              sx={{ fontWeight: "bold" }}
             />
           </Box>
-          <Avatar sx={{ backgroundColor: 'secondary.main' }}>
+          <Avatar sx={{ backgroundColor: "secondary.main" }}>
             <Star />
           </Avatar>
         </Box>
@@ -91,8 +91,8 @@ const BrandCard = ({ brand, index = 0 }) => {
         </Typography>
 
         {/* Stats */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-          <Box sx={{ textAlign: 'center' }}>
+        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+          <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" fontWeight="bold" color="primary.main">
               {brand.locations}
             </Typography>
@@ -100,7 +100,7 @@ const BrandCard = ({ brand, index = 0 }) => {
               Locations
             </Typography>
           </Box>
-          <Box sx={{ textAlign: 'center' }}>
+          <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" fontWeight="bold" color="secondary.main">
               {brand.roi}
             </Typography>
@@ -108,7 +108,7 @@ const BrandCard = ({ brand, index = 0 }) => {
               ROI
             </Typography>
           </Box>
-          <Box sx={{ textAlign: 'center' }}>
+          <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" fontWeight="bold" color="success.main">
               {brand.paybackPeriod}
             </Typography>
@@ -122,20 +122,18 @@ const BrandCard = ({ brand, index = 0 }) => {
 
         {/* Investment & Details */}
         <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <TrendingUp sx={{ color: 'success.main', mr: 1, fontSize: 20 }} />
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <TrendingUp sx={{ color: "success.main", mr: 1, fontSize: 20 }} />
             <Typography variant="body2" fontWeight="bold">
               Investment: {brand.investment}
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <AccessTime sx={{ color: 'info.main', mr: 1, fontSize: 20 }} />
-            <Typography variant="body2">
-              Founded: {brand.founded}
-            </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <AccessTime sx={{ color: "info.main", mr: 1, fontSize: 20 }} />
+            <Typography variant="body2">Founded: {brand.founded}</Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <LocationOn sx={{ color: 'warning.main', mr: 1, fontSize: 20 }} />
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <LocationOn sx={{ color: "warning.main", mr: 1, fontSize: 20 }} />
             <Typography variant="body2">
               Franchise Fee: {brand.franchiseFee}
             </Typography>
@@ -143,15 +141,15 @@ const BrandCard = ({ brand, index = 0 }) => {
         </Box>
 
         {/* Action Buttons */}
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: "flex", gap: 1 }}>
           <Button
             variant="contained"
             fullWidth
             onClick={handleLearnMore}
             sx={{
               borderRadius: 25,
-              fontWeight: 'bold',
-              py: 1
+              fontWeight: "bold",
+              py: 1,
             }}
           >
             Learn More
@@ -162,8 +160,8 @@ const BrandCard = ({ brand, index = 0 }) => {
             onClick={handleInquiry}
             sx={{
               borderRadius: 25,
-              fontWeight: 'bold',
-              py: 1
+              fontWeight: "bold",
+              py: 1,
             }}
           >
             Inquire Now
@@ -171,7 +169,7 @@ const BrandCard = ({ brand, index = 0 }) => {
         </Box>
       </CardContent>
     </MotionCard>
-  )
-}
+  );
+};
 
-export default BrandCard
+export default BrandCard;

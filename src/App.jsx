@@ -1,38 +1,69 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
-import Home from './pages/Home';
-import About from './pages/About';
-import Brands from './pages/Brands';
-import BrandDetail from './pages/brand/BrandDetailPage';
-import Blog from './pages/Blogs';
-import Contact from './pages/Contact';
-import FAQ from './pages/FAQ';
-import BrandSignIn from './pages/BrandSignIn';
-import BrandRegistration from './pages/BrandRegistration';
-import ApplicationSubmitted from './pages/ApplicationSubmitted';
+import React, { useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
+import { AuthContextProvider } from "./context/AuthContext";
+import { useAuth } from "./context/AuthContext"; 
+
+import FAQ from "./pages/FAQ";
+import Home from "./pages/Home";
+import Blog from "./pages/Blogs";
+import About from "./pages/About";
+import Brands from "./pages/Brands";
+import Contact from "./pages/Contact";
+import BlogDetail from "./pages/BlogDetail";
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
+import Chatbot from "./components/chat/Chatbot";
+import { Box } from "@mui/material";
+import BrandDetail from "./components/brand/BrandDetail";
+import Dashboard from "./pages/Dashborad";
+import BrandRegistration from "./components/forms/BrandRegistration";
+
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/");
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading authentication...</Box>;
+  }
+
+  return user ? children : null;
+};
 
 function App() {
   return (
-    <>
-      <Header />
-      <main style={{ flex: '1 0 auto', paddingTop: '64px' }}>
+    <AuthContextProvider>
+      <Box>
+        <Header />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/brands" element={<Brands />} />
-          <Route path="/brands/:id" element={<BrandDetail />} />
+          <Route path="/brand/:id" element={<BrandDetail />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogDetail />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/brand-signin" element={<BrandSignIn />} />
           <Route path="/brand-registration" element={<BrandRegistration />} />
-          <Route path="/application-submitted" element={<ApplicationSubmitted />} />
+
+          <Route
+            path="/dashboard/*"
+            element={
+              <ProtectedRoute> 
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
-      </main>
-      <Footer />
-    </>
+        <Footer />
+        <Chatbot />
+      </Box>
+    </AuthContextProvider>
   );
 }
 

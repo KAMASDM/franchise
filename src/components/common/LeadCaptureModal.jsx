@@ -1,5 +1,4 @@
-// src/components/common/LeadCaptureModal.jsx
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,44 +13,49 @@ import {
   Select,
   MenuItem,
   Card,
-  CardContent
-} from '@mui/material'
-import { Close, TrendingUp } from '@mui/icons-material'
-import Gift from '@mui/icons-material/CardGiftcard'
-import { useForm, Controller } from 'react-hook-form'
+  CardContent,
+} from "@mui/material";
+import { Close, TrendingUp } from "@mui/icons-material";
+import Gift from "@mui/icons-material/CardGiftcard";
+import { useForm, Controller } from "react-hook-form";
 
 const LeadCaptureModal = ({ open, onClose }) => {
-  const [submitted, setSubmitted] = useState(false)
-  const { control, handleSubmit, formState: { errors } } = useForm()
+  const [submitted, setSubmitted] = useState(false);
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
   const onSubmit = (data) => {
-    console.log('Lead captured:', data)
-    localStorage.setItem('userCaptured', 'true')
-    setSubmitted(true)
+    console.log("Lead captured:", data);
+    localStorage.setItem("userCaptured", "true");
+    setSubmitted(true);
     setTimeout(() => {
-      onClose()
-    }, 2000)
-  }
+      onClose();
+    }, 2000);
+  };
 
   const handleClose = () => {
-    localStorage.setItem('userCaptured', 'true')
-    onClose()
-  }
+    localStorage.setItem("userCaptured", "true");
+    onClose();
+  };
 
   if (submitted) {
     return (
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogContent sx={{ textAlign: 'center', p: 4 }}>
-          <Gift sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+        <DialogContent sx={{ textAlign: "center", p: 4 }}>
+          <Gift sx={{ fontSize: 60, color: "primary.main", mb: 2 }} />
           <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>
             Thank You!
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Your free franchise guide is being prepared and will be sent to your email shortly.
+            Your free franchise guide is being prepared and will be sent to your
+            email shortly.
           </Typography>
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 
   return (
@@ -63,20 +67,20 @@ const LeadCaptureModal = ({ open, onClose }) => {
       PaperProps={{
         sx: {
           borderRadius: 3,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white'
-        }
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          color: "white",
+        },
       }}
     >
-      <Box sx={{ position: 'relative' }}>
+      <Box sx={{ position: "relative" }}>
         <IconButton
           onClick={handleClose}
           sx={{
-            position: 'absolute',
+            position: "absolute",
             right: 8,
             top: 8,
-            color: 'white',
-            zIndex: 1
+            color: "white",
+            zIndex: 1,
           }}
         >
           <Close />
@@ -86,38 +90,42 @@ const LeadCaptureModal = ({ open, onClose }) => {
           <Grid container>
             {/* Left Side - Value Proposition */}
             <Grid item xs={12} md={6} sx={{ p: 4 }}>
-              <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <Box sx={{ textAlign: "center", mb: 4 }}>
                 <TrendingUp sx={{ fontSize: 60, mb: 2 }} />
                 <Typography variant="h4" fontWeight="bold" sx={{ mb: 2 }}>
                   Unlock Your Franchise Success
                 </Typography>
                 <Typography variant="h6" sx={{ opacity: 0.9, lineHeight: 1.6 }}>
-                  Get our FREE comprehensive guide to restaurant franchising and discover:
+                  Get our FREE comprehensive guide to restaurant franchising and
+                  discover:
                 </Typography>
               </Box>
 
-              <Box sx={{ textAlign: 'left' }}>
+              <Box sx={{ textAlign: "left" }}>
                 {[
-                  'Top-performing franchise opportunities',
-                  'Investment requirements and ROI projections',
-                  'Financing options and strategies',
-                  'Step-by-step franchise selection process',
-                  'Expert tips from successful franchisees'
+                  "Top-performing franchise opportunities",
+                  "Investment requirements and ROI projections",
+                  "Financing options and strategies",
+                  "Step-by-step franchise selection process",
+                  "Expert tips from successful franchisees",
                 ].map((benefit, index) => (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Box
+                    key={index}
+                    sx={{ display: "flex", alignItems: "center", mb: 2 }}
+                  >
                     <Box
                       sx={{
                         width: 24,
                         height: 24,
-                        borderRadius: '50%',
-                        backgroundColor: '#FFD700',
-                        color: 'black',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        borderRadius: "50%",
+                        backgroundColor: "#FFD700",
+                        color: "black",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                         mr: 2,
-                        fontWeight: 'bold',
-                        fontSize: '0.8rem'
+                        fontWeight: "bold",
+                        fontSize: "0.8rem",
                       }}
                     >
                       ✓
@@ -130,19 +138,33 @@ const LeadCaptureModal = ({ open, onClose }) => {
 
             {/* Right Side - Form */}
             <Grid item xs={12} md={6}>
-              <Card sx={{ height: '100%', borderRadius: 0 }}>
-                <CardContent sx={{ p: 4, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="h5" fontWeight="bold" sx={{ mb: 3, color: 'text.primary' }}>
+              <Card sx={{ height: "100%", borderRadius: 0 }}>
+                <CardContent
+                  sx={{
+                    p: 4,
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <Typography
+                    variant="h5"
+                    fontWeight="bold"
+                    sx={{ mb: 3, color: "text.primary" }}
+                  >
                     Get Your FREE Guide Now
                   </Typography>
 
-                  <form onSubmit={handleSubmit(onSubmit)} style={{ flexGrow: 1 }}>
+                  <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    style={{ flexGrow: 1 }}
+                  >
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <Controller
                           name="firstName"
                           control={control}
-                          rules={{ required: 'First name is required' }}
+                          rules={{ required: "First name is required" }}
                           render={({ field }) => (
                             <TextField
                               {...field}
@@ -159,7 +181,7 @@ const LeadCaptureModal = ({ open, onClose }) => {
                         <Controller
                           name="lastName"
                           control={control}
-                          rules={{ required: 'Last name is required' }}
+                          rules={{ required: "Last name is required" }}
                           render={({ field }) => (
                             <TextField
                               {...field}
@@ -177,11 +199,11 @@ const LeadCaptureModal = ({ open, onClose }) => {
                           name="email"
                           control={control}
                           rules={{
-                            required: 'Email is required',
+                            required: "Email is required",
                             pattern: {
                               value: /^\S+@\S+$/i,
-                              message: 'Invalid email address'
-                            }
+                              message: "Invalid email address",
+                            },
                           }}
                           render={({ field }) => (
                             <TextField
@@ -200,7 +222,7 @@ const LeadCaptureModal = ({ open, onClose }) => {
                         <Controller
                           name="phone"
                           control={control}
-                          rules={{ required: 'Phone number is required' }}
+                          rules={{ required: "Phone number is required" }}
                           render={({ field }) => (
                             <TextField
                               {...field}
@@ -217,19 +239,26 @@ const LeadCaptureModal = ({ open, onClose }) => {
                         <Controller
                           name="budget"
                           control={control}
-                          rules={{ required: 'Investment budget is required' }}
+                          rules={{ required: "Investment budget is required" }}
                           render={({ field }) => (
                             <FormControl fullWidth error={!!errors.budget}>
                               <InputLabel>Investment Budget</InputLabel>
-                              <Select
-                                {...field}
-                                label="Investment Budget"
-                              >
-                                <MenuItem value="under-100k">Under $100K</MenuItem>
-                                <MenuItem value="100-200k">$100K - $200K</MenuItem>
-                                <MenuItem value="200-300k">$200K - $300K</MenuItem>
-                                <MenuItem value="300-500k">$300K - $500K</MenuItem>
-                                <MenuItem value="over-500k">Over $500K</MenuItem>
+                              <Select {...field} label="Investment Budget">
+                                <MenuItem value="under-100k">
+                                  Under $100K
+                                </MenuItem>
+                                <MenuItem value="100-200k">
+                                  $100K - $200K
+                                </MenuItem>
+                                <MenuItem value="200-300k">
+                                  $200K - $300K
+                                </MenuItem>
+                                <MenuItem value="300-500k">
+                                  $300K - $500K
+                                </MenuItem>
+                                <MenuItem value="over-500k">
+                                  Over $500K
+                                </MenuItem>
                               </Select>
                             </FormControl>
                           )}
@@ -245,9 +274,9 @@ const LeadCaptureModal = ({ open, onClose }) => {
                           sx={{
                             mt: 2,
                             borderRadius: 25,
-                            fontWeight: 'bold',
+                            fontWeight: "bold",
                             py: 1.5,
-                            fontSize: '1.1rem'
+                            fontSize: "1.1rem",
                           }}
                         >
                           Get My FREE Guide
@@ -256,8 +285,13 @@ const LeadCaptureModal = ({ open, onClose }) => {
                     </Grid>
                   </form>
 
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
-                    By submitting this form, you agree to receive communications from FranchiseHub about franchise opportunities.
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mt: 2, textAlign: "center" }}
+                  >
+                    By submitting this form, you agree to receive communications
+                    from FranchiseHub about franchise opportunities.
                   </Typography>
                 </CardContent>
               </Card>
@@ -266,7 +300,7 @@ const LeadCaptureModal = ({ open, onClose }) => {
         </DialogContent>
       </Box>
     </Dialog>
-  )
-}
+  );
+};
 
-export default LeadCaptureModal
+export default LeadCaptureModal;
