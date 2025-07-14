@@ -1,4 +1,3 @@
-// src/components/forms/FranchiseInquiryForm.jsx
 import React, { useState } from 'react'
 import {
   Box,

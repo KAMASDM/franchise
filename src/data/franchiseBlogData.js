@@ -1,5 +1,4 @@
 
-// src/data/franchiseBlogData.js
 export const franchiseBlogData = [
   {
     id: 7,
