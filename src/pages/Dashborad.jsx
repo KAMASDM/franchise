@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Drawer,
@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
-  ListAlt as OrdersIcon,
+  Home as HomeIcon,
   Store as MyBrandsIcon,
   Settings as SettingsIcon,
   HelpOutline as HelpIcon,
@@ -36,11 +36,6 @@ import Overview from "../components/dashboard/Overview";
 import MyBrands from "../components/dashboard/MyBrands";
 import Settings from "../components/dashboard/Settings";
 import Help from "../components/dashboard/Help";
-
-// import Overview from "./Overview";
-// import MyBrands from "./MyBrands";
-// import Settings from "./Settings";
-// import Help from "./Help";
 
 const drawerWidth = 240;
 
@@ -82,29 +77,48 @@ const StyledDrawer = styled(Drawer, {
   boxSizing: "border-box",
   ...(open && {
     ...openedMixin(theme),
-    "& .MuiDrawer-paper": openedMixin(theme),
+    "& .MuiDrawer-paper": {
+      ...openedMixin(theme),
+      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      color: "#ffffff",
+    },
   }),
   ...(!open && {
     ...closedMixin(theme),
-    "& .MuiDrawer-paper": closedMixin(theme),
+    "& .MuiDrawer-paper": {
+      ...closedMixin(theme),
+      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      color: "#ffffff",
+    },
   }),
 }));
 
 const Dashboard = () => {
   const theme = useTheme();
+  const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [open, setOpen] = useState(!isMobile);
-  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
+  const handleDrawerToggle = () => {
+    if (isMobile) {
+      setMobileOpen(!mobileOpen);
+    } else {
+      setOpen(!open);
+    }
   };
 
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+  useEffect(() => {
+    if (isMobile && mobileOpen) {
+      setMobileOpen(false);
+    }
+    if (!isMobile) {
+      setOpen(true);
+    }
+  }, [location, isMobile, mobileOpen]);
 
   const dashboardNavItems = [
+    { text: "Home", path: "/", icon: <HomeIcon /> },
     { text: "Overview", path: "/dashboard", icon: <DashboardIcon /> },
     { text: "My Brands", path: "/dashboard/my-brands", icon: <MyBrandsIcon /> },
     { text: "Settings", path: "/dashboard/settings", icon: <SettingsIcon /> },
@@ -112,43 +126,50 @@ const Dashboard = () => {
   ];
 
   return (
-    <Box sx={{ display: "flex", mt: 8 }}>
-      {" "}
-      {/* Added mt for spacing below main header */}
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <CssBaseline />
-      {/* AppBar for mobile, as a separate header within dashboard */}
-      {isMobile && (
-        <AppBar
-          position="fixed"
-          sx={{
-            zIndex: theme.zIndex.drawer + 1,
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            color: "white",
-          }}
-        >
-          <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleDrawerOpen}
-              edge="start"
-              sx={{ mr: 2, ...(open && { display: "none" }) }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" noWrap component="div">
-              Dashboard
-            </Typography>
-          </Toolbar>
-        </AppBar>
-      )}
+      <AppBar
+        position="fixed"
+        sx={{
+          zIndex: theme.zIndex.drawer + 1,
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          color: "white",
+          width: {
+            md: `calc(100% - ${open ? drawerWidth : theme.spacing(7) + 1}px)`,
+          },
+          ml: { md: `${open ? drawerWidth : theme.spacing(7) + 1}px` },
+          transition: theme.transitions.create(["width", "margin"], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            onClick={handleDrawerToggle}
+            edge="start"
+            sx={{ mr: 2, display: { md: "none" } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            Dashboard
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
       <StyledDrawer
         variant={isMobile ? "temporary" : "permanent"}
-        open={open}
-        onClose={handleDrawerClose}
+        open={isMobile ? mobileOpen : open}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true,
+        }}
       >
         <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
+          <IconButton onClick={handleDrawerToggle} sx={{ color: "white" }}>
             {theme.direction === "rtl" ? (
               <ChevronRightIcon />
             ) : (
@@ -167,17 +188,20 @@ const Dashboard = () => {
                 location.pathname === item.path ||
                 (item.path === "/dashboard" &&
                   location.pathname === "/dashboard/")
-              } // Handle root dashboard path
+              }
               sx={{
-                "&.Mui-selected": {
-                  backgroundColor: theme.palette.primary.light,
-                  color: "white",
-                  "&:hover": {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                },
+                color: "rgba(255, 255, 255, 0.7)",
                 "&:hover": {
-                  backgroundColor: theme.palette.action.hover, // Default hover for non-selected
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  color: "white",
+                },
+                "&.Mui-selected": {
+                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                  color: "white",
+                  fontWeight: "bold",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  },
                 },
               }}
             >
@@ -187,17 +211,22 @@ const Dashboard = () => {
           ))}
         </List>
       </StyledDrawer>
+
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          width: `calc(100% - ${
-            open ? drawerWidth : isMobile ? 0 : theme.spacing(8) + 1
-          }px)`,
+          width: {
+            md: `calc(100% - ${open ? drawerWidth : theme.spacing(7) + 1}px)`,
+          },
+          mt: 8,
+          transition: theme.transitions.create(["width", "margin"], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
         }}
       >
-        {isMobile && <DrawerHeader />}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -205,9 +234,9 @@ const Dashboard = () => {
         >
           <Routes>
             <Route path="/" element={<Overview />} />
-            <Route path="/my-brands" element={<MyBrands />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/help" element={<Help />} />
+            <Route path="my-brands" element={<MyBrands />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<Help />} />
           </Routes>
         </motion.div>
       </Box>

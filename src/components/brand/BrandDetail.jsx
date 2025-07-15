@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
   Grid,
@@ -7,228 +7,262 @@ import {
   Box,
   Card,
   CardContent,
-  CardMedia,
   Button,
   Chip,
-  Divider,
   Avatar,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Paper,
   Dialog,
-  LinearProgress,
   Breadcrumbs,
   Link,
-  Rating,
   Tabs,
-  Tab
-} from '@mui/material'
+  Tab,
+  IconButton,
+  CircularProgress,
+} from "@mui/material";
 import {
-  ArrowBack,
   LocationOn,
-  TrendingUp,
   Star,
   CheckCircle,
-  ExpandMore,
   Phone,
-  Email,
   Business,
   Timeline,
   AttachMoney,
   Support,
   School,
-  Groups,
-  Verified,
   Home,
   Store,
-  Article,
-  AccessTime,
-  Person,
-  ChevronRight,
   BusinessCenter,
   SupportAgent,
   EmojiEvents,
-  Assignment
-} from '@mui/icons-material'
-import { brandsData } from '../../data/brandsData'
-import { brandFAQs } from '../../data/faqData'
-import { franchiseBlogData } from '../../data/franchiseBlogData'
-import FranchiseInquiryForm from '../forms/FranchiseInquiryForm'
-import { motion } from 'framer-motion'
+  ArrowBack,
+  Email,
+  Language,
+  Facebook,
+  Twitter,
+  Instagram,
+  LinkedIn,
+} from "@mui/icons-material";
+import { motion } from "framer-motion";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../../firebase/firebase";
+import FranchiseInquiryForm from "../forms/FranchiseInquiryForm";
 
-const MotionBox = motion(Box)
-const MotionCard = motion(Card)
+const MotionBox = motion(Box);
+const MotionCard = motion(Card);
+const MotionGrid = motion(Grid);
 
 const BrandDetail = () => {
-  const { id } = useParams()
-  const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const [brand, setBrand] = useState(null)
-  const [showInquiryForm, setShowInquiryForm] = useState(false)
-  const [activeTab, setActiveTab] = useState(0)
-  const [brandBlogs, setBrandBlogs] = useState([])
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [brand, setBrand] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [tabValue, setTabValue] = useState(0);
+  const [showInquiryForm, setShowInquiryForm] = useState(false);
 
   useEffect(() => {
-    const brandData = brandsData.find(b => b.id === parseInt(id))
-    setBrand(brandData)
+    const fetchBrands = async () => {
+      setLoading(true);
+      try {
+        const brandsCollection = collection(db, "brands");
+        const q = query(brandsCollection, where("status", "==", "active"));
+        const querySnapshot = await getDocs(q);
+        const brandsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setBrand(brandsData.find((brand) => brand.id === id));
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching brands:", err);
+        setError("Failed to load brands. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (brandData) {
-      // Filter blogs related to this brand
-      const relatedBlogs = franchiseBlogData.filter(blog => 
-        blog.tags.some(tag => 
-          brandData.name.toLowerCase().includes(tag.toLowerCase()) ||
-          brandData.category.toLowerCase().includes(tag.toLowerCase()) ||
-          tag.toLowerCase().includes(brandData.category.toLowerCase())
-        )
-      ).slice(0, 6)
-      setBrandBlogs(relatedBlogs)
-    }
+    fetchBrands();
+  }, [id]);
 
-    // Check if inquiry parameter is in URL
-    if (searchParams.get('inquiry') === 'true') {
-      setShowInquiryForm(true)
-    }
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="80vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-    // Scroll to top
-    window.scrollTo(0, 0)
-  }, [id, searchParams])
-
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue)
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
+        <Typography variant="h4" color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => window.location.reload()}
+          sx={{ mt: 2, borderRadius: 25 }}
+        >
+          Retry
+        </Button>
+      </Container>
+    );
   }
 
   if (!brand) {
     return (
-      <Container maxWidth="lg" sx={{ py: 8, textAlign: 'center' }}>
-        <Typography variant="h4" color="text.secondary">Brand not found</Typography>
-        <Button 
-          variant="contained" 
-          onClick={() => navigate('/brands')}
+      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
+        <Typography variant="h4" color="text.secondary">
+          Brand not found
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => navigate("/brands")}
           sx={{ mt: 2, borderRadius: 25 }}
         >
           Back to Brands
         </Button>
       </Container>
-    )
+    );
   }
 
-  const faqs = brandFAQs[brand.id] || []
-
-  const TabPanel = ({ children, value, index }) => (
-    <div hidden={value !== index}>
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  )
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <Link
-          underline="hover"
-          color="inherit"
-          href="/"
-          onClick={(e) => {
-            e.preventDefault()
-            navigate('/')
-          }}
-          sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-        >
-          <Home fontSize="small" />
-          Home
-        </Link>
-        <Link
-          underline="hover"
-          color="inherit"
-          href="/brands"
-          onClick={(e) => {
-            e.preventDefault()
-            navigate('/brands')
-          }}
-          sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-        >
-          <Store fontSize="small" />
-          Brands
-        </Link>
-        <Typography color="text.primary">{brand.name}</Typography>
-      </Breadcrumbs>
+      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+        <IconButton onClick={() => navigate(-1)} sx={{ mr: 2 }}>
+          <ArrowBack />
+        </IconButton>
+        <Breadcrumbs>
+          <Link
+            underline="hover"
+            color="inherit"
+            onClick={() => navigate("/")}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              cursor: "pointer",
+            }}
+          >
+            <Home fontSize="small" />
+            Home
+          </Link>
+          <Link
+            underline="hover"
+            color="inherit"
+            onClick={() => navigate("/brands")}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              cursor: "pointer",
+            }}
+          >
+            <Store fontSize="small" />
+            Brands
+          </Link>
+          <Typography color="text.primary">{brand.brandName}</Typography>
+        </Breadcrumbs>
+      </Box>
 
       {/* Hero Section */}
       <MotionCard
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        sx={{ mb: 6, borderRadius: 4, overflow: 'hidden', boxShadow: 3 }}
+        sx={{ mb: 6, borderRadius: 4, overflow: "hidden", boxShadow: 3 }}
       >
         <Box
           sx={{
             height: { xs: 300, md: 400 },
-            backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url(${brand.image})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            display: 'flex',
-            alignItems: 'center',
-            color: 'white',
+            backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4))`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            display: "flex",
+            alignItems: "center",
+            color: "white",
             p: { xs: 3, md: 6 },
-            position: 'relative'
+            position: "relative",
+            backgroundColor: "primary.main",
           }}
         >
           <Box sx={{ maxWidth: 800, zIndex: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
               <Avatar
                 sx={{
                   width: 80,
                   height: 80,
                   mr: 3,
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  fontSize: '2rem',
-                  fontWeight: 'bold'
+                  backgroundColor: "white",
+                  color: "primary.main",
+                  fontSize: "2rem",
+                  fontWeight: "bold",
                 }}
               >
-                {brand.name.charAt(0)}
+                {brand.brandName.charAt(0)}
               </Avatar>
               <Box>
-                <Typography variant="h2" fontWeight="bold" sx={{ mb: 1, fontSize: { xs: '2rem', md: '3rem' } }}>
-                  {brand.name}
+                <Typography
+                  variant="h2"
+                  fontWeight="bold"
+                  sx={{ mb: 1, fontSize: { xs: "2rem", md: "3rem" } }}
+                >
+                  {brand.brandName}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-                  <Chip
-                    label={brand.category}
-                    sx={{ backgroundColor: 'primary.main', color: 'white', fontWeight: 'bold' }}
-                  />
-                  <Chip
-                    label={`${brand.locations} Locations`}
-                    sx={{ backgroundColor: 'secondary.main', color: 'white', fontWeight: 'bold' }}
-                  />
+                <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
+                  {brand.industries.map((industry, index) => (
+                    <Chip
+                      key={index}
+                      label={industry}
+                      sx={{
+                        backgroundColor: "secondary.main",
+                        color: "white",
+                        fontWeight: "bold",
+                      }}
+                    />
+                  ))}
                   <Chip
                     icon={<Star />}
                     label="4.5 Rating"
-                    sx={{ backgroundColor: 'warning.main', color: 'white', fontWeight: 'bold' }}
+                    sx={{
+                      backgroundColor: "warning.main",
+                      color: "white",
+                      fontWeight: "bold",
+                    }}
                   />
                 </Box>
               </Box>
             </Box>
-            <Typography variant="h6" sx={{ maxWidth: 600, lineHeight: 1.6, mb: 4 }}>
-              {brand.description}
+            <Typography
+              variant="h6"
+              sx={{ maxWidth: 600, lineHeight: 1.6, mb: 4 }}
+            >
+              {brand.brandMission}
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
               <Button
                 variant="contained"
                 size="large"
                 onClick={() => setShowInquiryForm(true)}
                 sx={{
-                  backgroundColor: '#FFD700',
-                  color: 'black',
-                  fontWeight: 'bold',
+                  backgroundColor: "#FFD700",
+                  color: "black",
+                  fontWeight: "bold",
                   borderRadius: 25,
                   px: 4,
-                  '&:hover': { backgroundColor: '#FFC107' }
+                  "&:hover": { backgroundColor: "#FFC107" },
                 }}
               >
                 Request Information
@@ -237,79 +271,114 @@ const BrandDetail = () => {
                 variant="outlined"
                 size="large"
                 startIcon={<Phone />}
+                href={`tel:${brand.brandContactInformation.phone}`}
                 sx={{
-                  borderColor: 'white',
-                  color: 'white',
+                  borderColor: "white",
+                  color: "white",
                   borderRadius: 25,
                   px: 4,
-                  '&:hover': { borderColor: '#FFD700', backgroundColor: 'rgba(255,215,0,0.1)' }
+                  "&:hover": {
+                    borderColor: "#FFD700",
+                    backgroundColor: "rgba(255,215,0,0.1)",
+                  },
                 }}
               >
                 Call Now
               </Button>
             </Box>
           </Box>
-          
+
           {/* Decorative Elements */}
           <Box
             sx={{
-              position: 'absolute',
+              position: "absolute",
               top: -50,
               right: -50,
               width: 200,
               height: 200,
-              backgroundColor: 'rgba(255,255,255,0.1)',
-              borderRadius: '50%',
-              zIndex: 1
+              backgroundColor: "rgba(255,255,255,0.1)",
+              borderRadius: "50%",
+              zIndex: 1,
             }}
           />
         </Box>
       </MotionCard>
 
-      {/* Key Metrics - Centered Cards */}
+      {/* Investment Overview */}
       <MotionBox
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
         sx={{ mb: 6 }}
       >
-        <Typography variant="h4" fontWeight="bold" sx={{ mb: 4, textAlign: 'center' }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          sx={{ mb: 4, textAlign: "center" }}
+        >
           Investment Overview
         </Typography>
         <Grid container spacing={3} justifyContent="center">
           {[
-            { icon: <AttachMoney />, value: brand.investment, label: 'Total Investment', color: 'primary' },
-            { icon: <TrendingUp />, value: brand.roi, label: 'Expected ROI', color: 'secondary' },
-            { icon: <Timeline />, value: brand.paybackPeriod, label: 'Payback Period', color: 'success' },
-            { icon: <Star />, value: brand.franchiseFee, label: 'Franchise Fee', color: 'warning' }
+            {
+              icon: <AttachMoney />,
+              value: brand.investmentRange,
+              label: "Total Investment",
+              color: "primary",
+            },
+            {
+              icon: <Business />,
+              value: `$${brand.initialFranchiseFee}`,
+              label: "Initial Franchise Fee",
+              color: "secondary",
+            },
+            {
+              icon: <Timeline />,
+              value: `${brand.franchiseTermLength} years`,
+              label: "Franchise Term",
+              color: "success",
+            },
+            {
+              icon: <Support />,
+              value: `${brand.royaltyFee}%`,
+              label: "Royalty Fee",
+              color: "warning",
+            },
           ].map((metric, index) => (
             <Grid item xs={12} sm={6} md={3} key={index}>
               <MotionCard
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 * index }}
-                sx={{ 
-                  textAlign: 'center', 
-                  p: 3, 
+                sx={{
+                  textAlign: "center",
+                  p: 3,
                   borderRadius: 3,
-                  height: '100%',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: 4
-                  }
+                  height: "100%",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-5px)",
+                    boxShadow: 4,
+                  },
                 }}
               >
-                <Avatar sx={{ 
-                  mx: 'auto', 
-                  mb: 2, 
-                  backgroundColor: `${metric.color}.main`, 
-                  width: 70, 
-                  height: 70 
-                }}>
+                <Avatar
+                  sx={{
+                    mx: "auto",
+                    mb: 2,
+                    backgroundColor: `${metric.color}.main`,
+                    width: 70,
+                    height: 70,
+                  }}
+                >
                   {metric.icon}
                 </Avatar>
-                <Typography variant="h5" fontWeight="bold" color={`${metric.color}.main`} sx={{ mb: 1 }}>
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  color={`${metric.color}.main`}
+                  sx={{ mb: 1 }}
+                >
                   {metric.value}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -321,453 +390,533 @@ const BrandDetail = () => {
         </Grid>
       </MotionBox>
 
-      {/* Main Content with Tabs */}
-      <Box sx={{ mb: 6 }}>
+      {/* Tabs Section */}
+      <MotionBox
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        sx={{ mb: 6 }}
+      >
         <Tabs
-          value={activeTab}
+          value={tabValue}
           onChange={handleTabChange}
           variant="scrollable"
           scrollButtons="auto"
-          sx={{
-            mb: 3,
-            '& .MuiTab-root': {
-              fontWeight: 'bold',
-              minHeight: 60,
-              borderRadius: 25,
-              mx: 1,
-              '&.Mui-selected': {
-                backgroundColor: 'primary.light',
-                color: 'white'
-              }
-            }
-          }}
+          sx={{ mb: 4 }}
         >
-          <Tab label="Overview" icon={<Business />} />
-          <Tab label="Training & Support" icon={<Support />} />
-          <Tab label="Success Stories" icon={<EmojiEvents />} />
-          <Tab label="Locations" icon={<LocationOn />} />
-          <Tab label="Resources" icon={<Article />} />
+          <Tab label="About" />
+          <Tab label="Franchise Details" />
+          <Tab label="Support & Training" />
+          <Tab label="Locations" />
+          <Tab label="Contact" />
         </Tabs>
 
-        {/* Tab Content */}
-        <TabPanel value={activeTab} index={0}>
-          <Grid container spacing={4}>
-            {/* About Section */}
-            <Grid item xs={12} lg={8}>
-              <MotionCard
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                sx={{ mb: 4, borderRadius: 3 }}
-              >
-                <CardContent sx={{ p: 4 }}>
-                  <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
-                    About {brand.name}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 4, lineHeight: 1.8, fontSize: '1.1rem' }}>
-                    {brand.details.about}
-                  </Typography>
-
-                  <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
-                    Why Choose {brand.name}?
-                  </Typography>
-                  <Grid container spacing={2}>
-                    {brand.details.highlights.map((highlight, index) => (
-                      <Grid item xs={12} md={6} key={index}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                          <CheckCircle sx={{ color: 'success.main', mr: 2 }} />
-                          <Typography variant="body1">{highlight}</Typography>
-                        </Box>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </CardContent>
-              </MotionCard>
-            </Grid>
-
-            {/* Requirements Sidebar */}
-            <Grid item xs={12} lg={4}>
-              <MotionCard
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                sx={{ borderRadius: 3, position: 'sticky', top: 100 }}
-              >
-                <CardContent sx={{ p: 4 }}>
-                  <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
-                    Investment Requirements
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    {[
-                      { label: 'Total Investment', value: brand.details.requirements.totalInvestment, color: 'primary' },
-                      { label: 'Liquid Capital', value: brand.details.requirements.liquidCapital, color: 'secondary' },
-                      { label: 'Experience Required', value: brand.details.requirements.experience, color: 'success' }
-                    ].map((req, index) => (
-                      <Paper key={index} sx={{ p: 2, backgroundColor: `${req.color}.light`, color: 'white' }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1 }}>{req.label}</Typography>
-                        <Typography variant="h6" fontWeight="bold">{req.value}</Typography>
-                      </Paper>
-                    ))}
-                  </Box>
-                </CardContent>
-              </MotionCard>
-            </Grid>
-          </Grid>
-        </TabPanel>
-
-        <TabPanel value={activeTab} index={1}>
-          <Grid container spacing={4} justifyContent="center">
-            {[
-              {
-                icon: <School />,
-                title: 'Comprehensive Training',
-                description: 'Complete 6-week training program covering all aspects of operations, marketing, and management.',
-                features: ['Initial Training Program', 'Operations Manual', 'Marketing Materials', 'Ongoing Support']
-              },
-              {
-                icon: <SupportAgent />,
-                title: 'Ongoing Support',
-                description: 'Dedicated support team available 24/7 to help with any challenges or questions.',
-                features: ['24/7 Help Desk', 'Regular Check-ins', 'Performance Reviews', 'Growth Strategies']
-              },
-              {
-                icon: <BusinessCenter />,
-                title: 'Business Development',
-                description: 'Strategic guidance to help you grow your business and maximize profitability.',
-                features: ['Site Selection', 'Grand Opening Support', 'Marketing Campaigns', 'Vendor Relations']
-              }
-            ].map((support, index) => (
-              <Grid item xs={12} md={4} key={index}>
-                <MotionCard
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 * index }}
-                  sx={{ 
-                    textAlign: 'center', 
-                    p: 4, 
-                    borderRadius: 3, 
-                    height: '100%',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: 4
-                    }
-                  }}
-                >
-                  <Avatar sx={{ 
-                    mx: 'auto', 
-                    mb: 3, 
-                    backgroundColor: 'primary.main', 
-                    width: 80, 
-                    height: 80 
-                  }}>
-                    {support.icon}
-                  </Avatar>
-                  <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-                    {support.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    {support.description}
-                  </Typography>
-                  <List dense>
-                    {support.features.map((feature, fIndex) => (
-                      <ListItem key={fIndex} sx={{ py: 0.5 }}>
-                        <ListItemIcon sx={{ minWidth: 30 }}>
-                          <CheckCircle sx={{ color: 'success.main', fontSize: 18 }} />
-                        </ListItemIcon>
-                        <ListItemText primary={feature} />
-                      </ListItem>
-                    ))}
-                  </List>
-                </MotionCard>
+        <Box sx={{ p: 3 }}>
+          {tabValue === 0 && (
+            <MotionGrid
+              container
+              spacing={4}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Grid item xs={12} md={6}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  About {brand.brandName}
+                </Typography>
+                <Typography paragraph>
+                  <strong>Founded:</strong> {brand.brandfoundedYear} years ago
+                </Typography>
+                <Typography paragraph>
+                  <strong>Business Model:</strong> {brand.businessModel}
+                </Typography>
+                <Typography paragraph>
+                  <strong>Franchise Model:</strong> {brand.franchiseModel}
+                </Typography>
+                <Typography paragraph>
+                  <strong>Mission:</strong> {brand.brandMission}
+                </Typography>
+                <Typography paragraph>
+                  <strong>Vision:</strong> {brand.brandVission}
+                </Typography>
               </Grid>
-            ))}
-          </Grid>
-        </TabPanel>
-
-        <TabPanel value={activeTab} index={2}>
-          <Grid container spacing={4} justifyContent="center">
-            {[
-              {
-                name: 'John Smith',
-                location: 'Dallas, TX',
-                story: 'Started with one location and now owns 5 successful franchises across Texas.',
-                revenue: '$2.5M Annual Revenue',
-                timeframe: '3 Years'
-              },
-              {
-                name: 'Sarah Johnson',
-                location: 'Miami, FL',
-                story: 'Transitioned from corporate life to franchise ownership and never looked back.',
-                revenue: '$1.8M Annual Revenue',
-                timeframe: '2 Years'
-              },
-              {
-                name: 'Michael Chen',
-                location: 'Seattle, WA',
-                story: 'Built a thriving business while maintaining work-life balance.',
-                revenue: '$3.2M Annual Revenue',
-                timeframe: '4 Years'
-              }
-            ].map((story, index) => (
-              <Grid item xs={12} md={4} key={index}>
-                <MotionCard
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 * index }}
-                  sx={{ 
-                    p: 4, 
-                    borderRadius: 3, 
-                    height: '100%',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: 4
-                    }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Avatar sx={{ mr: 2, backgroundColor: 'primary.main' }}>
-                      {story.name.split(' ').map(n => n[0]).join('')}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h6" fontWeight="bold">{story.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">{story.location}</Typography>
-                    </Box>
-                  </Box>
-                  <Typography variant="body1" sx={{ mb: 3, fontStyle: 'italic' }}>
-                    "{story.story}"
-                  </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2" color="primary.main" fontWeight="bold">
-                      {story.revenue}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {story.timeframe}
-                    </Typography>
-                  </Box>
-                </MotionCard>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Key Advantages
+                </Typography>
+                <List>
+                  {brand.uniqueSellingProposition && (
+                    <ListItem>
+                      <ListItemIcon>
+                        <EmojiEvents color="primary" />
+                      </ListItemIcon>
+                      <ListItemText primary="Unique Selling Proposition" />
+                    </ListItem>
+                  )}
+                  {brand.competitiveAdvantage && (
+                    <ListItem>
+                      <ListItemIcon>
+                        <Star color="primary" />
+                      </ListItemIcon>
+                      <ListItemText primary="Competitive Advantage" />
+                    </ListItem>
+                  )}
+                  {brand.territoryRights && (
+                    <ListItem>
+                      <ListItemIcon>
+                        <CheckCircle color="primary" />
+                      </ListItemIcon>
+                      <ListItemText primary="Exclusive Territory Rights" />
+                    </ListItem>
+                  )}
+                  {brand.nonCompeteRestrictions && (
+                    <ListItem>
+                      <ListItemIcon>
+                        <BusinessCenter color="primary" />
+                      </ListItemIcon>
+                      <ListItemText primary="Non-Compete Restrictions" />
+                    </ListItem>
+                  )}
+                </List>
               </Grid>
-            ))}
-          </Grid>
-        </TabPanel>
-
-        <TabPanel value={activeTab} index={3}>
-          <Grid container spacing={3} justifyContent="center">
-            {brand.currentLocations.map((location, index) => (
-              <Grid item xs={12} md={6} lg={4} key={index}>
-                <MotionCard
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 * index }}
-                  sx={{ 
-                    p: 3, 
-                    borderRadius: 3,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: 4
-                    }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <LocationOn sx={{ color: 'primary.main', mr: 2 }} />
-                    <Typography variant="h6" fontWeight="bold">
-                      {location.city}, {location.state}
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" sx={{ mb: 2 }}>
-                    {location.address}
-                  </Typography>
-                  <Typography variant="body2" color="primary.main" fontWeight="bold">
-                    {location.phone}
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    sx={{ mt: 2 }}
-                    fullWidth
-                  >
-                    View Details
-                  </Button>
-                </MotionCard>
-              </Grid>
-            ))}
-          </Grid>
-        </TabPanel>
-
-        <TabPanel value={activeTab} index={4}>
-          {/* Brand-Related Blogs */}
-          <Box sx={{ mb: 6 }}>
-            <Typography variant="h4" fontWeight="bold" sx={{ mb: 4, textAlign: 'center' }}>
-              {brand.name} Insights & Resources
-            </Typography>
-            <Grid container spacing={4} justifyContent="center">
-              {brandBlogs.map((blog, index) => (
-                <Grid item xs={12} md={6} lg={4} key={blog.id}>
-                  <MotionCard
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 * index }}
-                    sx={{ 
-                      borderRadius: 3, 
-                      overflow: 'hidden',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-5px)',
-                        boxShadow: 4
-                      }
-                    }}
-                    onClick={() => navigate(`/blog/${blog.id}`)}
-                  >
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={blog.image}
-                      alt={blog.title}
-                    />
-                    <CardContent sx={{ p: 3 }}>
-                      <Chip
-                        label={blog.category}
-                        size="small"
-                        color="primary"
-                        sx={{ mb: 2 }}
-                      />
-                      <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-                        {blog.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        {blog.excerpt}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Person sx={{ fontSize: 16 }} />
-                          <Typography variant="caption">{blog.author}</Typography>
-                        </Box>
-                        <Typography variant="caption" color="text.secondary">
-                          {blog.readTime}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </MotionCard>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-
-          {/* FAQs */}
-          {faqs.length > 0 && (
-            <Box>
-              <Typography variant="h5" fontWeight="bold" sx={{ mb: 4, textAlign: 'center' }}>
-                Frequently Asked Questions
-              </Typography>
-              <Grid container justifyContent="center">
-                <Grid item xs={12} lg={8}>
-                  {faqs.map((faq, index) => (
-                    <Accordion key={index} sx={{ mb: 1, borderRadius: 2 }}>
-                      <AccordionSummary expandIcon={<ExpandMore />}>
-                        <Typography fontWeight="bold">{faq.question}</Typography>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Typography>{faq.answer}</Typography>
-                      </AccordionDetails>
-                    </Accordion>
-                  ))}
-                </Grid>
-              </Grid>
-            </Box>
+            </MotionGrid>
           )}
-        </TabPanel>
-      </Box>
 
-      {/* Final CTA Section */}
-      <MotionCard
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
+          {tabValue === 1 && (
+            <MotionGrid
+              container
+              spacing={4}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Grid item xs={12} md={6}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Financial Details
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemText
+                      primary="Initial Franchise Fee"
+                      secondary={`$${brand.initialFranchiseFee}`}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Total Investment Range"
+                      secondary={brand.investmentRange}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Royalty Fee"
+                      secondary={`${brand.royaltyFee}%`}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Marketing Fee"
+                      secondary={`${brand.marketingFee}%`}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Financing Options"
+                      secondary={brand.financingOptions}
+                    />
+                  </ListItem>
+                </List>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Franchise Terms
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemText
+                      primary="Franchise Term Length"
+                      secondary={`${brand.franchiseTermLength} years`}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Transfer Conditions"
+                      secondary={brand.transferConditions ? "Yes" : "No"}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Termination Conditions"
+                      secondary={brand.terminationConditions ? "Yes" : "No"}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Dispute Resolution"
+                      secondary={brand.disputeResolution ? "Yes" : "No"}
+                    />
+                  </ListItem>
+                </List>
+              </Grid>
+            </MotionGrid>
+          )}
+
+          {tabValue === 2 && (
+            <MotionGrid
+              container
+              spacing={4}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Grid item xs={12} md={6}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Training & Support
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemIcon>
+                      <School color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Training Program"
+                      secondary={
+                        brand.trainingProgram ? "Available" : "Not Available"
+                      }
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <SupportAgent color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Ongoing Support"
+                      secondary={
+                        brand.ongoingSupport ? "Available" : "Not Available"
+                      }
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Business color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Marketing Support"
+                      secondary={
+                        brand.marketingSupport ? "Available" : "Not Available"
+                      }
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <CheckCircle color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Operational Standards"
+                      secondary={
+                        brand.operationalStandards
+                          ? "Available"
+                          : "Not Available"
+                      }
+                    />
+                  </ListItem>
+                </List>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Franchisee Requirements
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemIcon>
+                      <AttachMoney color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Working Capital"
+                      secondary={`$${brand.workingCapital}`}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <BusinessCenter color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Franchisee Obligations"
+                      secondary={brand.franchiseeObligations ? "Yes" : "No"}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Home color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Real Estate Costs"
+                      secondary={`$${brand.realEstateCosts}`}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Business color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Equipment Costs"
+                      secondary={`$${brand.equipmentCosts}`}
+                    />
+                  </ListItem>
+                </List>
+              </Grid>
+            </MotionGrid>
+          )}
+
+          {tabValue === 3 && (
+            <MotionBox
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Typography variant="h5" gutterBottom fontWeight="bold">
+                Franchise Locations
+              </Typography>
+              <Grid container spacing={3}>
+                {brand.brandFranchiseLocations.map((location, index) => (
+                  <Grid item xs={12} sm={6} key={index}>
+                    <Card sx={{ height: "100%" }}>
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>
+                          {location.address}
+                        </Typography>
+                        <Typography color="text.secondary" gutterBottom>
+                          {location.city}, {location.state} {location.zipCode}
+                        </Typography>
+                        <Typography paragraph>
+                          <Phone fontSize="small" sx={{ mr: 1 }} />
+                          {location.phone}
+                        </Typography>
+                        <Button
+                          variant="outlined"
+                          startIcon={<LocationOn />}
+                          href={location.googleMapsURl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View on Map
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </MotionBox>
+          )}
+
+          {tabValue === 4 && (
+            <MotionGrid
+              container
+              spacing={4}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Grid item xs={12} md={6}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Contact Information
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Phone color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Phone"
+                      secondary={brand.brandContactInformation.phone}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Email color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Email"
+                      secondary={brand.brandContactInformation.email}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <LocationOn color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Address"
+                      secondary={`${brand.brandContactInformation.address}, ${brand.brandContactInformation.city}, ${brand.brandContactInformation.state} ${brand.brandContactInformation.zipCode}`}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Language color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Website"
+                      secondary={
+                        <Link
+                          href={brand.brandContactInformation.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {brand.brandContactInformation.website}
+                        </Link>
+                      }
+                    />
+                  </ListItem>
+                </List>
+                <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+                  {brand.brandContactInformation.facebookURl && (
+                    <IconButton
+                      href={brand.brandContactInformation.facebookURl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Facebook color="primary" />
+                    </IconButton>
+                  )}
+                  {brand.brandContactInformation.twitterURl && (
+                    <IconButton
+                      href={brand.brandContactInformation.twitterURl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Twitter color="primary" />
+                    </IconButton>
+                  )}
+                  {brand.brandContactInformation.instagramURl && (
+                    <IconButton
+                      href={brand.brandContactInformation.instagramURl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Instagram color="primary" />
+                    </IconButton>
+                  )}
+                  {brand.brandContactInformation.linkedinURl && (
+                    <IconButton
+                      href={brand.brandContactInformation.linkedinURl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <LinkedIn color="primary" />
+                    </IconButton>
+                  )}
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Brand Owner
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                  <Avatar
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      mr: 3,
+                      backgroundColor: "primary.main",
+                      color: "white",
+                      fontSize: "2rem",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {brand.brandOwnerInformation.name.charAt(0)}
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h6" fontWeight="bold">
+                      {brand.brandOwnerInformation.name}
+                    </Typography>
+                    <Typography color="text.secondary">
+                      {brand.brandOwnerInformation.bio}
+                    </Typography>
+                  </Box>
+                </Box>
+                <List>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Email color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Email"
+                      secondary={brand.brandOwnerInformation.email}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Phone color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Phone"
+                      secondary={brand.brandOwnerInformation.phone}
+                    />
+                  </ListItem>
+                  {brand.brandOwnerInformation.linkedinURl && (
+                    <ListItem>
+                      <ListItemIcon>
+                        <LinkedIn color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="LinkedIn"
+                        secondary={
+                          <Link
+                            href={brand.brandOwnerInformation.linkedinURl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            View Profile
+                          </Link>
+                        }
+                      />
+                    </ListItem>
+                  )}
+                </List>
+              </Grid>
+            </MotionGrid>
+          )}
+        </Box>
+      </MotionBox>
+
+      {/* Call to Action */}
+      <MotionBox
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.6 }}
         sx={{
+          backgroundColor: "primary.main",
+          color: "white",
           borderRadius: 4,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          overflow: 'hidden',
-          position: 'relative'
+          p: 6,
+          textAlign: "center",
+          mb: 6,
         }}
       >
-        <CardContent sx={{ p: 6, textAlign: 'center', position: 'relative', zIndex: 2 }}>
-          <Typography variant="h4" fontWeight="bold" sx={{ mb: 2 }}>
-            Ready to Join the {brand.name} Family?
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 4, opacity: 0.9, fontSize: '1.1rem' }}>
-            Take the first step towards owning your own {brand.name} franchise. 
-            Get detailed information and speak with our franchise experts today.
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => setShowInquiryForm(true)}
-              sx={{
-                backgroundColor: '#FFD700',
-                color: 'black',
-                fontWeight: 'bold',
-                borderRadius: 25,
-                px: 4,
-                py: 1.5,
-                fontSize: '1.1rem',
-                '&:hover': { backgroundColor: '#FFC107' }
-              }}
-            >
-              Get Franchise Information
-            </Button>
-            <Button
-              variant="outlined"
-              size="large"
-              startIcon={<Phone />}
-              sx={{
-                borderColor: 'white',
-                color: 'white',
-                borderRadius: 25,
-                px: 4,
-                py: 1.5,
-                fontSize: '1.1rem',
-                '&:hover': { 
-                  borderColor: '#FFD700',
-                  backgroundColor: 'rgba(255, 215, 0, 0.1)'
-                }
-              }}
-            >
-              Call (555) 123-4567
-            </Button>
-          </Box>
-        </CardContent>
-        
-        {/* Decorative Elements */}
-        <Box
+        <Typography variant="h4" fontWeight="bold" sx={{ mb: 3 }}>
+          Ready to Join the {brand.brandName} Family?
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 4, maxWidth: 800, mx: "auto" }}>
+          Take the first step towards owning your own {brand.brandName}{" "}
+          franchise today.
+        </Typography>
+        <Button
+          variant="contained"
+          size="large"
+          onClick={() => setShowInquiryForm(true)}
           sx={{
-            position: 'absolute',
-            top: -100,
-            right: -100,
-            width: 200,
-            height: 200,
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '50%',
-            zIndex: 1
+            backgroundColor: "#FFD700",
+            color: "black",
+            fontWeight: "bold",
+            borderRadius: 25,
+            px: 6,
+            py: 2,
+            fontSize: "1.1rem",
+            "&:hover": { backgroundColor: "#FFC107" },
           }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: -50,
-            left: -50,
-            width: 100,
-            height: 100,
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '50%',
-            zIndex: 1
-          }}
-        />
-      </MotionCard>
+        >
+          Request Franchise Information
+        </Button>
+      </MotionBox>
 
       {/* Inquiry Form Dialog */}
       <Dialog
@@ -782,7 +931,7 @@ const BrandDetail = () => {
         />
       </Dialog>
     </Container>
-  )
-}
+  );
+};
 
-export default BrandDetail
+export default BrandDetail;

@@ -1,231 +1,168 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Card,
-  CardContent,
-  Grid,
+  TextField,
+  MenuItem,
+  Button,
   FormControl,
   InputLabel,
   Select,
-  MenuItem,
-  TextField,
-  Button,
-  Box,
+  Grid,
+  Paper,
   Typography,
-  Chip,
 } from "@mui/material";
-import { Search, FilterList, Clear } from "@mui/icons-material";
-import { categories, investmentRanges } from "../../data/brandsData";
-import { useNavigate } from "react-router-dom";
+import { Clear } from "@mui/icons-material";
 
-const SearchFilters = ({ onFilter, showResults = false }) => {
-  const navigate = useNavigate();
-  const [filters, setFilters] = useState({
-    keyword: "",
-    category: "All Categories",
-    investment: "All Ranges",
-    location: "",
-    minROI: "",
-  });
+const SearchFilters = ({
+  onFilterChange,
+  industries,
+  investmentRanges,
+  franchiseModels,
+}) => {
+  const [keyword, setKeyword] = useState("");
+  const [selectedIndustry, setSelectedIndustry] = useState("");
+  const [selectedInvestmentRange, setSelectedInvestmentRange] = useState("");
+  const [selectedFranchiseModel, setSelectedFranchiseModel] = useState("");
 
-  const handleFilterChange = (field, value) => {
-    const newFilters = { ...filters, [field]: value };
-    setFilters(newFilters);
-    if (onFilter) {
-      onFilter(newFilters);
-    }
-  };
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      onFilterChange({
+        keyword,
+        industry: selectedIndustry,
+        investmentRange: selectedInvestmentRange,
+        franchiseModel: selectedFranchiseModel,
+      });
+    }, 300);
 
-  const handleSearch = () => {
-    const queryParams = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value && value !== "All Categories" && value !== "All Ranges") {
-        queryParams.append(key, value);
-      }
-    });
-    navigate(`/brands?${queryParams.toString()}`);
-  };
-
-  const clearFilters = () => {
-    const clearedFilters = {
-      keyword: "",
-      category: "All Categories",
-      investment: "All Ranges",
-      location: "",
-      minROI: "",
+    return () => {
+      clearTimeout(handler);
     };
-    setFilters(clearedFilters);
-    if (onFilter) {
-      onFilter(clearedFilters);
-    }
+  }, [
+    keyword,
+    selectedIndustry,
+    selectedInvestmentRange,
+    selectedFranchiseModel,
+    onFilterChange,
+  ]);
+
+  const handleKeywordChange = (event) => {
+    setKeyword(event.target.value);
   };
 
-  const hasActiveFilters = Object.values(filters).some((value, index) => {
-    if (index === 1 || index === 2)
-      return value !== "All Categories" && value !== "All Ranges";
-    return value !== "";
-  });
+  const handleIndustryChange = (event) => {
+    setSelectedIndustry(event.target.value);
+  };
+
+  const handleInvestmentRangeChange = (event) => {
+    setSelectedInvestmentRange(event.target.value);
+  };
+
+  const handleFranchiseModelChange = (event) => {
+    setSelectedFranchiseModel(event.target.value);
+  };
+
+  const handleClearFilters = () => {
+    setKeyword("");
+    setSelectedIndustry("");
+    setSelectedInvestmentRange("");
+    setSelectedFranchiseModel("");
+    onFilterChange({
+      keyword: "",
+      industry: "",
+      investmentRange: "",
+      franchiseModel: "",
+    });
+  };
 
   return (
-    <Card
-      sx={{
-        borderRadius: 4,
-        boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-        border: "1px solid rgba(255,255,255,0.2)",
-        background: "rgba(255,255,255,0.95)",
-        backdropFilter: "blur(10px)",
-      }}
-    >
-      <CardContent sx={{ p: 4 }}>
-        {!showResults && (
-          <Box sx={{ textAlign: "center", mb: 4 }}>
-            <Typography variant="h4" fontWeight="bold" sx={{ mb: 2 }}>
-              Find Your Perfect Franchise
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Use our advanced filters to discover franchises that match your
-              criteria
-            </Typography>
-          </Box>
-        )}
-
-        <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Search Keywords"
-              placeholder="Pizza, Burger, Mexican..."
-              value={filters.keyword}
-              onChange={(e) => handleFilterChange("keyword", e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <Search sx={{ color: "text.secondary", mr: 1 }} />
-                ),
-              }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={2}>
-            <FormControl fullWidth>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={filters.category}
-                label="Category"
-                onChange={(e) => handleFilterChange("category", e.target.value)}
-              >
-                {categories.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} md={2}>
-            <FormControl fullWidth>
-              <InputLabel>Investment Range</InputLabel>
-              <Select
-                value={filters.investment}
-                label="Investment Range"
-                onChange={(e) =>
-                  handleFilterChange("investment", e.target.value)
-                }
-              >
-                {investmentRanges.map((range) => (
-                  <MenuItem key={range} value={range}>
-                    {range}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} md={2}>
-            <TextField
-              fullWidth
-              label="Preferred Location"
-              placeholder="City, State"
-              value={filters.location}
-              onChange={(e) => handleFilterChange("location", e.target.value)}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={1}>
-            <TextField
-              fullWidth
-              label="Min ROI %"
-              type="number"
-              placeholder="25"
-              value={filters.minROI}
-              onChange={(e) => handleFilterChange("minROI", e.target.value)}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={2}>
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                variant="contained"
-                size="large"
-                fullWidth
-                onClick={handleSearch}
-                startIcon={<FilterList />}
-                sx={{
-                  borderRadius: 25,
-                  fontWeight: "bold",
-                  py: 1.5,
-                }}
-              >
-                Search
-              </Button>
-              {hasActiveFilters && (
-                <Button
-                  variant="outlined"
-                  size="large"
-                  onClick={clearFilters}
-                  sx={{ minWidth: "auto", borderRadius: 25 }}
-                >
-                  <Clear />
-                </Button>
-              )}
-            </Box>
-          </Grid>
+    <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
+      <Typography variant="h6" gutterBottom>
+        Filter Brands
+      </Typography>
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs={12} sm={6} md={3}>
+          <TextField
+            label="Search by Keyword"
+            variant="outlined"
+            fullWidth
+            value={keyword}
+            onChange={handleKeywordChange}
+            sx={{ borderRadius: 1 }}
+          />
         </Grid>
 
-        {showResults && hasActiveFilters && (
-          <Box sx={{ mt: 3, display: "flex", gap: 1, flexWrap: "wrap" }}>
-            <Typography variant="body2" sx={{ mr: 2, alignSelf: "center" }}>
-              Active Filters:
-            </Typography>
-            {Object.entries(filters).map(([key, value]) => {
-              if (
-                !value ||
-                value === "All Categories" ||
-                value === "All Ranges"
-              )
-                return null;
-              return (
-                <Chip
-                  key={key}
-                  label={`${key}: ${value}`}
-                  onDelete={() =>
-                    handleFilterChange(
-                      key,
-                      key === "category"
-                        ? "All Categories"
-                        : key === "investment"
-                        ? "All Ranges"
-                        : ""
-                    )
-                  }
-                  color="primary"
-                  variant="outlined"
-                />
-              );
-            })}
-          </Box>
-        )}
-      </CardContent>
-    </Card>
+        <Grid item xs={12} sm={6} md={3}>
+          <FormControl fullWidth variant="outlined" sx={{ borderRadius: 1 }}>
+            <InputLabel>Industry</InputLabel>
+            <Select
+              value={selectedIndustry}
+              onChange={handleIndustryChange}
+              label="Industry"
+            >
+              <MenuItem value="">
+                <em>All Industries</em>
+              </MenuItem>
+              {industries.map((industry) => (
+                <MenuItem key={industry} value={industry}>
+                  {industry}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <FormControl fullWidth variant="outlined" sx={{ borderRadius: 1 }}>
+            <InputLabel>Investment Range</InputLabel>
+            <Select
+              value={selectedInvestmentRange}
+              onChange={handleInvestmentRangeChange}
+              label="Investment Range"
+            >
+              <MenuItem value="">
+                <em>All Ranges</em>
+              </MenuItem>
+              {investmentRanges.map((range) => (
+                <MenuItem key={range} value={range}>
+                  {range}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <FormControl fullWidth variant="outlined" sx={{ borderRadius: 1 }}>
+            <InputLabel>Franchise Model</InputLabel>
+            <Select
+              value={selectedFranchiseModel}
+              onChange={handleFranchiseModelChange}
+              label="Franchise Model"
+            >
+              <MenuItem value="">
+                <em>All Models</em>
+              </MenuItem>
+              {franchiseModels.map((model) => (
+                <MenuItem key={model} value={model}>
+                  {model}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={handleClearFilters}
+            startIcon={<Clear />}
+            sx={{ borderRadius: 25, px: 3, py: 1 }}
+          >
+            Clear Filters
+          </Button>
+        </Grid>
+      </Grid>
+    </Paper>
   );
 };
 
