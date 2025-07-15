@@ -1,80 +1,126 @@
-import React, { useState, useEffect } from "react";
-import { Grid, Box, Typography, Button, Container } from "@mui/material";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Grid,
+  Box,
+  Typography,
+  Button,
+  Container,
+  CircularProgress,
+} from "@mui/material";
 import BrandCard from "./BrandCard";
-import { brandsData } from "../../data/brandsData";
+import { motion } from "framer-motion";
+import { db } from "../../firebase/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 const MotionBox = motion(Box);
 
-const BrandGrid = ({ featured = false, limit = null, filters = null }) => {
+const BrandGrid = ({ limit = null, filters = null }) => {
+  const [brands, setBrands] = useState([]);
   const [displayBrands, setDisplayBrands] = useState([]);
   const [showAll, setShowAll] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    let filteredBrands = [...brandsData];
+    const fetchBrands = async () => {
+      setLoading(true);
+      try {
+        const brandsCollection = collection(db, "brands");
+        const q = query(brandsCollection, where("status", "==", "active"));
+        const querySnapshot = await getDocs(q);
+        const brandsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setBrands(brandsData);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching brands:", err);
+        setError("Failed to load brands. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBrands();
+  }, []);
+
+  const applyFilters = useCallback(() => {
+    let currentFilteredBrands = [...brands];
 
     if (filters) {
       if (filters.keyword) {
-        filteredBrands = filteredBrands.filter((brand) =>
-          [brand.name, brand.category, brand.description]
-            .join(" ")
-            .toLowerCase()
-            .includes(filters.keyword.toLowerCase())
-        );
-      }
-
-      if (filters.category && filters.category !== "All Categories") {
-        filteredBrands = filteredBrands.filter(
+        const lowercasedKeyword = filters.keyword.toLowerCase();
+        currentFilteredBrands = currentFilteredBrands.filter(
           (brand) =>
-            brand.category.toLowerCase() === filters.category.toLowerCase()
+            brand.brandName?.toLowerCase().includes(lowercasedKeyword) ||
+            (brand.industries &&
+              brand.industries.some((industry) =>
+                industry.toLowerCase().includes(lowercasedKeyword)
+              )) ||
+            brand.businessModel?.toLowerCase().includes(lowercasedKeyword) ||
+            brand.brandStory?.toLowerCase().includes(lowercasedKeyword) ||
+            brand.mission?.toLowerCase().includes(lowercasedKeyword) ||
+            brand.productsServices?.toLowerCase().includes(lowercasedKeyword) ||
+            brand.competitiveAdvantage
+              ?.toLowerCase()
+              .includes(lowercasedKeyword)
         );
       }
 
-      if (filters.investment && filters.investment !== "All Ranges") {
-        const parseInvestment = (investmentString) => {
-          const match = investmentString.match(/\$(\d+(?:,\d+)*)(K)?/);
-          if (!match) return 0;
-          const value = parseInt(match[1].replace(/,/g, ""));
-          return match[2] === "K" ? value * 1000 : value;
-        };
-
-        filteredBrands = filteredBrands.filter((brand) => {
-          const brandMin = parseInvestment(brand.investment);
-          switch (filters.investment) {
-            case "Under $100K":
-              return brandMin < 100000;
-            case "$100K - $200K":
-              return brandMin >= 100000 && brandMin <= 200000;
-            case "$200K - $300K":
-              return brandMin >= 200000 && brandMin <= 300000;
-            case "$300K - $500K":
-              return brandMin >= 300000 && brandMin <= 500000;
-            case "Over $500K":
-              return brandMin > 500000;
-            default:
-              return true;
-          }
-        });
+      if (filters.industry && filters.industry !== "All Industries") {
+        currentFilteredBrands = currentFilteredBrands.filter(
+          (brand) =>
+            brand.industries && brand.industries.includes(filters.industry)
+        );
       }
 
-      if (filters.minROI) {
-        filteredBrands = filteredBrands.filter((brand) => {
-          const roi = parseInt(brand.roi.split("-")[0]);
-          return roi >= parseInt(filters.minROI);
-        });
+      if (filters.investmentRange && filters.investmentRange !== "All Ranges") {
+        currentFilteredBrands = currentFilteredBrands.filter(
+          (brand) => brand.investmentRange === filters.investmentRange
+        );
       }
-    }
 
-    if (featured) {
-      filteredBrands = filteredBrands.filter((brand) => brand.locations > 75);
+      if (filters.franchiseModel && filters.franchiseModel !== "All Models") {
+        currentFilteredBrands = currentFilteredBrands.filter(
+          (brand) => brand.franchiseModel === filters.franchiseModel
+        );
+      }
     }
 
     if (limit && !showAll) {
-      filteredBrands = filteredBrands.slice(0, limit);
+      currentFilteredBrands = currentFilteredBrands.slice(0, limit);
     }
 
-    setDisplayBrands(filteredBrands);
-  }, [featured, limit, filters, showAll]);
+    setDisplayBrands(currentFilteredBrands);
+  }, [brands, limit, filters, showAll]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="80vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container sx={{ py: 8, textAlign: "center" }}>
+        <Typography variant="h6" color="error">
+          {error}
+        </Typography>
+      </Container>
+    );
+  }
 
   if (displayBrands.length === 0) {
     return (
@@ -99,7 +145,7 @@ const BrandGrid = ({ featured = false, limit = null, filters = null }) => {
         ))}
       </Grid>
 
-      {limit && displayBrands.length >= limit && !showAll && (
+      {limit && brands.length > limit && !showAll && (
         <MotionBox
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}

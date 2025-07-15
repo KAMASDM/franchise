@@ -50,8 +50,8 @@ const BrandCard = ({ brand, index = 0 }) => {
       <CardMedia
         component="img"
         height="200"
-        image={brand.image}
-        alt={brand.name}
+        image={"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"}
+        alt={brand.brandName}
         sx={{ objectFit: "cover" }}
       />
 
@@ -67,14 +67,19 @@ const BrandCard = ({ brand, index = 0 }) => {
         >
           <Box>
             <Typography variant="h5" fontWeight="bold" sx={{ mb: 1 }}>
-              {brand.name}
+              {brand.brandName}
             </Typography>
-            <Chip
-              label={brand.category}
-              size="small"
-              color="primary"
-              sx={{ fontWeight: "bold" }}
-            />
+            {brand.industries &&
+              brand.industries.length > 0 &&
+              brand.industries.map((industry, index) => (
+                <Chip
+                  key={index}
+                  label={industry}
+                  size="small"
+                  color="primary"
+                  sx={{ fontWeight: "bold", mr: 1 }}
+                />
+              ))}
           </Box>
           <Avatar sx={{ backgroundColor: "secondary.main" }}>
             <Star />
@@ -87,33 +92,33 @@ const BrandCard = ({ brand, index = 0 }) => {
           color="text.secondary"
           sx={{ mb: 3, lineHeight: 1.6 }}
         >
-          {brand.description}
+          {brand.brandStory || brand.mission}
         </Typography>
 
         {/* Stats */}
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" fontWeight="bold" color="primary.main">
-              {brand.locations}
+              {brand.initialFranchiseFee}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Locations
+              Franchise Fee
             </Typography>
           </Box>
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" fontWeight="bold" color="secondary.main">
-              {brand.roi}
+              {brand.royaltyFee} %
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              ROI
+              Royalty Fee
             </Typography>
           </Box>
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" fontWeight="bold" color="success.main">
-              {brand.paybackPeriod}
+              {brand.franchiseTermLength} years
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Payback
+              Term Length
             </Typography>
           </Box>
         </Box>
@@ -125,17 +130,24 @@ const BrandCard = ({ brand, index = 0 }) => {
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
             <TrendingUp sx={{ color: "success.main", mr: 1, fontSize: 20 }} />
             <Typography variant="body2" fontWeight="bold">
-              Investment: {brand.investment}
+              Investment: {brand.investmentRange}
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
             <AccessTime sx={{ color: "info.main", mr: 1, fontSize: 20 }} />
-            <Typography variant="body2">Founded: {brand.founded}</Typography>
+            <Typography variant="body2">
+              Founded: {brand.brandfoundedYear} years
+            </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <LocationOn sx={{ color: "warning.main", mr: 1, fontSize: 20 }} />
             <Typography variant="body2">
-              Franchise Fee: {brand.franchiseFee}
+              Location:{" "}
+              {brand.brandContactInformation.city +
+                ", " +
+                brand.brandContactInformation.state +
+                ", " +
+                brand.brandContactInformation.country}
             </Typography>
           </Box>
         </Box>

@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import BrandGrid from "../brand/BrandGrid";
-import { Box, Typography, Button, Container } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 
 const MotionBox = motion(Box);
 
@@ -33,7 +33,7 @@ const FeaturedFranchise = () => {
         </Typography>
       </MotionBox>
 
-      <BrandGrid featured={true} limit={6} />
+      <BrandGrid limit={6} />
 
       <Box sx={{ textAlign: "center", mt: 6 }}>
         <Button

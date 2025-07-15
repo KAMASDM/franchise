@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AuthContextProvider } from "./context/AuthContext";
-import { useAuth } from "./context/AuthContext"; 
+import { useAuth } from "./context/AuthContext";
 
 import FAQ from "./pages/FAQ";
 import Home from "./pages/Home";
@@ -29,39 +29,57 @@ const ProtectedRoute = ({ children }) => {
   }, [user, loading, navigate]);
 
   if (loading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading authentication...</Box>;
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        Loading authentication...
+      </Box>
+    );
   }
 
   return user ? children : null;
 };
 
 function App() {
+  const location = useLocation();
+  const isDashboardRoute = location.pathname.startsWith("/dashboard");
+
   return (
     <AuthContextProvider>
-      <Box>
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/brands" element={<Brands />} />
-          <Route path="/brand/:id" element={<BrandDetail />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:id" element={<BlogDetail />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/brand-registration" element={<BrandRegistration />} />
+      <Box
+        sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+      >
+        {!isDashboardRoute && <Header />}
+        <Box component="main" sx={{ flex: 1 }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/brands" element={<Brands />} />
+            <Route path="/brand/:id" element={<BrandDetail />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:id" element={<BlogDetail />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/brand-registration" element={<BrandRegistration />} />
 
-          <Route
-            path="/dashboard/*"
-            element={
-              <ProtectedRoute> 
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-        <Footer />
-        <Chatbot />
+            <Route
+              path="/dashboard/*"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Box>
+        {!isDashboardRoute && <Footer />}
+        {!isDashboardRoute && <Chatbot />}
       </Box>
     </AuthContextProvider>
   );

@@ -25,32 +25,24 @@ import {
   Tooltip,
   Switch,
   FormControlLabel,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Fab,
-  Zoom,
+  Checkbox,
+  Stack,
 } from "@mui/material";
 import {
   CloudUpload as CloudUploadIcon,
   Delete as DeleteIcon,
   Description as DescriptionIcon,
-  Info as InfoIcon,
   Check as CheckIcon,
-  ExpandMore as ExpandMoreIcon,
   Help as HelpIcon,
   Business as BusinessIcon,
   AttachMoney as MoneyIcon,
   School as SchoolIcon,
   Gavel as GavelIcon,
-  Save as SaveIcon,
 } from "@mui/icons-material";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../../firebase/firebase";
-import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { v4 as uuidv4 } from "uuid";
+import { useAuth } from "../../context/AuthContext";
+import { db } from "../../firebase/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const steps = [
   {
@@ -80,8 +72,14 @@ const steps = [
   },
 ];
 
+const businessModal = [
+  "Company Owned - Company Operated",
+  "Company Owned - Franchise Operated",
+];
+
 const industries = [
   "Food & Beverage",
+  "Hospitality",
   "Retail",
   "Healthcare",
   "Education",
@@ -115,47 +113,62 @@ const franchiseModels = [
 
 const BrandRegistration = () => {
   const { user } = useAuth();
-  const fileInputRef = useRef(null);
+  const navigate = useNavigate();
+  const fileInputRefs = useRef({});
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [savedProgress, setSavedProgress] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState({});
 
-  const [completedSections, setCompletedSections] = useState({
-    0: false,
-    1: false,
-    2: false,
-    3: false,
-    4: false,
-  });
-
   const [formData, setFormData] = useState({
-    // Basic Information
+    //Basic Information
     brandName: "",
-    website: "",
-    foundedYear: "",
-    headquarters: "",
-    brandStory: "",
-    mission: "",
-    vision: "",
-    coreValues: "",
-    companySize: "",
-    annualRevenue: "",
+    brandImage: null,
+    brandVission: "",
+    brandMission: "",
+    brandfoundedYear: "",
+    brandOwnerInformation: {
+      name: "",
+      email: "",
+      bio: "",
+      phone: "",
+      linkedinURl: "",
+    },
+    brandContactInformation: {
+      address: "",
+      city: "",
+      state: "",
+      country: "",
+      zipCode: "",
+      phone: "",
+      email: "",
+      website: "",
+      linkedinURl: "",
+      instagramURl: "",
+      facebookURl: "",
+      twitterURl: "",
+    },
+    brandFranchiseImages: [],
+    brandFranchiseLocations: [
+      {
+        address: "",
+        city: "",
+        state: "",
+        country: "",
+        zipCode: "",
+        phone: "",
+        googleMapsURl: "",
+      },
+    ],
 
     // Business Details
     businessModel: "",
-    productsServices: "",
-    uniqueSellingProposition: "",
-    targetMarket: "",
-    keyPeople: "",
-    competitiveAdvantage: "",
-    marketPosition: "",
+    uniqueSellingProposition: false,
+    targetMarket: false,
+    competitiveAdvantage: false,
 
     // Investment & Fees
     initialFranchiseFee: "",
-    totalInvestmentMin: "",
-    totalInvestmentMax: "",
     royaltyFee: "",
     marketingFee: "",
     workingCapital: "",
@@ -164,14 +177,14 @@ const BrandRegistration = () => {
     realEstateCosts: "",
 
     // Operations & Support
-    franchiseeObligations: "",
-    franchisorSupport: "",
-    territoryRights: "",
-    trainingProgram: "",
-    ongoingSupport: "",
-    marketingSupport: "",
-    operationalStandards: "",
-    qualityControl: "",
+    franchiseeObligations: false,
+    franchisorSupport: false,
+    territoryRights: false,
+    trainingProgram: false,
+    ongoingSupport: false,
+    marketingSupport: false,
+    operationalStandards: false,
+    qualityControl: false,
 
     // Legal Framework
     franchiseTermLength: "",
@@ -179,114 +192,167 @@ const BrandRegistration = () => {
     transferConditions: "",
     disputeResolution: "",
     nonCompeteRestrictions: "",
-    intellectualProperty: "",
 
     // Additional
     industries: [],
     investmentRange: "",
     franchiseModel: "",
-    targetAudience: "",
-    growthPlans: "",
   });
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    checkSectionCompletion();
-  };
-
-  const checkSectionCompletion = () => {
-    // Logic to check if current section has required fields filled
-    const requiredFields = getRequiredFieldsForStep(activeStep);
-    const isComplete = requiredFields.every((field) => formData[field]);
-    setCompletedSections((prev) => ({ ...prev, [activeStep]: isComplete }));
-  };
-
-  const getRequiredFieldsForStep = (step) => {
-    switch (step) {
-      case 0:
-        return ["brandName", "headquarters", "brandStory"];
-      case 1:
-        return ["businessModel", "industries"];
-      case 2:
-        return ["initialFranchiseFee", "investmentRange"];
-      case 3:
-        return ["trainingProgram", "franchisorSupport"];
-      case 4:
-        return ["franchiseTermLength"];
-      default:
-        return [];
-    }
   };
 
   const handleFileUpload = (field, event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // In a real app, you'd upload to Firebase Storage here
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    if (field === "brandImage") {
+      handleInputChange("brandImage", files[0]);
+    } else if (field === "brandFranchiseImages") {
+      // Convert FileList to array and combine with existing images
+      const newFiles = Array.from(files);
+      setFormData((prev) => ({
+        ...prev,
+        brandFranchiseImages: [...prev.brandFranchiseImages, ...newFiles],
+      }));
+    } else {
       setUploadedFiles((prev) => ({
         ...prev,
         [field]: {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          url: URL.createObjectURL(file), // For preview
+          name: files[0].name,
+          size: files[0].size,
+          type: files[0].type,
+          file: files[0],
         },
       }));
     }
   };
 
   const removeFile = (field) => {
-    setUploadedFiles((prev) => {
-      const updated = { ...prev };
-      delete updated[field];
-      return updated;
-    });
+    if (field === "brandImage") {
+      handleInputChange("brandImage", null);
+    } else if (field === "brandFranchiseImages") {
+      setFormData((prev) => ({
+        ...prev,
+        brandFranchiseImages: [],
+      }));
+    } else {
+      setUploadedFiles((prev) => {
+        const updated = { ...prev };
+        delete updated[field];
+        return updated;
+      });
+    }
   };
 
   const FileUploadSection = ({
     field,
     label,
-    acceptedTypes = ".pdf,.doc,.docx",
+    acceptedTypes = "image/*",
     helpText,
-  }) => (
-    <Card elevation={1} sx={{ mb: 2 }}>
-      <CardContent>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-          <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
-            {label}
-          </Typography>
-          {helpText && (
-            <Tooltip title={helpText}>
-              <IconButton size="small">
-                <HelpIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Box>
+  }) => {
+    // Determine if this is a single file upload (like brandImage) or multiple (like brandFranchiseImages)
+    const isMultiple = field === "brandFranchiseImages";
 
-        {uploadedFiles[field] ? (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              p: 2,
-              backgroundColor: "success.light",
-              borderRadius: 1,
-            }}
-          >
-            <DescriptionIcon sx={{ mr: 2, color: "success.dark" }} />
-            <Box sx={{ flexGrow: 1 }}>
-              <Typography variant="body2" fontWeight="medium">
-                {uploadedFiles[field].name}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {(uploadedFiles[field].size / 1024).toFixed(1)} KB
-              </Typography>
-            </Box>
-            <IconButton onClick={() => removeFile(field)} color="error">
-              <DeleteIcon />
-            </IconButton>
+    return (
+      <Card elevation={1} sx={{ mb: 2 }}>
+        <CardContent>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
+              {label}
+            </Typography>
+            {helpText && (
+              <Tooltip title={helpText}>
+                <IconButton size="small">
+                  <HelpIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
-        ) : (
+
+          {/* Single file upload preview (for brandImage) */}
+          {!isMultiple && (formData[field] || uploadedFiles[field]) && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                p: 2,
+                backgroundColor: "success.light",
+                borderRadius: 1,
+                mb: 2,
+              }}
+            >
+              <DescriptionIcon sx={{ mr: 2, color: "success.dark" }} />
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography variant="body2" fontWeight="medium">
+                  {field === "brandImage"
+                    ? formData.brandImage?.name
+                    : uploadedFiles[field]?.name}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {field === "brandImage"
+                    ? `${(formData.brandImage?.size / 1024).toFixed(1)} KB`
+                    : `${(uploadedFiles[field]?.size / 1024).toFixed(1)} KB`}
+                </Typography>
+              </Box>
+              <IconButton onClick={() => removeFile(field)} color="error">
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          )}
+
+          {/* Multiple file upload preview (for brandFranchiseImages) */}
+          {isMultiple && formData.brandFranchiseImages?.length > 0 && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                {formData.brandFranchiseImages.length} images uploaded
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {formData.brandFranchiseImages.map((file, index) => (
+                  <Box key={index} sx={{ position: "relative" }}>
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Franchise ${index + 1}`}
+                      style={{
+                        width: 100,
+                        height: 100,
+                        objectFit: "cover",
+                        borderRadius: 4,
+                      }}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        const updatedImages =
+                          formData.brandFranchiseImages.filter(
+                            (_, i) => i !== index
+                          );
+                        handleInputChange(
+                          "brandFranchiseImages",
+                          updatedImages
+                        );
+                      }}
+                      sx={{
+                        position: "absolute",
+                        top: -8,
+                        right: -8,
+                        backgroundColor: "error.main",
+                        color: "white",
+                        "&:hover": {
+                          backgroundColor: "error.dark",
+                        },
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+          )}
+
+          {/* Upload area */}
           <Box
             sx={{
               border: "2px dashed",
@@ -298,31 +364,44 @@ const BrandRegistration = () => {
               transition: "all 0.2s",
               "&:hover": {
                 borderColor: "primary.main",
-                backgroundColor: "primary.light",
-                opacity: 0.1,
+                backgroundColor: "action.hover",
               },
             }}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => fileInputRefs.current[field]?.click()}
           >
             <CloudUploadIcon sx={{ fontSize: 48, color: "grey.400", mb: 1 }} />
             <Typography variant="body2" color="text.secondary">
               Click to upload or drag and drop
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Supported formats: PDF, DOC, DOCX
+              Supported formats: {acceptedTypes}
+              {isMultiple && " (Multiple files allowed)"}
             </Typography>
             <input
-              ref={fileInputRef}
+              ref={(el) => (fileInputRefs.current[field] = el)}
               type="file"
               hidden
               accept={acceptedTypes}
               onChange={(e) => handleFileUpload(field, e)}
+              multiple={isMultiple}
             />
           </Box>
-        )}
-      </CardContent>
-    </Card>
-  );
+
+          {/* Add more button for multiple uploads */}
+          {isMultiple && formData.brandFranchiseImages?.length > 0 && (
+            <Button
+              variant="outlined"
+              startIcon={<CloudUploadIcon />}
+              onClick={() => fileInputRefs.current[field]?.click()}
+              sx={{ mt: 2 }}
+            >
+              Add More Images
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
@@ -332,38 +411,29 @@ const BrandRegistration = () => {
     setActiveStep((prev) => prev - 1);
   };
 
-  const saveProgress = async () => {
-    localStorage.setItem(
-      "brandRegistrationProgress",
-      JSON.stringify({
-        formData,
-        activeStep,
-        uploadedFiles: Object.keys(uploadedFiles),
-        timestamp: new Date().toISOString(),
-      })
-    );
-    setSavedProgress(true);
-    setTimeout(() => setSavedProgress(false), 2000);
-  };
-
   const handleSubmit = async () => {
-    if (!formData.brandName || !formData.businessModel) {
-      setError(
-        "Please fill in required fields (Brand Name and Business Model)"
-      );
-      return;
-    }
-
     setLoading(true);
     try {
-      const docRef = await addDoc(collection(db, "brands"), {
+      // Prepare form data for submission
+      const submissionData = {
         ...formData,
+        // Convert files to base64 strings or other format as needed
+        // In a real app, you might want to upload files to storage first
+        brandImage: formData.brandImage ? formData.brandImage.name : null,
+        brandFranchiseImages: formData.brandFranchiseImages.map(
+          (file) => file.name
+        ),
         createdAt: serverTimestamp(),
         createdBy: user.uid,
+        userId: user.uid,
         status: "pending",
-      });
+      };
 
-      console.log("Document written with ID: ", docRef.id);
+      // Add brand data to Firestore
+      await addDoc(collection(db, "brands"), submissionData);
+
+      // Redirect to brand profile page
+      navigate("/brands");
     } catch (err) {
       console.error("Error adding document: ", err);
       setError("Failed to submit application. Please try again.");
@@ -376,357 +446,558 @@ const BrandRegistration = () => {
     switch (step) {
       case 0:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Brand Name"
-                value={formData.brandName}
-                onChange={(e) => handleInputChange("brandName", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Website"
-                value={formData.website}
-                onChange={(e) => handleInputChange("website", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Founded Year"
-                type="number"
-                value={formData.foundedYear}
-                onChange={(e) =>
-                  handleInputChange("foundedYear", e.target.value)
-                }
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Headquarters"
-                value={formData.headquarters}
-                onChange={(e) =>
-                  handleInputChange("headquarters", e.target.value)
-                }
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Company Size</InputLabel>
-                <Select
-                  value={formData.companySize}
-                  onChange={(e) =>
-                    handleInputChange("companySize", e.target.value)
-                  }
+          <>
+            {/* Brand Information */}
+            <Box
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                boxShadow: 3,
+                bgcolor: "#fff",
+                mb: 4,
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                Brand Information
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="Brand Name"
+                    fullWidth
+                    value={formData.brandName}
+                    onChange={(e) =>
+                      handleInputChange("brandName", e.target.value)
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Founded Year"
+                    type="number"
+                    value={formData.brandfoundedYear}
+                    onChange={(e) =>
+                      handleInputChange("brandfoundedYear", e.target.value)
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Vision"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={formData.brandVission}
+                    onChange={(e) =>
+                      handleInputChange("brandVission", e.target.value)
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Mission"
+                    fullWidth
+                    multiline
+                    rows={4}
+                    value={formData.brandMission}
+                    onChange={(e) =>
+                      handleInputChange("brandMission", e.target.value)
+                    }
+                  />
+                </Grid>
+              </Grid>
+              <Box sx={{ mt: 4 }}>
+                <FileUploadSection
+                  field="brandImage"
+                  label="Brand Logo/Image"
+                  acceptedTypes="image/*"
+                />
+              </Box>
+            </Box>
+
+            {/* Owner Information */}
+            <Box
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                boxShadow: 3,
+                bgcolor: "#fff",
+                mb: 4,
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                Brand Owner Information
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6} md={4}>
+                  <TextField
+                    label="Owner Name"
+                    fullWidth
+                    value={formData.brandOwnerInformation.name}
+                    onChange={(e) =>
+                      handleInputChange("brandOwnerInformation", {
+                        ...formData.brandOwnerInformation,
+                        name: e.target.value,
+                      })
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                  <TextField
+                    label="Owner Email"
+                    fullWidth
+                    value={formData.brandOwnerInformation.email}
+                    onChange={(e) =>
+                      handleInputChange("brandOwnerInformation", {
+                        ...formData.brandOwnerInformation,
+                        email: e.target.value,
+                      })
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                  <TextField
+                    label="Owner Phone"
+                    fullWidth
+                    value={formData.brandOwnerInformation.phone}
+                    onChange={(e) =>
+                      handleInputChange("brandOwnerInformation", {
+                        ...formData.brandOwnerInformation,
+                        phone: e.target.value,
+                      })
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="LinkedIn URL"
+                    fullWidth
+                    value={formData.brandOwnerInformation.linkedinURl}
+                    onChange={(e) =>
+                      handleInputChange("brandOwnerInformation", {
+                        ...formData.brandOwnerInformation,
+                        linkedinURl: e.target.value,
+                      })
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Short Bio"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    value={formData.brandOwnerInformation.bio}
+                    onChange={(e) =>
+                      handleInputChange("brandOwnerInformation", {
+                        ...formData.brandOwnerInformation,
+                        bio: e.target.value,
+                      })
+                    }
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+
+            {/* Contact Information */}
+            <Box
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                boxShadow: 3,
+                bgcolor: "#fff",
+                mb: 4,
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                Contact Information
+              </Typography>
+              <Grid container spacing={3}>
+                {Object.entries(formData.brandContactInformation).map(
+                  ([field, value]) => (
+                    <Grid item xs={12} sm={6} md={4} key={field}>
+                      <TextField
+                        label={field
+                          .replace(/URl/, " URL")
+                          .replace(/([A-Z])/g, " $1")}
+                        fullWidth
+                        value={value}
+                        onChange={(e) =>
+                          handleInputChange("brandContactInformation", {
+                            ...formData.brandContactInformation,
+                            [field]: e.target.value,
+                          })
+                        }
+                      />
+                    </Grid>
+                  )
+                )}
+              </Grid>
+            </Box>
+
+            {/* Franchise Locations */}
+            <Box
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                boxShadow: 3,
+                bgcolor: "#fff",
+                mb: 4,
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                Franchise Locations
+              </Typography>
+
+              {formData.brandFranchiseLocations.map((location, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    mb: 3,
+                    p: 2,
+                    border: "1px solid #ddd",
+                    borderRadius: 2,
+                  }}
                 >
-                  <MenuItem value="startup">Startup (1-10 employees)</MenuItem>
-                  <MenuItem value="small">Small (11-50 employees)</MenuItem>
-                  <MenuItem value="medium">Medium (51-200 employees)</MenuItem>
-                  <MenuItem value="large">Large (200+ employees)</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Annual Revenue Range</InputLabel>
-                <Select
-                  value={formData.annualRevenue}
-                  onChange={(e) =>
-                    handleInputChange("annualRevenue", e.target.value)
-                  }
-                >
-                  <MenuItem value="under1m">Under $1M</MenuItem>
-                  <MenuItem value="1m-5m">$1M - $5M</MenuItem>
-                  <MenuItem value="5m-10m">$5M - $10M</MenuItem>
-                  <MenuItem value="10m-50m">$10M - $50M</MenuItem>
-                  <MenuItem value="over50m">Over $50M</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Brand Story"
-                value={formData.brandStory}
-                onChange={(e) =>
-                  handleInputChange("brandStory", e.target.value)
+                  <Grid container spacing={3}>
+                    {Object.entries(location).map(([field, value]) => (
+                      <Grid item xs={12} sm={6} md={4} key={field}>
+                        <TextField
+                          label={field
+                            .replace(/URl/, " URL")
+                            .replace(/([A-Z])/g, " $1")}
+                          fullWidth
+                          value={value}
+                          onChange={(e) => {
+                            const updatedLocations = [
+                              ...formData.brandFranchiseLocations,
+                            ];
+                            updatedLocations[index][field] = e.target.value;
+                            handleInputChange(
+                              "brandFranchiseLocations",
+                              updatedLocations
+                            );
+                          }}
+                        />
+                      </Grid>
+                    ))}
+                    <Grid item xs={12}>
+                      <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => {
+                          const updatedLocations =
+                            formData.brandFranchiseLocations.filter(
+                              (_, i) => i !== index
+                            );
+                          handleInputChange(
+                            "brandFranchiseLocations",
+                            updatedLocations
+                          );
+                        }}
+                      >
+                        Remove This Location
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Box>
+              ))}
+
+              <Button
+                variant="outlined"
+                onClick={() =>
+                  handleInputChange("brandFranchiseLocations", [
+                    ...formData.brandFranchiseLocations,
+                    {
+                      address: "",
+                      city: "",
+                      state: "",
+                      country: "",
+                      zipCode: "",
+                      phone: "",
+                      googleMapsURl: "",
+                    },
+                  ])
                 }
-                placeholder="Tell us the compelling story of your brand - its origins, journey, challenges overcome, and what inspired its creation. This narrative helps potential franchisees connect with your vision and understand what makes your brand special."
+              >
+                + Add Another Location
+              </Button>
+            </Box>
+
+            {/* Franchise Gallery */}
+            <Box
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                boxShadow: 3,
+                bgcolor: "#fff",
+                mb: 4,
+              }}
+            >
+              <Typography variant="h6" gutterBottom>
+                Franchise Gallery
+              </Typography>
+              <FileUploadSection
+                field="brandFranchiseImages"
+                label="Upload Franchise Images"
+                acceptedTypes="image/*"
               />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Mission Statement"
-                value={formData.mission}
-                onChange={(e) => handleInputChange("mission", e.target.value)}
-                placeholder="What is your company's purpose and primary objectives?"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Vision Statement"
-                value={formData.vision}
-                onChange={(e) => handleInputChange("vision", e.target.value)}
-                placeholder="Where do you see your company in the future?"
-              />
-            </Grid>
-          </Grid>
+            </Box>
+          </>
         );
 
       case 1:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Business Model"
-                value={formData.businessModel}
-                onChange={(e) =>
-                  handleInputChange("businessModel", e.target.value)
-                }
-                placeholder="Describe how your brand operates, including its business model, revenue streams, and customer relationships."
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Card elevation={1}>
-                <CardHeader
-                  title="Industries"
-                  titleTypographyProps={{ variant: "subtitle1" }}
-                />
-                <CardContent>
-                  <FormControl fullWidth>
-                    <InputLabel>Select Industries</InputLabel>
-                    <Select
-                      multiple
-                      value={formData.industries}
-                      onChange={(e) =>
-                        handleInputChange("industries", e.target.value)
-                      }
-                      renderValue={(selected) => (
-                        <Box
-                          sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
-                        >
-                          {selected.map((value) => (
-                            <Chip key={value} label={value} size="small" />
-                          ))}
-                        </Box>
-                      )}
-                    >
-                      {industries.map((industry) => (
-                        <MenuItem key={industry} value={industry}>
-                          {industry}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </CardContent>
-              </Card>
+          <>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Select Industries</InputLabel>
+                  <Select
+                    multiple
+                    value={formData.industries}
+                    onChange={(e) =>
+                      handleInputChange("industries", e.target.value)
+                    }
+                    renderValue={(selected) => (
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                        {selected.map((value) => (
+                          <Chip key={value} label={value} size="small" />
+                        ))}
+                      </Box>
+                    )}
+                  >
+                    {industries.map((industry) => (
+                      <MenuItem key={industry} value={industry}>
+                        {industry}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Franchise Type</InputLabel>
+                  <Select
+                    value={formData.franchiseModel}
+                    onChange={(e) =>
+                      handleInputChange("franchiseModel", e.target.value)
+                    }
+                  >
+                    {franchiseModels.map((model) => (
+                      <MenuItem key={model} value={model}>
+                        {model}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Business Modal</InputLabel>
+                  <Select
+                    value={formData.businessModel}
+                    onChange={(e) =>
+                      handleInputChange("businessModel", e.target.value)
+                    }
+                  >
+                    {businessModal.map((model) => (
+                      <MenuItem key={model} value={model}>
+                        {model}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
             </Grid>
 
-            <Grid item xs={12} md={6}>
-              <Card elevation={1}>
-                <CardHeader
-                  title="Franchise Model"
-                  titleTypographyProps={{ variant: "subtitle1" }}
-                />
-                <CardContent>
-                  <FormControl fullWidth>
-                    <InputLabel>Franchise Type</InputLabel>
-                    <Select
-                      value={formData.franchiseModel}
+            <Grid container spacing={3} sx={{ mt: 2 }}>
+              <Grid item xs={12} md={4}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.uniqueSellingProposition}
                       onChange={(e) =>
-                        handleInputChange("franchiseModel", e.target.value)
+                        handleInputChange(
+                          "uniqueSellingProposition",
+                          e.target.checked
+                        )
                       }
-                    >
-                      {franchiseModels.map((model) => (
-                        <MenuItem key={model} value={model}>
-                          {model}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </CardContent>
-              </Card>
+                    />
+                  }
+                  label="Unique Selling Proposition"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.targetMarket}
+                      onChange={(e) =>
+                        handleInputChange("targetMarket", e.target.checked)
+                      }
+                    />
+                  }
+                  label="Target Market"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.competitiveAdvantage}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "competitiveAdvantage",
+                          e.target.checked
+                        )
+                      }
+                    />
+                  }
+                  label="Competitive Advantage"
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Unique Selling Proposition"
-                value={formData.uniqueSellingProposition}
-                onChange={(e) =>
-                  handleInputChange("uniqueSellingProposition", e.target.value)
-                }
-                placeholder="What makes your brand stand out from the competition? Highlight your key differentiators, competitive advantages, and unique value propositions."
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Target Market"
-                value={formData.targetMarket}
-                onChange={(e) =>
-                  handleInputChange("targetMarket", e.target.value)
-                }
-                placeholder="Describe your ideal customers, demographics, and market segments."
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Competitive Advantage"
-                value={formData.competitiveAdvantage}
-                onChange={(e) =>
-                  handleInputChange("competitiveAdvantage", e.target.value)
-                }
-                placeholder="What gives you an edge over competitors?"
-              />
-            </Grid>
-          </Grid>
+          </>
         );
 
       case 2:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Card elevation={1}>
-                <CardHeader
-                  title="Initial Investment"
-                  titleTypographyProps={{ variant: "subtitle1" }}
-                />
-                <CardContent>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Initial Franchise Fee ($)"
-                        type="number"
-                        value={formData.initialFranchiseFee}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "initialFranchiseFee",
-                            e.target.value
-                          )
-                        }
-                        required
-                        InputProps={{ startAdornment: "$" }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <FormControl fullWidth>
-                        <InputLabel>Total Investment Range</InputLabel>
-                        <Select
-                          value={formData.investmentRange}
+          <>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Card elevation={1}>
+                  <CardHeader
+                    title="Initial Investment"
+                    titleTypographyProps={{ variant: "subtitle1" }}
+                  />
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Initial Franchise Fee ($)"
+                          type="number"
+                          value={formData.initialFranchiseFee}
                           onChange={(e) =>
-                            handleInputChange("investmentRange", e.target.value)
+                            handleInputChange(
+                              "initialFranchiseFee",
+                              e.target.value
+                            )
                           }
-                        >
-                          {investmentRanges.map((range) => (
-                            <MenuItem key={range} value={range}>
-                              {range}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                          InputProps={{ startAdornment: "$" }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                          <InputLabel>Total Investment Range</InputLabel>
+                          <Select
+                            value={formData.investmentRange}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "investmentRange",
+                                e.target.value
+                              )
+                            }
+                          >
+                            {investmentRanges.map((range) => (
+                              <MenuItem key={range} value={range}>
+                                {range}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
                     </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Card elevation={1}>
+                  <CardHeader
+                    title="Ongoing Fees"
+                    titleTypographyProps={{ variant: "subtitle1" }}
+                  />
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Royalty Fee (%)"
+                          type="number"
+                          value={formData.royaltyFee}
+                          onChange={(e) =>
+                            handleInputChange("royaltyFee", e.target.value)
+                          }
+                          inputProps={{ min: 0, max: 100, step: 0.5 }}
+                          InputProps={{ endAdornment: "%" }}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Marketing Fee (%)"
+                          type="number"
+                          value={formData.marketingFee}
+                          onChange={(e) =>
+                            handleInputChange("marketingFee", e.target.value)
+                          }
+                          inputProps={{ min: 0, max: 100, step: 0.5 }}
+                          InputProps={{ endAdornment: "%" }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <Card elevation={1}>
-                <CardHeader
-                  title="Ongoing Fees"
-                  titleTypographyProps={{ variant: "subtitle1" }}
+
+            <Grid container spacing={3} sx={{ mt: 4 }}>
+              <Grid item xs={12} sm={6} md={4}>
+                <TextField
+                  fullWidth
+                  label="Equipment Costs ($)"
+                  type="number"
+                  value={formData.equipmentCosts}
+                  onChange={(e) =>
+                    handleInputChange("equipmentCosts", e.target.value)
+                  }
+                  InputProps={{ startAdornment: "$" }}
                 />
-                <CardContent>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Royalty Fee (%)"
-                        type="number"
-                        value={formData.royaltyFee}
-                        onChange={(e) =>
-                          handleInputChange("royaltyFee", e.target.value)
-                        }
-                        inputProps={{ min: 0, max: 100, step: 0.5 }}
-                        InputProps={{ endAdornment: "%" }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Marketing Fee (%)"
-                        type="number"
-                        value={formData.marketingFee}
-                        onChange={(e) =>
-                          handleInputChange("marketingFee", e.target.value)
-                        }
-                        inputProps={{ min: 0, max: 100, step: 0.5 }}
-                        InputProps={{ endAdornment: "%" }}
-                      />
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <TextField
+                  fullWidth
+                  label="Real Estate Costs ($)"
+                  type="number"
+                  value={formData.realEstateCosts}
+                  onChange={(e) =>
+                    handleInputChange("realEstateCosts", e.target.value)
+                  }
+                  InputProps={{ startAdornment: "$" }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <TextField
+                  fullWidth
+                  label="Working Capital ($)"
+                  type="number"
+                  value={formData.workingCapital}
+                  onChange={(e) =>
+                    handleInputChange("workingCapital", e.target.value)
+                  }
+                  InputProps={{ startAdornment: "$" }}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Equipment Costs ($)"
-                type="number"
-                value={formData.equipmentCosts}
-                onChange={(e) =>
-                  handleInputChange("equipmentCosts", e.target.value)
-                }
-                InputProps={{ startAdornment: "$" }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Real Estate Costs ($)"
-                type="number"
-                value={formData.realEstateCosts}
-                onChange={(e) =>
-                  handleInputChange("realEstateCosts", e.target.value)
-                }
-                InputProps={{ startAdornment: "$" }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Working Capital ($)"
-                type="number"
-                value={formData.workingCapital}
-                onChange={(e) =>
-                  handleInputChange("workingCapital", e.target.value)
-                }
-                InputProps={{ startAdornment: "$" }}
-              />
-            </Grid>
-            <Grid item xs={12}>
+
+            <Grid item xs={12} sx={{ mt: 4 }}>
               <TextField
                 fullWidth
                 multiline
@@ -739,256 +1010,184 @@ const BrandRegistration = () => {
                 placeholder="Describe available financing options, partnerships with lenders, or any assistance you provide to help franchisees secure funding."
               />
             </Grid>
-            <Grid item xs={12}>
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1">
-                    Upload Financial Documents (Optional)
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                      <FileUploadSection
-                        field="financialProjections"
-                        label="Financial Projections"
-                        helpText="Upload projected financial performance data"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <FileUploadSection
-                        field="fddDocument"
-                        label="Franchise Disclosure Document (FDD)"
-                        helpText="If available, upload your current FDD"
-                      />
-                    </Grid>
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-            </Grid>
-          </Grid>
+          </>
         );
 
       case 3:
         return (
           <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Training Program"
-                value={formData.trainingProgram}
-                onChange={(e) =>
-                  handleInputChange("trainingProgram", e.target.value)
-                }
-                placeholder="Describe your comprehensive training program including duration, location, curriculum, and both initial and ongoing training components."
-              />
-            </Grid>
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Franchisor Support Services"
-                value={formData.franchisorSupport}
-                onChange={(e) =>
-                  handleInputChange("franchisorSupport", e.target.value)
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.trainingProgram}
+                    onChange={(e) =>
+                      handleInputChange("trainingProgram", e.target.checked)
+                    }
+                  />
                 }
-                placeholder="Detail the ongoing support services you provide including field support, business consulting, technology assistance, and operational guidance."
+                label="Training Program"
               />
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Franchisor Support Services"
-                value={formData.marketingSupport}
-                onChange={(e) =>
-                  handleInputChange("marketingSupport", e.target.value)
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.franchisorSupport}
+                    onChange={(e) =>
+                      handleInputChange("franchisorSupport", e.target.checked)
+                    }
+                  />
                 }
-                placeholder="Explain your marketing fund utilization, national campaigns, local marketing assistance, and brand promotion strategies."
+                label="Franchisor Support Services"
               />
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.marketingSupport}
+                    onChange={(e) =>
+                      handleInputChange("marketingSupport", e.target.checked)
+                    }
+                  />
+                }
+                label="Marketing Support"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.territoryRights}
+                    onChange={(e) =>
+                      handleInputChange("territoryRights", e.target.checked)
+                    }
+                  />
+                }
                 label="Territory Rights & Exclusivity"
-                value={formData.territoryRights}
-                onChange={(e) =>
-                  handleInputChange("territoryRights", e.target.value)
-                }
-                placeholder="Define the territorial rights, exclusivity arrangements, and protected areas for franchisees."
               />
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.operationalStandards}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "operationalStandards",
+                        e.target.checked
+                      )
+                    }
+                  />
+                }
                 label="Operational Standards"
-                placeholder="Describe the operational standards, procedures, and quality control measures franchisees must follow."
-                value={formData.operationalStandards}
-                onChange={(e) =>
-                  handleInputChange("operationalStandards", e.target.value)
-                }
               />
-            </Grid>
-            <Grid item xs={12}>
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1">
-                    Upload Training & Operations Documents
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={4}>
-                      <FileUploadSection
-                        field="trainingManual"
-                        label="Training Manual"
-                        helpText="Upload your comprehensive training manual"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <FileUploadSection
-                        field="operationsManual"
-                        label="Operations Manual"
-                        helpText="Upload your operations and procedures manual"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
-                      <FileUploadSection
-                        field="marketingMaterials"
-                        label="Marketing Materials Sample"
-                        helpText="Upload sample marketing and promotional materials"
-                      />
-                    </Grid>
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
             </Grid>
           </Grid>
         );
 
       case 4:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card elevation={1}>
-                <CardHeader
-                  title="Franchise Agreement Terms"
-                  titleTypographyProps={{ variant: "subtitle1" }}
-                />
-                <CardContent>
-                  <TextField
-                    fullWidth
-                    label="Franchise Term Length"
-                    value={formData.franchiseTermLength}
-                    onChange={(e) =>
-                      handleInputChange("franchiseTermLength", e.target.value)
-                    }
-                    placeholder="e.g., 10 years with 5-year renewal options"
-                    sx={{ mb: 2 }}
+          <>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card elevation={1}>
+                  <CardHeader
+                    title="Franchise Agreement Terms"
+                    titleTypographyProps={{ variant: "subtitle1" }}
                   />
-                  <FormControlLabel
-                    control={<Switch />}
-                    label="Renewal options available"
-                  />
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Territory & Competition"
-                value={formData.nonCompeteRestrictions}
-                onChange={(e) =>
-                  handleInputChange("nonCompeteRestrictions", e.target.value)
-                }
-                placeholder="Detail any non-compete clauses, territorial restrictions, or limitations on franchisee business activities."
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Termination Conditions & Procedures"
-                value={formData.terminationConditions}
-                onChange={(e) =>
-                  handleInputChange("terminationConditions", e.target.value)
-                }
-                placeholder="Outline the conditions under which the franchise agreement may be terminated, the process involved, and any obligations of both parties upon termination."
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Transfer & Sale Conditions"
-                value={formData.transferConditions}
-                onChange={(e) =>
-                  handleInputChange("transferConditions", e.target.value)
-                }
-                placeholder="Describe the obligations and responsibilities of franchisees under the franchise agreement, including training, equipment, and support services."
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Dispute Resolution Process"
-                value={formData.disputeResolution}
-                onChange={(e) =>
-                  handleInputChange("disputeResolution", e.target.value)
-                }
-                placeholder="Explain how disputes between franchisor and franchisee are handled, including mediation, arbitration, or legal procedures."
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 2 }}>
-                Legal Documents Upload
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <FileUploadSection
-                    field="franchiseAgreement"
-                    label="Franchise Agreement Template"
-                    helpText="Upload your standard franchise agreement template"
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FileUploadSection
-                    field="disclosureDocument"
-                    label="Franchise Disclosure Document"
-                    helpText="Upload your complete FDD (required in most jurisdictions)"
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FileUploadSection
-                    field="corporateDocuments"
-                    label="Corporate Documents"
-                    helpText="Articles of incorporation, bylaws, and other corporate documents"
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FileUploadSection
-                    field="legalCompliance"
-                    label="Legal Compliance Certificates"
-                    helpText="Regulatory compliance documents and certifications"
-                  />
-                </Grid>
+                  <CardContent>
+                    <TextField
+                      fullWidth
+                      label="Franchise Term Length"
+                      value={formData.franchiseTermLength}
+                      onChange={(e) =>
+                        handleInputChange("franchiseTermLength", e.target.value)
+                      }
+                      placeholder="e.g., 10 years with 5-year renewal options"
+                      sx={{ mb: 2 }}
+                    />
+                    <FormControlLabel
+                      control={<Switch />}
+                      label="Renewal options available"
+                    />
+                  </CardContent>
+                </Card>
               </Grid>
             </Grid>
-          </Grid>
+
+            <Grid container spacing={3} sx={{ mt: 2 }}>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.nonCompeteRestrictions}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "nonCompeteRestrictions",
+                          e.target.checked
+                        )
+                      }
+                    />
+                  }
+                  label="Territory & Competition"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.terminationConditions}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "terminationConditions",
+                          e.target.checked
+                        )
+                      }
+                    />
+                  }
+                  label="Termination Conditions & Procedures"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.transferConditions}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "transferConditions",
+                          e.target.checked
+                        )
+                      }
+                    />
+                  }
+                  label="Transfer & Sale Conditions"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.disputeResolution}
+                      onChange={(e) =>
+                        handleInputChange("disputeResolution", e.target.checked)
+                      }
+                    />
+                  }
+                  label="Dispute Resolution Process"
+                />
+              </Grid>
+            </Grid>
+          </>
         );
       default:
         return null;
@@ -996,42 +1195,60 @@ const BrandRegistration = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Zoom in={Object.values(formData).some((val) => val !== "")}>
-        <Fab
-          color={savedProgress ? "success" : "primary"}
-          sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 1000 }}
-          onClick={saveProgress}
-        >
-          {savedProgress ? <CheckIcon /> : <SaveIcon />}
-        </Fab>
-      </Zoom>
+    <Container
+      maxWidth="lg"
+      sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}
+    >
       <Paper elevation={3} sx={{ overflow: "hidden" }}>
         <Box
           sx={{
             bgcolor: "primary.main",
             color: "white",
-            p: 4,
+            p: { xs: 2, sm: 3, md: 4 },
             textAlign: "center",
           }}
         >
-          <Typography variant="h3" gutterBottom fontWeight="bold">
+          <Typography
+            variant="h3"
+            gutterBottom
+            fontWeight="bold"
+            sx={{
+              fontSize: { xs: "1.8rem", sm: "2.5rem", md: "3rem" },
+              mb: { xs: 1, md: 2 },
+            }}
+          >
             Brand Registration
           </Typography>
-          <Typography variant="h6" sx={{ opacity: 0.9 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              opacity: 0.9,
+              fontSize: { xs: "1rem", sm: "1.2rem", md: "1.25rem" },
+            }}
+          >
             Share your franchise opportunity with serious investors
           </Typography>
         </Box>
-        <Box sx={{ p: 4, pb: 2 }}>
-          <Stepper activeStep={activeStep} alternativeLabel>
+
+        <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, pb: { xs: 1, sm: 2 } }}>
+          <Stepper
+            activeStep={activeStep}
+            alternativeLabel={false}
+            orientation={window.innerWidth < 600 ? "vertical" : "horizontal"}
+            sx={{
+              "& .MuiStepper-root": {
+                flexDirection: { xs: "column", sm: "row" },
+              },
+            }}
+          >
             {steps.map((step, index) => (
-              <Step key={step.label} completed={completedSections[index]}>
+              <Step key={step.label}>
                 <StepLabel
                   StepIconComponent={({ active, completed }) => (
                     <Box
                       sx={{
-                        width: 50,
-                        height: 50,
+                        width: { xs: 40, sm: 45, md: 50 },
+                        height: { xs: 40, sm: 45, md: 50 },
                         borderRadius: "50%",
                         display: "flex",
                         alignItems: "center",
@@ -1042,20 +1259,42 @@ const BrandRegistration = () => {
                           ? "primary.main"
                           : "grey.300",
                         color: "white",
-                        mb: 1,
+                        mb: { xs: 0.5, md: 1 },
+                        fontSize: { xs: "0.8rem", sm: "1rem" },
                       }}
                     >
-                      {completed ? <CheckIcon /> : step.icon}
+                      {completed ? <CheckIcon fontSize="small" /> : step.icon}
                     </Box>
                   )}
+                  sx={{
+                    flexDirection: { xs: "row", sm: "column" },
+                    alignItems: { xs: "flex-start", sm: "center" },
+                    textAlign: { xs: "left", sm: "center" },
+                    "& .MuiStepLabel-labelContainer": {
+                      ml: { xs: 2, sm: 0 },
+                      mt: { xs: 0, sm: 1 },
+                    },
+                  }}
                 >
                   <Typography
                     variant="subtitle1"
                     fontWeight={activeStep === index ? "bold" : "normal"}
+                    sx={{
+                      fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" },
+                      lineHeight: { xs: 1.2, sm: 1.4 },
+                    }}
                   >
                     {step.label}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                      display: { xs: "block", sm: "block" },
+                      mt: { xs: 0.5, sm: 0.5 },
+                    }}
+                  >
                     {step.description}
                   </Typography>
                 </StepLabel>
@@ -1063,52 +1302,82 @@ const BrandRegistration = () => {
             ))}
           </Stepper>
         </Box>
+
         <Divider />
-        <Box sx={{ p: 4 }}>
+
+        <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
           {error && (
-            <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError("")}>
+            <Alert
+              severity="error"
+              sx={{
+                mb: { xs: 2, md: 3 },
+                fontSize: { xs: "0.8rem", sm: "0.875rem" },
+              }}
+              onClose={() => setError("")}
+            >
               {error}
             </Alert>
           )}
-          <Box sx={{ mb: 4 }}>{renderStepContent(activeStep)}</Box>
+
+          <Box sx={{ mb: { xs: 2, md: 4 } }}>
+            {renderStepContent(activeStep)}
+          </Box>
+
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              pt: 3,
+              flexDirection: { xs: "column", sm: "row" },
+              justifyContent: { xs: "center", sm: "space-between" },
+              alignItems: { xs: "stretch", sm: "center" },
+              pt: { xs: 2, md: 3 },
               borderTop: "1px solid",
               borderColor: "divider",
+              gap: { xs: 2, sm: 0 },
             }}
           >
             <Button
               disabled={activeStep === 0}
               onClick={handleBack}
               variant="outlined"
-              size="large"
-              sx={{ minWidth: 120 }}
+              size={window.innerWidth < 600 ? "medium" : "large"}
+              sx={{
+                minWidth: { xs: "100%", sm: 120 },
+                order: { xs: 2, sm: 1 },
+              }}
             >
               Back
             </Button>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Typography variant="body2" color="text.secondary">
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 2,
+                order: { xs: 1, sm: 2 },
+                mb: { xs: 0, sm: 0 },
+              }}
+            >
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  fontSize: { xs: "0.8rem", sm: "0.875rem" },
+                }}
+              >
                 Step {activeStep + 1} of {steps.length}
               </Typography>
-              {completedSections[activeStep] && (
-                <Chip
-                  icon={<CheckIcon />}
-                  label="Complete"
-                  color="success"
-                  size="small"
-                />
-              )}
             </Box>
+
             {activeStep === steps.length - 1 ? (
               <Button
                 variant="contained"
                 onClick={handleSubmit}
-                size="large"
-                sx={{ minWidth: 120 }}
+                size={window.innerWidth < 600 ? "medium" : "large"}
+                sx={{
+                  minWidth: { xs: "100%", sm: 120 },
+                  order: { xs: 3, sm: 3 },
+                }}
               >
                 {loading ? (
                   <CircularProgress size={24} color="inherit" />
@@ -1120,8 +1389,11 @@ const BrandRegistration = () => {
               <Button
                 variant="contained"
                 onClick={handleNext}
-                size="large"
-                sx={{ minWidth: 120 }}
+                size={window.innerWidth < 600 ? "medium" : "large"}
+                sx={{
+                  minWidth: { xs: "100%", sm: 120 },
+                  order: { xs: 3, sm: 3 },
+                }}
               >
                 Next
               </Button>
