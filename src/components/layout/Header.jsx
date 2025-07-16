@@ -73,7 +73,7 @@ const Header = () => {
         { merge: true }
       );
 
-      navigate("/brand-registration");
+      navigate("/dashboard/register-brand");
     } catch (error) {
       console.error("Google Sign-In Failed:", error);
     }

@@ -74,7 +74,6 @@ const Testimonials = () => {
         </Typography>
       </MotionBox>
 
-      {/* Swiper Carousel */}
       <Swiper
         modules={[Pagination, Autoplay]}
         slidesPerView={1}

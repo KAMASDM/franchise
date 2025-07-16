@@ -8,8 +8,6 @@ import {
   IconButton,
   Divider,
   Button,
-  useTheme,
-  useMediaQuery,
 } from "@mui/material";
 import {
   Facebook,
@@ -28,10 +26,6 @@ const MotionBox = motion(Box);
 const MotionButton = motion(Button);
 
 const Footer = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
   return (
     <Box
       component="footer"
@@ -44,7 +38,6 @@ const Footer = () => {
         overflow: "hidden",
       }}
     >
-      {/* Decorative elements */}
       <Box
         sx={{
           position: "absolute",
@@ -60,7 +53,6 @@ const Footer = () => {
 
       <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1 }}>
         <Grid container spacing={4}>
-          {/* Brand Info Column */}
           <Grid item xs={12} md={4}>
             <MotionBox
               initial={{ opacity: 0, y: 20 }}
@@ -109,7 +101,6 @@ const Footer = () => {
             </MotionBox>
           </Grid>
 
-          {/* Quick Links Column */}
           <Grid item xs={6} sm={4} md={2}>
             <MotionBox
               initial={{ opacity: 0, y: 20 }}
@@ -152,7 +143,6 @@ const Footer = () => {
             </MotionBox>
           </Grid>
 
-          {/* Categories Column */}
           <Grid item xs={6} sm={4} md={3}>
             <MotionBox
               initial={{ opacity: 0, y: 20 }}
@@ -198,7 +188,6 @@ const Footer = () => {
             </MotionBox>
           </Grid>
 
-          {/* Contact Info Column */}
           <Grid item xs={12} sm={4} md={3}>
             <MotionBox
               initial={{ opacity: 0, y: 20 }}

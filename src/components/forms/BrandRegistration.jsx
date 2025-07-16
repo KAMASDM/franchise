@@ -1,7 +1,5 @@
 import React, { useState, useRef } from "react";
 import {
-  Container,
-  Paper,
   Box,
   Typography,
   TextField,
@@ -1195,213 +1193,208 @@ const BrandRegistration = () => {
   };
 
   return (
-    <Container
-      maxWidth="lg"
-      sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, sm: 2 } }}
-    >
-      <Paper elevation={3} sx={{ overflow: "hidden" }}>
-        <Box
+    <>
+      <Box
+        sx={{
+          bgcolor: "primary.main",
+          color: "white",
+          p: { xs: 2, sm: 3, md: 4 },
+          textAlign: "center",
+        }}
+      >
+        <Typography
+          variant="h3"
+          gutterBottom
+          fontWeight="bold"
           sx={{
-            bgcolor: "primary.main",
-            color: "white",
-            p: { xs: 2, sm: 3, md: 4 },
-            textAlign: "center",
+            fontSize: { xs: "1.8rem", sm: "2.5rem", md: "3rem" },
+            mb: { xs: 1, md: 2 },
           }}
         >
-          <Typography
-            variant="h3"
-            gutterBottom
-            fontWeight="bold"
-            sx={{
-              fontSize: { xs: "1.8rem", sm: "2.5rem", md: "3rem" },
-              mb: { xs: 1, md: 2 },
-            }}
-          >
-            Brand Registration
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{
-              opacity: 0.9,
-              fontSize: { xs: "1rem", sm: "1.2rem", md: "1.25rem" },
-            }}
-          >
-            Share your franchise opportunity with serious investors
-          </Typography>
-        </Box>
+          Brand Registration
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            opacity: 0.9,
+            fontSize: { xs: "1rem", sm: "1.2rem", md: "1.25rem" },
+            maxWidth: "800px",
+            margin: "0 auto",
+          }}
+        >
+          Share your franchise opportunity with serious investors
+        </Typography>
+      </Box>
 
-        <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, pb: { xs: 1, sm: 2 } }}>
-          <Stepper
-            activeStep={activeStep}
-            alternativeLabel={false}
-            orientation={window.innerWidth < 600 ? "vertical" : "horizontal"}
-            sx={{
-              "& .MuiStepper-root": {
-                flexDirection: { xs: "column", sm: "row" },
-              },
-            }}
-          >
-            {steps.map((step, index) => (
-              <Step key={step.label}>
-                <StepLabel
-                  StepIconComponent={({ active, completed }) => (
-                    <Box
-                      sx={{
-                        width: { xs: 40, sm: 45, md: 50 },
-                        height: { xs: 40, sm: 45, md: 50 },
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: completed
-                          ? "success.main"
-                          : active
-                          ? "primary.main"
-                          : "grey.300",
-                        color: "white",
-                        mb: { xs: 0.5, md: 1 },
-                        fontSize: { xs: "0.8rem", sm: "1rem" },
-                      }}
-                    >
-                      {completed ? <CheckIcon fontSize="small" /> : step.icon}
-                    </Box>
-                  )}
+      <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, pb: { xs: 1, sm: 2 } }}>
+        <Stepper
+          activeStep={activeStep}
+          alternativeLabel={false}
+          orientation={window.innerWidth < 600 ? "vertical" : "horizontal"}
+          sx={{
+            "& .MuiStepper-root": {
+              flexDirection: { xs: "column", sm: "row" },
+            },
+          }}
+        >
+          {steps.map((step, index) => (
+            <Step key={step.label}>
+              <StepLabel
+                StepIconComponent={({ active, completed }) => (
+                  <Box
+                    sx={{
+                      width: { xs: 40, sm: 45, md: 50 },
+                      height: { xs: 40, sm: 45, md: 50 },
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: completed
+                        ? "success.main"
+                        : active
+                        ? "primary.main"
+                        : "grey.300",
+                      color: "white",
+                      mb: { xs: 0.5, md: 1 },
+                      fontSize: { xs: "0.8rem", sm: "1rem" },
+                    }}
+                  >
+                    {completed ? <CheckIcon fontSize="small" /> : step.icon}
+                  </Box>
+                )}
+                sx={{
+                  flexDirection: { xs: "row", sm: "column" },
+                  alignItems: { xs: "flex-start", sm: "center" },
+                  textAlign: { xs: "left", sm: "center" },
+                  "& .MuiStepLabel-labelContainer": {
+                    ml: { xs: 2, sm: 0 },
+                    mt: { xs: 0, sm: 1 },
+                  },
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={activeStep === index ? "bold" : "normal"}
                   sx={{
-                    flexDirection: { xs: "row", sm: "column" },
-                    alignItems: { xs: "flex-start", sm: "center" },
-                    textAlign: { xs: "left", sm: "center" },
-                    "& .MuiStepLabel-labelContainer": {
-                      ml: { xs: 2, sm: 0 },
-                      mt: { xs: 0, sm: 1 },
-                    },
+                    fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" },
+                    lineHeight: { xs: 1.2, sm: 1.4 },
                   }}
                 >
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight={activeStep === index ? "bold" : "normal"}
-                    sx={{
-                      fontSize: { xs: "0.9rem", sm: "1rem", md: "1.1rem" },
-                      lineHeight: { xs: 1.2, sm: 1.4 },
-                    }}
-                  >
-                    {step.label}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{
-                      fontSize: { xs: "0.7rem", sm: "0.75rem" },
-                      display: { xs: "block", sm: "block" },
-                      mt: { xs: 0.5, sm: 0.5 },
-                    }}
-                  >
-                    {step.description}
-                  </Typography>
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-        </Box>
+                  {step.label}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                    display: { xs: "block", sm: "block" },
+                    mt: { xs: 0.5, sm: 0.5 },
+                  }}
+                >
+                  {step.description}
+                </Typography>
+              </StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+      </Box>
 
-        <Divider />
+      <Divider />
 
-        <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-          {error && (
-            <Alert
-              severity="error"
-              sx={{
-                mb: { xs: 2, md: 3 },
-                fontSize: { xs: "0.8rem", sm: "0.875rem" },
-              }}
-              onClose={() => setError("")}
-            >
-              {error}
-            </Alert>
-          )}
+      <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+        {error && (
+          <Alert
+            severity="error"
+            sx={{
+              mb: { xs: 2, md: 3 },
+              fontSize: { xs: "0.8rem", sm: "0.875rem" },
+            }}
+            onClose={() => setError("")}
+          >
+            {error}
+          </Alert>
+        )}
 
-          <Box sx={{ mb: { xs: 2, md: 4 } }}>
-            {renderStepContent(activeStep)}
-          </Box>
+        <Box sx={{ mb: { xs: 2, md: 4 } }}>{renderStepContent(activeStep)}</Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            justifyContent: { xs: "center", sm: "space-between" },
+            alignItems: { xs: "stretch", sm: "center" },
+            pt: { xs: 2, md: 3 },
+            borderTop: "1px solid",
+            borderColor: "divider",
+            gap: { xs: 2, sm: 0 },
+          }}
+        >
+          <Button
+            disabled={activeStep === 0}
+            onClick={handleBack}
+            variant="outlined"
+            size={window.innerWidth < 600 ? "medium" : "large"}
+            sx={{
+              minWidth: { xs: "100%", sm: 120 },
+              order: { xs: 2, sm: 1 },
+            }}
+          >
+            Back
+          </Button>
 
           <Box
             sx={{
               display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              justifyContent: { xs: "center", sm: "space-between" },
-              alignItems: { xs: "stretch", sm: "center" },
-              pt: { xs: 2, md: 3 },
-              borderTop: "1px solid",
-              borderColor: "divider",
-              gap: { xs: 2, sm: 0 },
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+              order: { xs: 1, sm: 2 },
+              mb: { xs: 0, sm: 0 },
             }}
           >
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                fontSize: { xs: "0.8rem", sm: "0.875rem" },
+              }}
+            >
+              Step {activeStep + 1} of {steps.length}
+            </Typography>
+          </Box>
+
+          {activeStep === steps.length - 1 ? (
             <Button
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              variant="outlined"
+              variant="contained"
+              onClick={handleSubmit}
               size={window.innerWidth < 600 ? "medium" : "large"}
               sx={{
                 minWidth: { xs: "100%", sm: 120 },
-                order: { xs: 2, sm: 1 },
+                order: { xs: 3, sm: 3 },
               }}
             >
-              Back
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Submit Application"
+              )}
             </Button>
-
-            <Box
+          ) : (
+            <Button
+              variant="contained"
+              onClick={handleNext}
+              size={window.innerWidth < 600 ? "medium" : "large"}
               sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 2,
-                order: { xs: 1, sm: 2 },
-                mb: { xs: 0, sm: 0 },
+                minWidth: { xs: "100%", sm: 120 },
+                order: { xs: 3, sm: 3 },
               }}
             >
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  fontSize: { xs: "0.8rem", sm: "0.875rem" },
-                }}
-              >
-                Step {activeStep + 1} of {steps.length}
-              </Typography>
-            </Box>
-
-            {activeStep === steps.length - 1 ? (
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                size={window.innerWidth < 600 ? "medium" : "large"}
-                sx={{
-                  minWidth: { xs: "100%", sm: 120 },
-                  order: { xs: 3, sm: 3 },
-                }}
-              >
-                {loading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  "Submit Application"
-                )}
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                onClick={handleNext}
-                size={window.innerWidth < 600 ? "medium" : "large"}
-                sx={{
-                  minWidth: { xs: "100%", sm: 120 },
-                  order: { xs: 3, sm: 3 },
-                }}
-              >
-                Next
-              </Button>
-            )}
-          </Box>
+              Next
+            </Button>
+          )}
         </Box>
-      </Paper>
-    </Container>
+      </Box>
+    </>
   );
 };
 

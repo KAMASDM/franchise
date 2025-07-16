@@ -13,11 +13,10 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Dialog,
   Link,
+  Divider,
   IconButton,
   CircularProgress,
-  Divider,
 } from "@mui/material";
 import {
   LocationOn,
@@ -33,16 +32,15 @@ import {
   SupportAgent,
   EmojiEvents,
   Email,
-  Person,
   Facebook,
   Twitter,
   Instagram,
   LinkedIn,
+  Person,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
-import FranchiseInquiryForm from "../forms/FranchiseInquiryForm";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -53,7 +51,6 @@ const BrandDetail = () => {
   const [brand, setBrand] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showInquiryForm, setShowInquiryForm] = useState(false);
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -128,16 +125,17 @@ const BrandDetail = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Hero Section */}
       <MotionCard
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        sx={{ mb: 6, borderRadius: 4, overflow: "hidden", boxShadow: 3 }}
+        sx={{ mb: 6, overflow: "hidden", boxShadow: 3 }}
       >
         <Box
           sx={{
-            backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4))`,
+            backgroundImage: brand.brandImage
+              ? `url(${brand.brandImage})`
+              : "linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4))",
             backgroundSize: "cover",
             backgroundPosition: "center",
             display: "flex",
@@ -201,59 +199,23 @@ const BrandDetail = () => {
             >
               {brand.brandMission}
             </Typography>
-            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-              <Button
-                variant="contained"
-                size="large"
-                onClick={() => setShowInquiryForm(true)}
-                sx={{
-                  backgroundColor: "#FFD700",
-                  color: "black",
-                  fontWeight: "bold",
-                  borderRadius: 25,
-                  px: 4,
-                  "&:hover": { backgroundColor: "#FFC107" },
-                }}
-              >
-                Request Information
-              </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                startIcon={<Phone />}
-                href={`tel:${brand.brandContactInformation.phone}`}
-                sx={{
-                  borderColor: "white",
-                  color: "white",
-                  borderRadius: 25,
-                  px: 4,
-                  "&:hover": {
-                    borderColor: "#FFD700",
-                    backgroundColor: "rgba(255,215,0,0.1)",
-                  },
-                }}
-              >
-                Call Now
-              </Button>
-            </Box>
           </Box>
 
-          {/* Decorative Elements */}
           <Box
             sx={{
               position: "absolute",
-              top: -50,
-              right: -50,
-              width: 200,
-              height: 200,
-              backgroundColor: "rgba(255,255,255,0.1)",
-              borderRadius: "50%",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0,0,0,0.4)",
               zIndex: 1,
             }}
           />
         </Box>
       </MotionCard>
 
+      {/* Main Content - Flex Layout */}
       <MotionBox
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -753,58 +715,6 @@ const BrandDetail = () => {
           </MotionCard>
         </Box>
       </MotionBox>
-
-      {/* Call to Action */}
-      <MotionBox
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-        sx={{
-          backgroundColor: "primary.main",
-          color: "white",
-          borderRadius: 1,
-          p: 6,
-          mt: 4,
-          textAlign: "center",
-        }}
-      >
-        <Typography variant="h4" fontWeight="bold" sx={{ mb: 3 }}>
-          Ready to Join the {brand.brandName} Family?
-        </Typography>
-        <Typography variant="h6" sx={{ mb: 4, maxWidth: 800, mx: "auto" }}>
-          Take the first step towards owning your own {brand.brandName}{" "}
-          franchise today.
-        </Typography>
-        <Button
-          variant="contained"
-          size="large"
-          onClick={() => setShowInquiryForm(true)}
-          sx={{
-            backgroundColor: "#FFD700",
-            color: "black",
-            fontWeight: "bold",
-            borderRadius: 25,
-            px: 6,
-            py: 2,
-            fontSize: "1.1rem",
-            "&:hover": { backgroundColor: "#FFC107" },
-          }}
-        >
-          Request Franchise Information
-        </Button>
-      </MotionBox>
-
-      <Dialog
-        open={showInquiryForm}
-        onClose={() => setShowInquiryForm(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <FranchiseInquiryForm
-          brand={brand}
-          onClose={() => setShowInquiryForm(false)}
-        />
-      </Dialog>
     </Container>
   );
 };

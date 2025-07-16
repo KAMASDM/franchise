@@ -16,7 +16,6 @@ import Chatbot from "./components/chat/Chatbot";
 import { Box } from "@mui/material";
 import BrandDetail from "./components/brand/BrandDetail";
 import Dashboard from "./pages/Dashborad";
-import BrandRegistration from "./components/forms/BrandRegistration";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -66,8 +65,6 @@ function App() {
             <Route path="/blog/:id" element={<BlogDetail />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
-            <Route path="/brand-registration" element={<BrandRegistration />} />
-
             <Route
               path="/dashboard/*"
               element={
