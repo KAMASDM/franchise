@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -14,30 +14,188 @@ import {
   Card,
   CardContent,
   IconButton,
-  Alert
-} from '@mui/material'
-import { Close, Send } from '@mui/icons-material'
-import { useForm, Controller } from 'react-hook-form'
+  Alert,
+} from "@mui/material";
+import { db } from "../../firebase/firebase";
+import { Close, Send, LocationOn } from "@mui/icons-material";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+
+const investmentRanges = [
+  "Under $50K",
+  "$50K - $100K",
+  "$100K - $250K",
+  "$250K - $500K",
+  "$500K - $1M",
+  "Over $1M",
+];
+
+const businessExperience = [
+  "No Business Experience",
+  "Some business experience",
+  "Restaurant experience",
+  "Franchise experience",
+  "Corporate executive",
+];
+
+const timeline = [
+  "As soon as possible",
+  "Within 3 months",
+  "Within 6 months",
+  "Within 1 year",
+  "Just exploring",
+];
 
 const FranchiseInquiryForm = ({ brand, onClose }) => {
-  const [submitted, setSubmitted] = useState(false)
-  const { control, handleSubmit, formState: { errors } } = useForm()
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    // Personal Information
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
 
-  const onSubmit = (data) => {
-    console.log('Form Data:', { ...data, brand: brand.name })
-    // Here you would typically send the data to your backend
-    setSubmitted(true)
-    setTimeout(() => {
-      onClose()
-    }, 2000)
-  }
+    // User Address
+    userAddress: "",
+    userCity: "",
+    userState: "",
+    userZipCode: "",
+    userCountry: "", // Default value
+
+    // Franchise Information
+    brandFranchiseLocation: "",
+    budget: "",
+    experience: "",
+    timeline: "",
+    comments: "",
+    agreement: false,
+  });
+
+  const [errors, setErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
+
+  const validate = () => {
+    const newErrors = {};
+
+    // Personal Info Validation
+    if (!formData.firstName.trim())
+      newErrors.firstName = "First name is required";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+
+    // Email Validation
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Invalid email address";
+    }
+
+    // Phone Validation
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (
+      !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(
+        formData.phone
+      )
+    ) {
+      newErrors.phone = "Invalid phone number";
+    }
+
+    // Address Validation
+    if (!formData.userAddress.trim())
+      newErrors.userAddress = "Address is required";
+    if (!formData.userCity.trim()) newErrors.userCity = "City is required";
+    if (!formData.userState) newErrors.userState = "State is required";
+
+    // Franchise Info Validation
+    if (!formData.brandFranchiseLocation)
+      newErrors.brandFranchiseLocation = "Location is required";
+    if (!formData.budget) newErrors.budget = "Investment budget is required";
+    if (!formData.agreement)
+      newErrors.agreement = "You must agree to be contacted";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setLoading(true);
+    try {
+      const selectedLocation = brand.brandFranchiseLocations.find(
+        (loc) => loc.city === formData.brandFranchiseLocation
+      );
+
+      const inquiryData = {
+        // Personal Information
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+
+        // User Address
+        userAddress: {
+          street: formData.userAddress.trim(),
+          city: formData.userCity.trim(),
+          state: formData.userState,
+          zipCode: formData.userZipCode.trim(),
+          country: formData.userCountry,
+        },
+
+        // Franchise Information
+        brandFranchiseLocation: {
+          city: selectedLocation.city,
+          state: selectedLocation.state,
+          country: selectedLocation.country,
+          zipCode: selectedLocation.zipCode,
+          address: selectedLocation.address,
+          phone: selectedLocation.phone,
+          googleMapsURl: selectedLocation.googleMapsURl,
+        },
+
+        budget: formData.budget,
+        experience: formData.experience,
+        timeline: formData.timeline,
+        comments: formData.comments.trim(),
+
+        // Brand Information
+        brandId: brand.id,
+        brandName: brand.brandName,
+        brandOwner: brand.userId,
+
+        // Metadata
+        status: "new",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, "brandfranchiseInquiry"), inquiryData);
+      setSubmitted(true);
+      navigate("/");
+    } catch (error) {
+      console.error("Error submitting inquiry:", error);
+      setErrors({ submit: "Failed to submit inquiry. Please try again." });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (submitted) {
     return (
       <Card sx={{ m: 2 }}>
-        <CardContent sx={{ p: 4, textAlign: 'center' }}>
+        <CardContent sx={{ p: 4, textAlign: "center" }}>
           <Alert severity="success" sx={{ mb: 3 }}>
-            Thank you for your interest in {brand.name}!
+            Thank you for your interest in {brand.brandName}!
           </Alert>
           <Typography variant="h6" sx={{ mb: 2 }}>
             Your inquiry has been submitted successfully.
@@ -47,244 +205,298 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
           </Typography>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
-    <Card sx={{ m: 2 }}>
-      <CardContent sx={{ p: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5" fontWeight="bold">
-            Request Information - {brand.name}
-          </Typography>
-          <IconButton onClick={onClose}>
-            <Close />
-          </IconButton>
-        </Box>
+    <Box sx={{ m: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h5" fontWeight="bold">
+          <LocationOn color="primary" sx={{ verticalAlign: "middle", mr: 1 }} />
+          Request Information - {brand.brandName}
+        </Typography>
+        <IconButton onClick={onClose}>
+          <Close />
+        </IconButton>
+      </Box>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="firstName"
-                control={control}
-                rules={{ required: 'First name is required' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="First Name"
-                    error={!!errors.firstName}
-                    helperText={errors.firstName?.message}
-                  />
-                )}
-              />
-            </Grid>
+      <form onSubmit={handleSubmit}>
+        <Typography variant="h6" gutterBottom sx={{ mt: 2, mb: 1 }}>
+          Personal Information
+        </Typography>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              name="firstName"
+              label="First Name *"
+              value={formData.firstName}
+              onChange={handleChange}
+              fullWidth
+              error={!!errors.firstName}
+              helperText={errors.firstName}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              name="lastName"
+              label="Last Name *"
+              value={formData.lastName}
+              onChange={handleChange}
+              fullWidth
+              error={!!errors.lastName}
+              helperText={errors.lastName}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              name="email"
+              label="Email *"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              fullWidth
+              error={!!errors.email}
+              helperText={errors.email}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              name="phone"
+              label="Phone Number *"
+              value={formData.phone}
+              onChange={handleChange}
+              fullWidth
+              error={!!errors.phone}
+              helperText={errors.phone}
+              placeholder="e.g. 123-456-7890"
+            />
+          </Grid>
+        </Grid>
 
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="lastName"
-                control={control}
-                rules={{ required: 'Last name is required' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Last Name"
-                    error={!!errors.lastName}
-                    helperText={errors.lastName?.message}
-                  />
-                )}
-              />
-            </Grid>
+        <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 1 }}>
+          Your Address
+        </Typography>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12}>
+            <TextField
+              name="userAddress"
+              label="Street Address *"
+              value={formData.userAddress}
+              onChange={handleChange}
+              fullWidth
+              error={!!errors.userAddress}
+              helperText={errors.userAddress}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <TextField
+              name="userCity"
+              label="City *"
+              value={formData.userCity}
+              onChange={handleChange}
+              fullWidth
+              error={!!errors.userCity}
+              helperText={errors.userCity}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <TextField
+              name="userState"
+              label="State *"
+              value={formData.userState}
+              onChange={handleChange}
+              fullWidth
+              error={!!errors.userState}
+              helperText={errors.userState}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <TextField
+              name="userZipCode"
+              label="ZIP Code *"
+              value={formData.userZipCode}
+              onChange={handleChange}
+              fullWidth
+              error={!!errors.userZipCode}
+              helperText={errors.userZipCode}
+              placeholder="e.g. 12345 or 12345-6789"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              name="userCountry"
+              label="Country"
+              value={formData.userCountry}
+              onChange={handleChange}
+              fullWidth
+              error={!!errors.userCountry}
+              helperText={errors.userCountry}
+              placeholder="e.g. United States"
+            />
+          </Grid>
+        </Grid>
 
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="email"
-                control={control}
-                rules={{
-                  required: 'Email is required',
-                  pattern: {
-                    value: /^\S+@\S+$/i,
-                    message: 'Invalid email address'
-                  }
-                }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Email"
-                    type="email"
-                    error={!!errors.email}
-                    helperText={errors.email?.message}
-                  />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="phone"
-                control={control}
-                rules={{ required: 'Phone number is required' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Phone Number"
-                    error={!!errors.phone}
-                    helperText={errors.phone?.message}
-                  />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="location"
-                control={control}
-                rules={{ required: 'Preferred location is required' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Preferred Location"
-                    error={!!errors.location}
-                    helperText={errors.location?.message}
-                  />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Controller
+        <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 1 }}>
+          Franchise Information
+        </Typography>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth error={!!errors.brandFranchiseLocation}>
+              <InputLabel>Preferred Location *</InputLabel>
+              <Select
+                name="brandFranchiseLocation"
+                value={formData.brandFranchiseLocation}
+                onChange={handleChange}
+                label="Preferred Location *"
+              >
+                {brand.brandFranchiseLocations?.map((loc, index) => (
+                  <MenuItem key={index} value={loc.city}>
+                    {loc.address}, {loc.city}, {loc.state} {loc.zipCode}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.brandFranchiseLocation && (
+                <Typography variant="caption" color="error">
+                  {errors.brandFranchiseLocation}
+                </Typography>
+              )}
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth error={!!errors.budget}>
+              <InputLabel>Investment Budget *</InputLabel>
+              <Select
                 name="budget"
-                control={control}
-                rules={{ required: 'Investment budget is required' }}
-                render={({ field }) => (
-                  <FormControl fullWidth error={!!errors.budget}>
-                    <InputLabel>Investment Budget</InputLabel>
-                    <Select
-                      {...field}
-                      label="Investment Budget"
-                    >
-                      <MenuItem value="under-100k">Under $100K</MenuItem>
-                      <MenuItem value="100-200k">$100K - $200K</MenuItem>
-                      <MenuItem value="200-300k">$200K - $300K</MenuItem>
-                      <MenuItem value="300-500k">$300K - $500K</MenuItem>
-                      <MenuItem value="over-500k">Over $500K</MenuItem>
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Controller
+                value={formData.budget}
+                onChange={handleChange}
+                label="Investment Budget *"
+              >
+                {investmentRanges.map((range) => (
+                  <MenuItem key={range} value={range}>
+                    {range}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.budget && (
+                <Typography variant="caption" color="error">
+                  {errors.budget}
+                </Typography>
+              )}
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Business Experience</InputLabel>
+              <Select
                 name="experience"
-                control={control}
-                render={({ field }) => (
-                  <FormControl fullWidth>
-                    <InputLabel>Business Experience</InputLabel>
-                    <Select
-                      {...field}
-                      label="Business Experience"
-                    >
-                      <MenuItem value="none">No business experience</MenuItem>
-                      <MenuItem value="some">Some business experience</MenuItem>
-                      <MenuItem value="restaurant">Restaurant experience</MenuItem>
-                      <MenuItem value="franchise">Franchise experience</MenuItem>
-                      <MenuItem value="corporate">Corporate executive</MenuItem>
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Controller
+                value={formData.experience}
+                onChange={handleChange}
+                label="Business Experience"
+              >
+                {businessExperience.map((exp) => (
+                  <MenuItem key={exp} value={exp}>
+                    {exp}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <FormControl fullWidth>
+              <InputLabel>Timeline to Open</InputLabel>
+              <Select
                 name="timeline"
-                control={control}
-                render={({ field }) => (
-                  <FormControl fullWidth>
-                    <InputLabel>Timeline to Open</InputLabel>
-                    <Select
-                      {...field}
-                      label="Timeline to Open"
-                    >
-                      <MenuItem value="asap">As soon as possible</MenuItem>
-                      <MenuItem value="3-months">Within 3 months</MenuItem>
-                      <MenuItem value="6-months">Within 6 months</MenuItem>
-                      <MenuItem value="1-year">Within 1 year</MenuItem>
-                      <MenuItem value="exploring">Just exploring</MenuItem>
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Grid>
+                value={formData.timeline}
+                onChange={handleChange}
+                label="Timeline to Open"
+              >
+                {timeline.map((time) => (
+                  <MenuItem key={time} value={time}>
+                    {time}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
 
-            <Grid item xs={12}>
-              <Controller
-                name="comments"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Additional Comments"
-                    multiline
-                    rows={4}
-                    placeholder="Tell us more about your goals and any specific questions you have..."
-                  />
-                )}
-              />
-            </Grid>
+        <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 1 }}>
+          Additional Information
+        </Typography>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12}>
+            <TextField
+              name="comments"
+              label="Additional Comments"
+              value={formData.comments}
+              onChange={handleChange}
+              fullWidth
+              multiline
+              rows={4}
+              placeholder="Tell us more about your goals, experience, and any specific questions you have..."
+            />
+          </Grid>
+        </Grid>
 
-            <Grid item xs={12}>
-              <Controller
-                name="agreement"
-                control={control}
-                rules={{ required: 'You must agree to be contacted' }}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        {...field}
-                        color="primary"
-                      />
-                    }
-                    label="I agree to be contacted by FranchiseHub and the franchise brand regarding this opportunity"
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12}>
+            <FormControl error={!!errors.agreement} fullWidth>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    name="agreement"
+                    checked={formData.agreement}
+                    onChange={handleChange}
+                    color="primary"
                   />
-                )}
+                }
+                label="I agree to be contacted by FranchiseHub and the franchise brand regarding this opportunity *"
               />
               {errors.agreement && (
                 <Typography variant="caption" color="error">
-                  {errors.agreement.message}
+                  {errors.agreement}
                 </Typography>
               )}
-            </Grid>
+            </FormControl>
+          </Grid>
+        </Grid>
 
+        {errors.submit && (
+          <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={12}>
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                fullWidth
-                startIcon={<Send />}
-                sx={{
-                  borderRadius: 25,
-                  fontWeight: 'bold',
-                  py: 1.5
-                }}
-              >
-                Submit Inquiry
-              </Button>
+              <Alert severity="error">{errors.submit}</Alert>
             </Grid>
           </Grid>
-        </form>
-      </CardContent>
-    </Card>
-  )
-}
+        )}
 
-export default FranchiseInquiryForm
+        <Box sx={{ mt: 4 }}>
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            fullWidth
+            startIcon={<Send />}
+            disabled={loading}
+            sx={{
+              borderRadius: 2,
+              fontWeight: "bold",
+              py: 1.5,
+              fontSize: "1.1rem",
+            }}
+          >
+            {loading ? "Submitting..." : "Submit Inquiry"}
+          </Button>
+        </Box>
+      </form>
+    </Box>
+  );
+};
+
+export default FranchiseInquiryForm;

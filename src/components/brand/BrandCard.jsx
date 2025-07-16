@@ -56,7 +56,6 @@ const BrandCard = ({ brand, index = 0 }) => {
       />
 
       <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        {/* Header */}
         <Box
           sx={{
             display: "flex",
@@ -86,7 +85,6 @@ const BrandCard = ({ brand, index = 0 }) => {
           </Avatar>
         </Box>
 
-        {/* Description */}
         <Typography
           variant="body2"
           color="text.secondary"
@@ -95,11 +93,10 @@ const BrandCard = ({ brand, index = 0 }) => {
           {brand.brandStory || brand.mission}
         </Typography>
 
-        {/* Stats */}
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" fontWeight="bold" color="primary.main">
-              {brand.initialFranchiseFee}
+              {brand.initialFranchiseFee} $
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Franchise Fee
@@ -125,7 +122,6 @@ const BrandCard = ({ brand, index = 0 }) => {
 
         <Divider sx={{ my: 2 }} />
 
-        {/* Investment & Details */}
         <Box sx={{ mb: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
             <TrendingUp sx={{ color: "success.main", mr: 1, fontSize: 20 }} />
@@ -152,7 +148,6 @@ const BrandCard = ({ brand, index = 0 }) => {
           </Box>
         </Box>
 
-        {/* Action Buttons */}
         <Box sx={{ display: "flex", gap: 1 }}>
           <Button
             variant="contained"

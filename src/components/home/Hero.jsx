@@ -26,9 +26,8 @@ const MotionCard = motion(Card);
 
 const Hero = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const features = [
     {
@@ -65,7 +64,6 @@ const Hero = () => {
         overflow: "hidden",
       }}
     >
-      {/* Background pattern */}
       <Box
         sx={{
           position: "absolute",
@@ -87,7 +85,6 @@ const Hero = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              {/* Title and description */}
               <Typography
                 variant="h2"
                 component="h1"
@@ -120,7 +117,6 @@ const Hero = () => {
                 today.
               </Typography>
 
-              {/* Buttons */}
               <Box
                 sx={{
                   display: "flex",
@@ -179,7 +175,6 @@ const Hero = () => {
                 </Button>
               </Box>
 
-              {/* Stats */}
               <Box
                 sx={{
                   display: "flex",
@@ -246,7 +241,6 @@ const Hero = () => {
             </MotionBox>
           </Grid>
 
-          {/* Feature Cards - Improved Layout */}
           <Box
             sx={{
               display: "flex",

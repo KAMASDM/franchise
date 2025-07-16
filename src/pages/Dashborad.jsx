@@ -23,6 +23,10 @@ import {
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  AppRegistration as AppRegistrationIcon,
+  ExitToApp as LogoutIcon,
+  MyLocation as MyLocationIcon,
+  Leaderboard as LeaderboardIcon,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import {
@@ -30,12 +34,19 @@ import {
   Routes,
   Link as RouterLink,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import { motion } from "framer-motion";
-import Overview from "../components/dashboard/Overview";
-import MyBrands from "../components/dashboard/MyBrands";
-import Settings from "../components/dashboard/Settings";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase/firebase";
 import Help from "../components/dashboard/Help";
+import Overview from "../components/dashboard/Overview";
+import Brands from "../components/dashboard/Brands";
+import Settings from "../components/dashboard/Settings";
+import Leads from "../components/dashboard/Leads";
+import Locations from "../components/dashboard/Locations";
+import BrandRegistration from "../components/forms/BrandRegistration";
+import BrandDetail from "../components/dashboard/BrandDetail";
 
 const drawerWidth = 240;
 
@@ -96,9 +107,19 @@ const StyledDrawer = styled(Drawer, {
 const Dashboard = () => {
   const theme = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [open, setOpen] = useState(!isMobile);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/");
+    } catch (error) {
+      console.error("Logout Failed:", error);
+    }
+  };
 
   const handleDrawerToggle = () => {
     if (isMobile) {
@@ -120,7 +141,22 @@ const Dashboard = () => {
   const dashboardNavItems = [
     { text: "Home", path: "/", icon: <HomeIcon /> },
     { text: "Overview", path: "/dashboard", icon: <DashboardIcon /> },
-    { text: "My Brands", path: "/dashboard/my-brands", icon: <MyBrandsIcon /> },
+    {
+      text: "Register Brand",
+      path: "/dashboard/register-brand",
+      icon: <AppRegistrationIcon />,
+    },
+    { text: "Brands", path: "/dashboard/brands", icon: <MyBrandsIcon /> },
+    {
+      text: "Locations",
+      path: "/dashboard/locations",
+      icon: <MyLocationIcon />,
+    },
+    {
+      text: "Leads Aquired",
+      path: "/dashboard/leads",
+      icon: <LeaderboardIcon />,
+    },
     { text: "Settings", path: "/dashboard/settings", icon: <SettingsIcon /> },
     { text: "Help & Support", path: "/dashboard/help", icon: <HelpIcon /> },
   ];
@@ -209,6 +245,22 @@ const Dashboard = () => {
               <ListItemText primary={item.text} />
             </ListItem>
           ))}
+          <ListItem
+            button
+            onClick={handleLogout}
+            sx={{
+              color: "rgba(255, 255, 255, 0.7)",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                color: "white",
+              },
+            }}
+          >
+            <ListItemIcon sx={{ color: "inherit" }}>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText primary="Logout" />
+          </ListItem>
         </List>
       </StyledDrawer>
 
@@ -233,8 +285,12 @@ const Dashboard = () => {
           transition={{ duration: 0.5 }}
         >
           <Routes>
-            <Route path="/" element={<Overview />} />
-            <Route path="my-brands" element={<MyBrands />} />
+            <Route index element={<Overview />} />
+            <Route path="register-brand" element={<BrandRegistration />} />
+            <Route path="brands" element={<Brands />} />
+            <Route path="brand-details/:id" element={<BrandDetail />} />
+            <Route path="locations" element={<Locations />} />
+            <Route path="leads" element={<Leads />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />
           </Routes>
