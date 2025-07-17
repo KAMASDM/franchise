@@ -152,8 +152,8 @@ const SearchFilters = ({
 
         <Grid item xs={12} sx={{ display: "flex", justifyContent: "flex-end" }}>
           <Button
-            variant="outlined"
-            color="secondary"
+            variant="contained"
+            color="primary"
             onClick={handleClearFilters}
             startIcon={<Clear />}
             sx={{ borderRadius: 25, px: 3, py: 1 }}
