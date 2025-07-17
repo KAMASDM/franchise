@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Box,
   Drawer,
   List,
-  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   AppBar,
   Toolbar,
   Typography,
-  IconButton,
   useMediaQuery,
   useTheme,
   CssBaseline,
+  BottomNavigation,
+  BottomNavigationAction,
+  Paper,
+  IconButton,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -20,13 +23,11 @@ import {
   Store as MyBrandsIcon,
   Settings as SettingsIcon,
   HelpOutline as HelpIcon,
-  Menu as MenuIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
   AppRegistration as AppRegistrationIcon,
   ExitToApp as LogoutIcon,
   MyLocation as MyLocationIcon,
   Leaderboard as LeaderboardIcon,
+  Restaurant as RestaurantIcon,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import {
@@ -50,58 +51,22 @@ import BrandDetail from "../components/dashboard/BrandDetail";
 
 const drawerWidth = 240;
 
-const openedMixin = (theme) => ({
-  width: drawerWidth,
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
-  overflowX: "hidden",
-});
-
-const closedMixin = (theme) => ({
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  overflowX: "hidden",
-  width: `calc(${theme.spacing(7)} + 1px)`,
-  [theme.breakpoints.up("sm")]: {
-    width: `calc(${theme.spacing(8)} + 1px)`,
-  },
-});
-
-const DrawerHeader = styled("div")(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  padding: theme.spacing(0, 1),
-  ...theme.mixins.toolbar,
-}));
-
-const StyledDrawer = styled(Drawer, {
-  shouldForwardProp: (prop) => prop !== "open",
-})(({ theme, open }) => ({
+const StyledDrawer = styled(Drawer)(({ theme }) => ({
   width: drawerWidth,
   flexShrink: 0,
-  whiteSpace: "nowrap",
-  boxSizing: "border-box",
-  ...(open && {
-    ...openedMixin(theme),
-    "& .MuiDrawer-paper": {
-      ...openedMixin(theme),
-      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-      color: "#ffffff",
-    },
-  }),
-  ...(!open && {
-    ...closedMixin(theme),
-    "& .MuiDrawer-paper": {
-      ...closedMixin(theme),
-      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-      color: "#ffffff",
-    },
-  }),
+  "& .MuiDrawer-paper": {
+    width: drawerWidth,
+    backgroundColor: theme.palette.primary.dark,
+    color: theme.palette.primary.contrastText,
+  },
+}));
+
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.primary,
+  boxShadow: theme.shadows[1],
+  borderBottom: `1px solid ${theme.palette.divider}`,
 }));
 
 const Dashboard = () => {
@@ -109,8 +74,6 @@ const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [open, setOpen] = useState(!isMobile);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -120,23 +83,6 @@ const Dashboard = () => {
       console.error("Logout Failed:", error);
     }
   };
-
-  const handleDrawerToggle = () => {
-    if (isMobile) {
-      setMobileOpen(!mobileOpen);
-    } else {
-      setOpen(!open);
-    }
-  };
-
-  useEffect(() => {
-    if (isMobile && mobileOpen) {
-      setMobileOpen(false);
-    }
-    if (!isMobile) {
-      setOpen(true);
-    }
-  }, [location, isMobile, mobileOpen]);
 
   const dashboardNavItems = [
     { text: "Home", path: "/", icon: <HomeIcon /> },
@@ -153,7 +99,7 @@ const Dashboard = () => {
       icon: <MyLocationIcon />,
     },
     {
-      text: "Leads Aquired",
+      text: "Leads Acquired",
       path: "/dashboard/leads",
       icon: <LeaderboardIcon />,
     },
@@ -161,131 +107,122 @@ const Dashboard = () => {
     { text: "Help & Support", path: "/dashboard/help", icon: <HelpIcon /> },
   ];
 
-  return (
-    <Box sx={{ display: "flex", minHeight: "100vh" }}>
-      <CssBaseline />
-      <AppBar
-        position="fixed"
-        sx={{
-          zIndex: theme.zIndex.drawer + 1,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          color: "white",
-          width: {
-            md: `calc(100% - ${open ? drawerWidth : theme.spacing(7) + 1}px)`,
-          },
-          ml: { md: `${open ? drawerWidth : theme.spacing(7) + 1}px` },
-          transition: theme.transitions.create(["width", "margin"], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerToggle}
-            edge="start"
-            sx={{ mr: 2, display: { md: "none" } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Dashboard
-          </Typography>
-        </Toolbar>
-      </AppBar>
+  const mobileNavItems = [
+    {
+      text: "Register Brand",
+      path: "/dashboard/register-brand",
+      icon: <AppRegistrationIcon />,
+    },
+    { text: "Brands", path: "/dashboard/brands", icon: <MyBrandsIcon /> },
+    {
+      text: "Locations",
+      path: "/dashboard/locations",
+      icon: <MyLocationIcon />,
+    },
+    {
+      text: "Leads Acquired",
+      path: "/dashboard/leads",
+      icon: <LeaderboardIcon />,
+    },
+  ];
 
-      <StyledDrawer
-        variant={isMobile ? "temporary" : "permanent"}
-        open={isMobile ? mobileOpen : open}
-        onClose={handleDrawerToggle}
-        ModalProps={{
-          keepMounted: true,
-        }}
-      >
-        <DrawerHeader>
-          <IconButton onClick={handleDrawerToggle} sx={{ color: "white" }}>
-            {theme.direction === "rtl" ? (
-              <ChevronRightIcon />
-            ) : (
-              <ChevronLeftIcon />
-            )}
-          </IconButton>
-        </DrawerHeader>
-        <List>
-          {dashboardNavItems.map((item) => (
-            <ListItem
-              button
-              key={item.text}
-              component={RouterLink}
-              to={item.path}
-              selected={
-                location.pathname === item.path ||
-                (item.path === "/dashboard" &&
-                  location.pathname === "/dashboard/")
-              }
-              sx={{
-                color: "rgba(255, 255, 255, 0.7)",
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  color: "white",
-                },
-                "&.Mui-selected": {
-                  backgroundColor: "rgba(255, 255, 255, 0.2)",
-                  color: "white",
-                  fontWeight: "bold",
-                  "&:hover": {
-                    backgroundColor: "rgba(255, 255, 255, 0.3)",
-                  },
-                },
-              }}
-            >
-              <ListItemIcon sx={{ color: "inherit" }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItem>
-          ))}
-          <ListItem
-            button
-            onClick={handleLogout}
+  const drawerContent = (
+    <>
+      <Box sx={{ display: "flex", alignItems: "center", p: 2 }}>
+        <IconButton
+          component={RouterLink}
+          to="/"
+          sx={{ color: "inherit", mr: 2 }}
+        >
+          <RestaurantIcon />
+        </IconButton>
+        <Typography variant="h6">FranchiseHub</Typography>
+      </Box>
+      <List sx={{ px: 1 }}>
+        {dashboardNavItems.map((item) => (
+          <ListItemButton
+            key={item.text}
+            component={RouterLink}
+            to={item.path}
+            selected={location.pathname === item.path}
             sx={{
-              color: "rgba(255, 255, 255, 0.7)",
+              borderRadius: 2,
+              mb: 1,
+              color: "inherit",
               "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                color: "white",
+                backgroundColor: theme.palette.primary.light,
+              },
+              "&.Mui-selected": {
+                backgroundColor: theme.palette.primary.main,
+                "&:hover": {
+                  backgroundColor: theme.palette.primary.main,
+                },
               },
             }}
           >
-            <ListItemIcon sx={{ color: "inherit" }}>
-              <LogoutIcon />
+            <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
+              {item.icon}
             </ListItemIcon>
-            <ListItemText primary="Logout" />
-          </ListItem>
-        </List>
-      </StyledDrawer>
+            <ListItemText primary={item.text} />
+          </ListItemButton>
+        ))}
+        <ListItemButton
+          onClick={handleLogout}
+          sx={{
+            borderRadius: 2,
+            mt: 4,
+            color: "inherit",
+            "&:hover": {
+              backgroundColor: theme.palette.primary.light,
+            },
+          }}
+        >
+          <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
+            <LogoutIcon />
+          </ListItemIcon>
+          <ListItemText primary="Logout" />
+        </ListItemButton>
+      </List>
+    </>
+  );
+
+  return (
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.50" }}>
+      <CssBaseline />
+      <StyledAppBar>
+        <Toolbar>
+          <IconButton
+            component={RouterLink}
+            to="/"
+            sx={{ color: "inherit", mr: 2 }}
+          >
+            <RestaurantIcon />
+          </IconButton>
+          <Typography variant="h6">FranchiseHub</Typography>
+        </Toolbar>
+      </StyledAppBar>
+
+      {!isMobile && (
+        <StyledDrawer variant="permanent">{drawerContent}</StyledDrawer>
+      )}
 
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          width: {
-            md: `calc(100% - ${open ? drawerWidth : theme.spacing(7) + 1}px)`,
-          },
-          mt: 8,
-          transition: theme.transitions.create(["width", "margin"], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
+          pb: isMobile ? 8 : 3,
+          mt: "64px",
         }}
       >
         <motion.div
+          key={location.pathname}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <Routes>
-            <Route index element={<Overview />} />
+            <Route path="/" element={<Overview />} />
             <Route path="register-brand" element={<BrandRegistration />} />
             <Route path="brands" element={<Brands />} />
             <Route path="brand-details/:id" element={<BrandDetail />} />
@@ -296,6 +233,39 @@ const Dashboard = () => {
           </Routes>
         </motion.div>
       </Box>
+
+      {isMobile && (
+        <Paper
+          sx={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: theme.zIndex.appBar,
+          }}
+          elevation={3}
+        >
+          <BottomNavigation
+            showLabels
+            value={mobileNavItems.findIndex(
+              (item) => item.path === location.pathname
+            )}
+            onChange={(event, newValue) => {
+              navigate(mobileNavItems[newValue].path);
+            }}
+          >
+            {mobileNavItems.map((item) => (
+              <BottomNavigationAction
+                key={item.text}
+                label={item.text}
+                icon={item.icon}
+                component={RouterLink}
+                to={item.path}
+              />
+            ))}
+          </BottomNavigation>
+        </Paper>
+      )}
     </Box>
   );
 };

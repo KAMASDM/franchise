@@ -197,13 +197,7 @@ const Hero = () => {
             }}
           >
             {features.map((feature, index) => (
-              <Box
-                key={index}
-                sx={{
-                  flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 16px)" },
-                  minWidth: "220px",
-                }}
-              >
+              <Box key={index}>
                 <FeatureCard
                   icon={feature.icon}
                   title={feature.title}

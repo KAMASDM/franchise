@@ -52,9 +52,7 @@ const BrandCard = ({ brand, index = 0 }) => {
       <CardMedia
         component="img"
         height="200"
-        image={
-          "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"
-        }
+        image={brand.brandImage}
         alt={brand.brandName}
         sx={{ objectFit: "cover" }}
       />
