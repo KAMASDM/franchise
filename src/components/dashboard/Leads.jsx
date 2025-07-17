@@ -300,7 +300,11 @@ const Leads = () => {
               </Box>
 
               <Box display="flex" alignItems="center" mb={1}>
-                <Business sx={{ fontSize: 18, mr: 1, color: "primary.main" }} />
+                <Avatar
+                  src={lead.brandImage}
+                  alt={lead.brandName}
+                  sx={{ width: 20, height: 20, mr: 2 }}
+                />
                 <Typography>{lead.brandName}</Typography>
               </Box>
 
@@ -443,7 +447,14 @@ const Leads = () => {
                 </Box>
               </TableCell>
               <TableCell>
-                <Typography>{lead.brandName}</Typography>
+                <Box display="flex" alignItems="center" mb={1}>
+                  <Avatar
+                    src={lead.brandImage}
+                    alt={lead.brandName}
+                    sx={{ width: 40, height: 40, mr: 2 }}
+                  />
+                  <Typography>{lead.brandName}</Typography>
+                </Box>
               </TableCell>
               <TableCell>
                 <Box display="flex" flexDirection="column">

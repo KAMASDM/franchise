@@ -41,6 +41,9 @@ import {
 import { motion } from "framer-motion";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -51,6 +54,24 @@ const BrandDetail = () => {
   const [brand, setBrand] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+
+    const sliderSettings = {
+    dots: false,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 2,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    responsive: [
+      {
+        breakpoint: 900,
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
+  };
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -63,8 +84,8 @@ const BrandDetail = () => {
           id: doc.id,
           ...doc.data(),
         }));
-        setBrand(brandsData.find((brand) => brand.id === id));
-        setError(null);
+        const foundBrand = brandsData.find((b) => b.id === id);
+        setBrand(foundBrand);
       } catch (err) {
         console.error("Error fetching brands:", err);
         setError("Failed to load brands. Please try again later.");
@@ -126,81 +147,24 @@ const BrandDetail = () => {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <MotionCard
-        initial={{ opacity: 0, y: 50 }}
+        initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        sx={{ mb: 6, overflow: "hidden", boxShadow: 3 }}
+        sx={{ mb: 4, boxShadow: 5, borderRadius: 3, overflow: "hidden" }}
       >
         <Box
           sx={{
-            backgroundImage: brand.brandImage
-              ? `url(${brand.brandImage})`
-              : "linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4))",
+            position: "relative",
+            minHeight: { xs: 250, md: 350 },
+            backgroundImage: `url(${brand.brandImage})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            display: "flex",
-            alignItems: "center",
             color: "white",
-            p: { xs: 3, md: 6 },
-            position: "relative",
-            backgroundColor: "primary.main",
+            display: "flex",
+            alignItems: "flex-end",
+            p: { xs: 2, md: 4 },
           }}
         >
-          <Box sx={{ maxWidth: 800, zIndex: 2 }}>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-              <Avatar
-                sx={{
-                  width: 80,
-                  height: 80,
-                  mr: 3,
-                  backgroundColor: "white",
-                  color: "primary.main",
-                  fontSize: "2rem",
-                  fontWeight: "bold",
-                }}
-              >
-                {brand.brandName.charAt(0)}
-              </Avatar>
-              <Box>
-                <Typography
-                  variant="h2"
-                  fontWeight="bold"
-                  sx={{ mb: 1, fontSize: { xs: "2rem", md: "3rem" } }}
-                >
-                  {brand.brandName}
-                </Typography>
-                <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
-                  {brand.industries.map((industry, index) => (
-                    <Chip
-                      key={index}
-                      label={industry}
-                      sx={{
-                        backgroundColor: "secondary.main",
-                        color: "white",
-                        fontWeight: "bold",
-                      }}
-                    />
-                  ))}
-                  <Chip
-                    icon={<Star />}
-                    label="4.5 Rating"
-                    sx={{
-                      backgroundColor: "warning.main",
-                      color: "white",
-                      fontWeight: "bold",
-                    }}
-                  />
-                </Box>
-              </Box>
-            </Box>
-            <Typography
-              variant="h6"
-              sx={{ maxWidth: 600, lineHeight: 1.6, mb: 4 }}
-            >
-              {brand.brandMission}
-            </Typography>
-          </Box>
-
           <Box
             sx={{
               position: "absolute",
@@ -208,10 +172,33 @@ const BrandDetail = () => {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(0,0,0,0.4)",
-              zIndex: 1,
+              background:
+                "linear-gradient(to top, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0) 80%)",
             }}
           />
+          <Box sx={{ position: "relative", zIndex: 1 }}>
+            <Typography
+              variant="h2"
+              component="h1"
+              fontWeight="bold"
+              sx={{ fontSize: { xs: "2.5rem", md: "3.5rem" } }}
+            >
+              {brand.brandName}
+            </Typography>
+            <Typography variant="h6" sx={{ opacity: 0.9, maxWidth: "60ch" }}>
+              {brand.brandMission}
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
+              {brand.industries?.map((industry, index) => (
+                <Chip
+                  key={index}
+                  label={industry}
+                  color="secondary"
+                  size="small"
+                />
+              ))}
+            </Box>
+          </Box>
         </Box>
       </MotionCard>
 
@@ -507,7 +494,36 @@ const BrandDetail = () => {
               </Box>
             </CardContent>
           </MotionCard>
-
+          {brand.brandFranchiseImages?.length > 0 && (
+            <MotionCard
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+              sx={{ mb: 4, boxShadow: 3 }}
+            >
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Gallery
+                </Typography>
+                <Slider {...sliderSettings}>
+                  {brand.brandFranchiseImages.map((image, index) => (
+                    <Box key={index} sx={{ px: 1.5 }}>
+                      <Box
+                        component="img"
+                        src={image}
+                        alt={`Franchise gallery image ${index + 1}`}
+                        sx={{
+                          width: "100%",
+                          objectFit: "cover",
+                          borderRadius: 2,
+                        }}
+                      />
+                    </Box>
+                  ))}
+                </Slider>
+              </CardContent>
+            </MotionCard>
+          )}
           {/* Franchise Details Card */}
           <MotionCard
             initial={{ opacity: 0, x: 50 }}
@@ -663,54 +679,62 @@ const BrandDetail = () => {
               <Typography variant="h5" gutterBottom fontWeight="bold">
                 Brand Owner
               </Typography>
-              <ListItem>
-                <ListItemIcon>
-                  <Person color="primary" />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Name"
-                  secondary={brand.brandOwnerInformation.name}
-                />
-              </ListItem>
-              <List>
-                <ListItem>
-                  <ListItemIcon>
-                    <Email color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Email"
-                    secondary={brand.brandOwnerInformation.email}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Phone color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Phone"
-                    secondary={brand.brandOwnerInformation.phone}
-                  />
-                </ListItem>
-                {brand.brandOwnerInformation.linkedinURl && (
-                  <ListItem>
-                    <ListItemIcon>
-                      <LinkedIn color="primary" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary="LinkedIn"
-                      secondary={
-                        <Link
-                          href={brand.brandOwnerInformation.linkedinURl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          View Profile
-                        </Link>
-                      }
-                    />
-                  </ListItem>
-                )}
-              </List>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                <Box sx={{ flex: 1, minWidth: 300 }}>
+                  <List>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Person color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Name"
+                        secondary={brand.brandOwnerInformation.name}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Email color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Email"
+                        secondary={brand.brandOwnerInformation.email}
+                      />
+                    </ListItem>
+                  </List>
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 300 }}>
+                  <List>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Phone color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Phone"
+                        secondary={brand.brandOwnerInformation.phone}
+                      />
+                    </ListItem>
+                    {brand.brandOwnerInformation.linkedinURl && (
+                      <ListItem>
+                        <ListItemIcon>
+                          <LinkedIn color="primary" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary="LinkedIn"
+                          secondary={
+                            <Link
+                              href={brand.brandOwnerInformation.linkedinURl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              View Profile
+                            </Link>
+                          }
+                        />
+                      </ListItem>
+                    )}
+                  </List>
+                </Box>
+              </Box>
             </CardContent>
           </MotionCard>
         </Box>

@@ -39,8 +39,9 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { db } from "../../firebase/firebase";
+import { db, storage } from "../../firebase/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 const steps = [
   {
@@ -411,16 +412,56 @@ const BrandRegistration = () => {
 
   const handleSubmit = async () => {
     setLoading(true);
+    setError("");
+
     try {
-      // Prepare form data for submission
+      const uploadFile = async (file, path) => {
+        if (!file) return null;
+        const storageRef = ref(storage, path);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        return new Promise((resolve, reject) => {
+          uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+              const progress =
+                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              console.log("Upload is " + progress + "% done");
+            },
+            (error) => {
+              console.error("Upload failed:", error);
+              reject(error);
+            },
+            () => {
+              getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                resolve(downloadURL);
+              });
+            }
+          );
+        });
+      };
+
+      let brandImageUrl = null;
+      if (formData.brandImage) {
+        const imagePath = `brands/${user.uid}/${
+          formData.brandName
+        }/logo_${Date.now()}_${formData.brandImage.name}`;
+        brandImageUrl = await uploadFile(formData.brandImage, imagePath);
+      }
+
+      const franchiseImageUrls = await Promise.all(
+        formData.brandFranchiseImages.map((file, index) => {
+          const imagePath = `brands/${user.uid}/${
+            formData.brandName
+          }/gallery_${Date.now()}_${index}_${file.name}`;
+          return uploadFile(file, imagePath);
+        })
+      );
+
       const submissionData = {
         ...formData,
-        // Convert files to base64 strings or other format as needed
-        // In a real app, you might want to upload files to storage first
-        brandImage: formData.brandImage ? formData.brandImage.name : null,
-        brandFranchiseImages: formData.brandFranchiseImages.map(
-          (file) => file.name
-        ),
+        brandImage: brandImageUrl,
+        brandFranchiseImages: franchiseImageUrls.filter((url) => url),
         createdAt: serverTimestamp(),
         createdBy: user.uid,
         userId: user.uid,
@@ -430,11 +471,14 @@ const BrandRegistration = () => {
       // Add brand data to Firestore
       await addDoc(collection(db, "brands"), submissionData);
 
-      // Redirect to brand profile page
+      setLoading(false);
       navigate("/brands");
-    } catch (err) {
-      console.error("Error adding document: ", err);
-      setError("Failed to submit application. Please try again.");
+    } catch (error) {
+      console.log("error", error);
+      setError(
+        "Failed to submit application. Please check the console for details and try again."
+      );
+      setLoading(false);
     } finally {
       setLoading(false);
     }

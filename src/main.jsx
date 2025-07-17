@@ -124,32 +124,7 @@ const theme = createTheme({
       light: "#374151",
     },
   },
-  customAnimations: {
-    scrollLeft: {
-      "@keyframes scrollLeft": {
-        "0%": { transform: "translateX(0)" },
-        "100%": { transform: "translateX(-100%)" },
-      },
-      animation: "scrollLeft 40s linear infinite",
-    },
-    scrollRight: {
-      "@keyframes scrollRight": {
-        "0%": { transform: "translateX(-100%)" },
-        "100%": { transform: "translateX(0)" },
-      },
-      animation: "scrollRight 40s linear infinite",
-    },
-  },
   components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          textTransform: "none",
-          fontWeight: 600,
-        },
-      },
-    },
     MuiCard: {
       styleOverrides: {
         root: {
@@ -163,25 +138,6 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 12,
-        },
-      },
-    },
-    MuiCssBaseline: {
-      styleOverrides: {
-        ".scrollbar-hide": {
-          "-ms-overflow-style": "none",
-          "scrollbar-width": "none",
-          "&::-webkit-scrollbar": {
-            display: "none",
-          },
-        },
-        "@keyframes scrollLeft": {
-          "0%": { transform: "translateX(0)" },
-          "100%": { transform: "translateX(-100%)" },
-        },
-        "@keyframes scrollRight": {
-          "0%": { transform: "translateX(-100%)" },
-          "100%": { transform: "translateX(0)" },
         },
       },
     },

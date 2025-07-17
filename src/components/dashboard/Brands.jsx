@@ -471,31 +471,50 @@ const Brands = () => {
                 justifyContent="space-between"
                 gap={2}
               >
-                <TextField
-                  fullWidth={isMobile}
-                  variant="outlined"
-                  placeholder="Search brands..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search color="primary" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: searchTerm && (
-                      <InputAdornment position="end">
-                        <IconButton onClick={() => setSearchTerm("")}>
-                          <Clear fontSize="small" />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    flex: isMobile ? "none" : 1,
-                    maxWidth: isMobile ? "100%" : "400px",
-                  }}
-                />
+                <Box
+                  display="flex"
+                  flexDirection={isMobile ? "column" : "row"}
+                  gap={2}
+                  width={isMobile ? "100%" : "auto"}
+                >
+                  <TextField
+                    fullWidth={isMobile}
+                    variant="outlined"
+                    placeholder="Search brands..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Search color="primary" />
+                        </InputAdornment>
+                      ),
+                      endAdornment: searchTerm && (
+                        <InputAdornment position="end">
+                          <IconButton onClick={() => setSearchTerm("")}>
+                            <Clear fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      flex: isMobile ? "none" : 1,
+                      maxWidth: isMobile ? "100%" : "400px",
+                    }}
+                  />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    onClick={() => navigate("/dashboard/register-brand")}
+                    sx={{
+                      bgcolor: "primary.main",
+                      "&:hover": { bgcolor: "primary.dark" },
+                    }}
+                  >
+                    + Add New Brand
+                  </Button>
+                </Box>
 
                 <Box
                   display="flex"

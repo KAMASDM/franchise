@@ -2,7 +2,15 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { db } from "../../firebase/firebase";
 import { useNavigate } from "react-router-dom";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+  getDoc,
+} from "firebase/firestore";
 import {
   Box,
   CircularProgress,
@@ -42,6 +50,7 @@ import {
   Clear,
 } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
+import AddFranchiseLocation from "../forms/AddFranchiseLocation";
 
 const Locations = () => {
   const { user } = useAuth();
@@ -59,6 +68,7 @@ const Locations = () => {
     state: "",
     city: "",
   });
+  const [openAddDialog, setOpenAddDialog] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -83,6 +93,7 @@ const Locations = () => {
           id: doc.id,
           ...doc.data(),
         }));
+        console.log(brandsData);
         setBrands(brandsData);
         setError(null);
       } catch (err) {
@@ -172,6 +183,33 @@ const Locations = () => {
       }
       return 0;
     });
+
+  const handleAddLocation = async (brandId, newLocation) => {
+    console.log("--location-->", brandId, newLocation);
+    try {
+      const brandRef = doc(db, "brands", brandId);
+      const brandDoc = await getDoc(brandRef);
+
+      if (brandDoc.exists()) {
+        const currentLocations = brandDoc.data().brandFranchiseLocations || [];
+        const updatedLocations = [...currentLocations, newLocation];
+
+        await updateDoc(brandRef, {
+          brandFranchiseLocations: updatedLocations,
+        });
+
+        setBrands(
+          brands.map((brand) =>
+            brand.id === brandId
+              ? { ...brand, brandFranchiseLocations: updatedLocations }
+              : brand
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error adding location:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -496,31 +534,50 @@ const Locations = () => {
                 justifyContent="space-between"
                 gap={2}
               >
-                <TextField
-                  fullWidth={isMobile}
-                  variant="outlined"
-                  placeholder="Search locations..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search color="primary" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: searchTerm && (
-                      <InputAdornment position="end">
-                        <IconButton onClick={() => setSearchTerm("")}>
-                          <Clear fontSize="small" />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    flex: isMobile ? "none" : 1,
-                    maxWidth: isMobile ? "100%" : "400px",
-                  }}
-                />
+                <Box
+                  display="flex"
+                  flexDirection={isMobile ? "column" : "row"}
+                  gap={2}
+                  width={isMobile ? "100%" : "auto"}
+                >
+                  <TextField
+                    fullWidth={isMobile}
+                    variant="outlined"
+                    placeholder="Search locations..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Search color="primary" />
+                        </InputAdornment>
+                      ),
+                      endAdornment: searchTerm && (
+                        <InputAdornment position="end">
+                          <IconButton onClick={() => setSearchTerm("")}>
+                            <Clear fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      flex: isMobile ? "none" : 1,
+                      maxWidth: isMobile ? "100%" : "400px",
+                    }}
+                  />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    onClick={() => setOpenAddDialog(true)}
+                    sx={{
+                      bgcolor: "primary.main",
+                      "&:hover": { bgcolor: "primary.dark" },
+                    }}
+                  >
+                    + Add Other Location
+                  </Button>
+                </Box>
 
                 <Box
                   display="flex"
@@ -646,6 +703,12 @@ const Locations = () => {
           </motion.div>
         )}
       </Container>
+      <AddFranchiseLocation
+        open={openAddDialog}
+        onClose={() => setOpenAddDialog(false)}
+        brands={brands}
+        onAddLocation={handleAddLocation}
+      />
     </>
   );
 };

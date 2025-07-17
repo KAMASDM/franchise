@@ -171,6 +171,7 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
         // Brand Information
         brandId: brand.id,
         brandName: brand.brandName,
+        brandImage: brand.brandImage,
         brandOwner: brand.userId,
 
         // Metadata
