@@ -10,6 +10,7 @@ import {
   Grid,
   CircularProgress,
   Box,
+  useTheme,
 } from "@mui/material";
 
 const industries = [
@@ -45,9 +46,13 @@ const franchiseModels = [
   "Conversion Franchise",
 ];
 
-const MotionBox = motion(Box);
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: { duration: 0.6 } },
+};
 
 const Brands = () => {
+  const theme = useTheme();
   const [brands, setBrands] = useState([]);
   const [filteredBrands, setFilteredBrands] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -141,48 +146,63 @@ const Brands = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 8 }}>
-      <MotionBox
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        sx={{ textAlign: "center", mb: 8 }}
-      >
-        <Typography variant="h2" fontWeight="bold" sx={{ mb: 3 }}>
-          Featured Franchise Opportunities
-        </Typography>
-        <Typography
-          variant="h5"
-          color="text.secondary"
-          sx={{ maxWidth: 800, mx: "auto" }}
-        >
-          Discover top-performing restaurant franchises with proven business
-          models and strong support systems.
-        </Typography>
-      </MotionBox>
+    <Box
+      sx={{
+        background: `linear-gradient(to bottom, ${theme.palette.primary[50]}, ${theme.palette.background.paper} 50%, ${theme.palette.secondary[50]})`,
+      }}
+    >
+      <Container maxWidth="xl" sx={{ py: { xs: 5, md: 10 } }}>
+        <motion.div variants={itemVariants} initial="hidden" animate="visible">
+          <Typography
+            component="h1"
+            variant="h2"
+            sx={{
+              textAlign: "center",
+              mb: 2,
+              fontSize: { xs: "2.25rem", md: "3rem" },
+            }}
+          >
+            Featured Franchise Opportunities
+          </Typography>
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{
+              maxWidth: 800,
+              mx: "auto",
+              textAlign: "center",
+              mb: { xs: 8, md: 10 },
+            }}
+          >
+            Discover top-performing restaurant franchises with proven business
+            models and strong support systems.
+          </Typography>
+        </motion.div>
 
-      <SearchFilters
-        onFilterChange={handleFilterChange}
-        industries={industries}
-        investmentRanges={investmentRanges}
-        franchiseModels={franchiseModels}
-      />
-      <Grid container spacing={4} sx={{ mt: 4 }}>
-        {filteredBrands.length > 0 ? (
-          filteredBrands.map((brand) => (
-            <Grid item key={brand.id} xs={12} sm={6} md={4}>
-              <BrandCard brand={brand} />
+        <SearchFilters
+          onFilterChange={handleFilterChange}
+          industries={industries}
+          investmentRanges={investmentRanges}
+          franchiseModels={franchiseModels}
+        />
+
+        <Grid container spacing={4} sx={{ mt: 4 }}>
+          {filteredBrands.length > 0 ? (
+            filteredBrands.map((brand) => (
+              <Grid item key={brand.id} xs={12} sm={6} md={4}>
+                <BrandCard brand={brand} />
+              </Grid>
+            ))
+          ) : (
+            <Grid item xs={12}>
+              <Typography variant="h6" align="center" sx={{ mt: 4 }}>
+                No brands found matching your criteria.
+              </Typography>
             </Grid>
-          ))
-        ) : (
-          <Grid item xs={12}>
-            <Typography variant="h6" align="center" sx={{ mt: 4 }}>
-              No brands found matching your criteria.
-            </Typography>
-          </Grid>
-        )}
-      </Grid>
-    </Container>
+          )}
+        </Grid>
+      </Container>
+    </Box>
   );
 };
 

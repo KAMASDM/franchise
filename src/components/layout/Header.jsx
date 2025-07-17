@@ -8,7 +8,9 @@ import {
   Drawer,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
+  ListItemText,
   useMediaQuery,
   useTheme,
   Box,
@@ -31,6 +33,7 @@ import {
   Restaurant as RestaurantIcon,
   ExitToApp as LogoutIcon,
   Dashboard as DashboardIcon,
+  Login as LoginIcon,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { signInWithPopup, signOut } from "firebase/auth";
@@ -38,29 +41,45 @@ import { auth, provider, db } from "../../firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useAuth } from "../../context/AuthContext";
 
+const MotionButton = (props) => (
+  <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
+    <Button {...props} />
+  </motion.div>
+);
+
+const navItems = [
+  { text: "Home", path: "/", icon: <HomeIcon /> },
+  { text: "About Us", path: "/about", icon: <AboutIcon /> },
+  { text: "Brands", path: "/brands", icon: <BrandsIcon /> },
+  { text: "Blog", path: "/blogs", icon: <BlogIcon /> },
+  { text: "Contact", path: "/contact", icon: <ContactIcon /> },
+  { text: "FAQs", path: "/faq", icon: <FaqIcon /> },
+];
+
 const Header = () => {
   const theme = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const toggleDrawer = (open) => (event) => {
-    if (
-      event.type === "keydown" &&
-      (event.key === "Tab" || event.key === "Shift")
-    ) {
-      return;
-    }
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
+
+  const handleDrawer = (open) => () => {
     setDrawerOpen(open);
   };
 
-  const handleBrandSignIn = async () => {
+  const handleUserMenu = (event) => {
+    setUserMenuAnchor(event.currentTarget);
+  };
+  const handleCloseUserMenu = () => {
+    setUserMenuAnchor(null);
+  };
+
+  const handleSignIn = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-
       await setDoc(
         doc(db, "users", user.uid),
         {
@@ -72,7 +91,6 @@ const Header = () => {
         },
         { merge: true }
       );
-
       navigate("/dashboard/register-brand");
     } catch (error) {
       console.error("Google Sign-In Failed:", error);
@@ -82,120 +100,95 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      handleCloseMenu();
+      handleCloseUserMenu();
       navigate("/");
     } catch (error) {
       console.error("Logout Failed:", error);
     }
   };
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
-  };
-
-  const navItems = [
-    { text: "Home", path: "/", icon: <HomeIcon /> },
-    { text: "About Us", path: "/about", icon: <AboutIcon /> },
-    { text: "Brands", path: "/brands", icon: <BrandsIcon /> },
-    { text: "Blog", path: "/blog", icon: <BlogIcon /> },
-    { text: "Contact", path: "/contact", icon: <ContactIcon /> },
-    { text: "FAQs", path: "/faq", icon: <FaqIcon /> },
-  ];
-
-  const drawer = (
+  const drawerContent = (
     <Box
-      sx={{ width: 250 }}
+      sx={{ width: 250, py: 2 }}
       role="presentation"
-      onClick={toggleDrawer(false)}
-      onKeyDown={toggleDrawer(false)}
+      onClick={handleDrawer(false)}
     >
-      <Box sx={{ p: 2, display: "flex", alignItems: "center", gap: 2 }}>
-        <RestaurantIcon sx={{ mr: 1, fontSize: 30 }} />
-        <Typography variant="h6">FranchiseHub</Typography>
+      <Box sx={{ px: 2, mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+        <RestaurantIcon sx={{ fontSize: 30, color: "primary.main" }} />
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          FranchiseHub
+        </Typography>
       </Box>
       <Divider />
       <List>
-        {navItems.map((item) => (
-          <ListItem
-            button
-            component={RouterLink}
-            to={item.path}
-            key={item.text}
-            sx={{
-              "&:hover": {
-                backgroundColor: theme.palette.primary.light,
-                color: "white",
-              },
-            }}
-          >
-            <ListItemIcon sx={{ color: "inherit" }}>{item.icon}</ListItemIcon>
-            <Typography variant="body1">{item.text}</Typography>
+        {navItems.map(({ text, path, icon }) => (
+          <ListItem key={text} disablePadding>
+            <ListItemButton component={RouterLink} to={path}>
+              <ListItemIcon>{icon}</ListItemIcon>
+              <ListItemText primary={text} />
+            </ListItemButton>
           </ListItem>
         ))}
-        <Divider sx={{ my: 1 }} />
-        {!user ? (
-          <ListItem
-            button
-            onClick={handleBrandSignIn}
-            sx={{
-              backgroundColor: theme.palette.primary.main,
-              color: "white",
-              "&:hover": {
-                backgroundColor: theme.palette.primary.dark,
-              },
-              mt: 1,
-            }}
-          >
-            <ListItemIcon sx={{ color: "inherit" }}>
-              <BrandIcon />
-            </ListItemIcon>
-            <Typography variant="body1">For Brands</Typography>
-          </ListItem>
-        ) : (
-          <>
-            <ListItem
-              button
-              onClick={() => {
-                navigate("/dashboard");
-                toggleDrawer(false);
-              }}
-              sx={{
-                "&:hover": {
-                  backgroundColor: theme.palette.primary.light,
-                  color: "white",
-                },
-                mt: 1,
-              }}
-            >
-              <ListItemIcon sx={{ color: "inherit" }}>
-                <DashboardIcon />
-              </ListItemIcon>
-              <Typography variant="body1">Dashboard</Typography>
-            </ListItem>
-            <ListItem
-              button
-              onClick={handleLogout}
-              sx={{
-                backgroundColor: theme.palette.error.main,
-                color: "white",
-                "&:hover": {
-                  backgroundColor: theme.palette.error.dark,
-                },
-                mt: 1,
-              }}
-            >
-              <ListItemIcon sx={{ color: "inherit" }}>
-                <LogoutIcon />
-              </ListItemIcon>
-              <Typography variant="body1">Logout</Typography>
-            </ListItem>
-          </>
-        )}
       </List>
+      {!user && (
+        <>
+          <Divider sx={{ my: 1 }} />
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={handleSignIn}
+              sx={{
+                backgroundColor: "secondary.light",
+                borderRadius: 2,
+                mx: 2,
+              }}
+            >
+              <ListItemIcon>
+                <LoginIcon />
+              </ListItemIcon>
+              <ListItemText primary="Brand Sign In" />
+            </ListItemButton>
+          </ListItem>
+        </>
+      )}
+    </Box>
+  );
+
+  const userMenu = (
+    <Box>
+      <Tooltip title="Account settings">
+        <IconButton onClick={handleUserMenu} sx={{ p: 0 }}>
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Avatar alt={user?.displayName || ""} src={user?.photoURL || ""} />
+          </motion.div>
+        </IconButton>
+      </Tooltip>
+      <Menu
+        anchorEl={userMenuAnchor}
+        open={Boolean(userMenuAnchor)}
+        onClose={handleCloseUserMenu}
+        sx={{ mt: 1.5 }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem
+          onClick={() => {
+            navigate("/dashboard");
+            handleCloseUserMenu();
+          }}
+        >
+          <ListItemIcon>
+            <DashboardIcon fontSize="small" />
+          </ListItemIcon>
+          Dashboard
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleLogout}>
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+          Logout
+        </MenuItem>
+      </Menu>
     </Box>
   );
 
@@ -203,10 +196,11 @@ const Header = () => {
     <>
       <AppBar
         position="sticky"
-        elevation={1}
+        elevation={0}
         sx={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          color: "white",
+          bgcolor: "background.paper",
+          color: "text.primary",
+          borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between" }}>
@@ -221,15 +215,10 @@ const Header = () => {
               gap: 1,
             }}
           >
-            <RestaurantIcon sx={{ mr: 1, fontSize: 30 }} />
+            <RestaurantIcon sx={{ fontSize: 30, color: "primary.main" }} />
             <Typography
               variant="h6"
-              component="div"
-              sx={{
-                fontWeight: 700,
-                letterSpacing: 1,
-                fontSize: { xs: "1.1rem", sm: "1.3rem" },
-              }}
+              sx={{ fontWeight: 700, display: { xs: "none", sm: "block" } }}
             >
               FranchiseHub
             </Typography>
@@ -238,172 +227,48 @@ const Header = () => {
           {/* Desktop Navigation */}
           {!isMobile && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              {navItems.map((item) => (
-                <Button
-                  key={item.text}
+              {navItems.map(({ text, path }) => (
+                <MotionButton
+                  key={text}
                   component={RouterLink}
-                  to={item.path}
-                  startIcon={item.icon}
-                  sx={{
-                    color: "white",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    },
-                  }}
+                  to={path}
+                  color="inherit"
                 >
-                  {item.text}
-                </Button>
+                  {text}
+                </MotionButton>
               ))}
-
-              {user ? (
-                <Box sx={{ ml: 2, display: "flex", alignItems: "center" }}>
-                  <Tooltip title="Dashboard">
-                    <IconButton
-                      color="inherit"
-                      onClick={() => navigate("/dashboard")}
-                      sx={{ mr: 1 }}
-                    >
-                      <DashboardIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Logout">
-                    <IconButton
-                      color="inherit"
-                      onClick={handleLogout}
-                      sx={{ mr: 1 }}
-                    >
-                      <LogoutIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <IconButton onClick={handleMenuOpen} sx={{ p: 0 }}>
-                    <Avatar
-                      alt={user.displayName || ""}
-                      src={user.photoURL || ""}
-                    />
-                  </IconButton>
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleCloseMenu}
-                    anchorOrigin={{
-                      vertical: "bottom",
-                      horizontal: "right",
-                    }}
-                    transformOrigin={{
-                      vertical: "top",
-                      horizontal: "right",
-                    }}
-                  >
-                    <MenuItem onClick={handleCloseMenu}>
-                      <Typography variant="body2">
-                        {user.displayName || user.email}
-                      </Typography>
-                    </MenuItem>
-                  </Menu>
-                </Box>
-              ) : (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    startIcon={<BrandIcon />}
-                    onClick={handleBrandSignIn}
-                    sx={{
-                      ml: 1,
-                      fontWeight: "bold",
-                      borderRadius: 2,
-                      boxShadow: "0 4px 14px rgba(0, 0, 0, 0.1)",
-                    }}
-                  >
-                    For Brands
-                  </Button>
-                </motion.div>
-              )}
             </Box>
           )}
 
-          {/* Mobile Navigation */}
-          {isMobile && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              {user && (
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <Tooltip title="Dashboard">
-                    <IconButton
-                      color="inherit"
-                      onClick={() => navigate("/dashboard")}
-                      sx={{ mr: 1 }}
-                    >
-                      <DashboardIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Logout">
-                    <IconButton
-                      color="inherit"
-                      onClick={handleLogout}
-                      sx={{ mr: 1 }}
-                    >
-                      <LogoutIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <IconButton onClick={handleMenuOpen} sx={{ p: 0, mr: 1 }}>
-                    <Avatar
-                      alt={user.displayName || ""}
-                      src={user.photoURL || ""}
-                    />
-                  </IconButton>
-                </Box>
-              )}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {user ? (
+              userMenu
+            ) : (
+              <MotionButton
+                variant="contained"
+                color="primary"
+                startIcon={<BrandIcon />}
+                onClick={handleSignIn}
+              >
+                For Brands
+              </MotionButton>
+            )}
+            {isMobile && (
               <IconButton
-                edge="start"
+                edge="end"
                 color="inherit"
-                aria-label="menu"
-                onClick={toggleDrawer(true)}
+                onClick={handleDrawer(true)}
               >
                 <MenuIcon />
               </IconButton>
-            </Box>
-          )}
+            )}
+          </Box>
         </Toolbar>
       </AppBar>
 
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={toggleDrawer(false)}
-        PaperProps={{
-          sx: {
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            color: "white",
-          },
-        }}
-      >
-        {drawer}
+      <Drawer anchor="right" open={drawerOpen} onClose={handleDrawer(false)}>
+        {drawerContent}
       </Drawer>
-
-      {isMobile && user && (
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleCloseMenu}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "right",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-        >
-          <MenuItem onClick={handleCloseMenu}>
-            <Typography variant="body2">
-              {user.displayName || user.email}
-            </Typography>
-          </MenuItem>
-        </Menu>
-      )}
     </>
   );
 };

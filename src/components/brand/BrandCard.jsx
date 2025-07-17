@@ -9,6 +9,7 @@ import {
   Chip,
   Avatar,
   Divider,
+  useTheme,
 } from "@mui/material";
 import { LocationOn, TrendingUp, AccessTime, Star } from "@mui/icons-material";
 import { motion } from "framer-motion";
@@ -17,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 const MotionCard = motion(Card);
 
 const BrandCard = ({ brand, index = 0 }) => {
+  const theme = useTheme();
   const navigate = useNavigate();
 
   const handleLearnMore = () => {
@@ -50,7 +52,9 @@ const BrandCard = ({ brand, index = 0 }) => {
       <CardMedia
         component="img"
         height="200"
-        image={"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"}
+        image={
+          "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400"
+        }
         alt={brand.brandName}
         sx={{ objectFit: "cover" }}
       />
@@ -80,7 +84,11 @@ const BrandCard = ({ brand, index = 0 }) => {
                 />
               ))}
           </Box>
-          <Avatar sx={{ backgroundColor: "secondary.main" }}>
+          <Avatar
+            sx={{
+              background: `linear-gradient(135deg, ${theme.customColors.secondary[400]} 0%, ${theme.customColors.secondary[600]} 100%)`,
+            }}
+          >
             <Star />
           </Avatar>
         </Box>
@@ -95,7 +103,7 @@ const BrandCard = ({ brand, index = 0 }) => {
 
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h6" fontWeight="bold" color="primary.main">
+            <Typography variant="h6" fontWeight="bold">
               {brand.initialFranchiseFee} $
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -103,7 +111,7 @@ const BrandCard = ({ brand, index = 0 }) => {
             </Typography>
           </Box>
           <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h6" fontWeight="bold" color="secondary.main">
+            <Typography variant="h6" fontWeight="bold">
               {brand.royaltyFee} %
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -111,7 +119,7 @@ const BrandCard = ({ brand, index = 0 }) => {
             </Typography>
           </Box>
           <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h6" fontWeight="bold" color="success.main">
+            <Typography variant="h6" fontWeight="bold">
               {brand.franchiseTermLength} years
             </Typography>
             <Typography variant="caption" color="text.secondary">
