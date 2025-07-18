@@ -11,6 +11,8 @@ import {
   Divider,
   useTheme,
 } from "@mui/material";
+import { db } from "../../firebase/firebase";
+import { doc, setDoc, increment, serverTimestamp } from "firebase/firestore";
 import { LocationOn, TrendingUp, AccessTime, Star } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -21,12 +23,36 @@ const BrandCard = ({ brand, index = 0 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  const handleLearnMore = () => {
-    navigate(`/brand/${brand.id}`);
+  const trackView = async () => {
+    try {
+      const now = new Date();
+      const monthKey = `${now.getFullYear()}-${String(
+        now.getMonth() + 1
+      ).padStart(2, "0")}`;
+      const dayKey = now.toISOString().split("T")[0];
+
+      const viewRef = doc(db, "brandViews", brand.id);
+
+      await setDoc(
+        viewRef,
+        {
+          brandId: brand.id,
+          brandOwnerId: brand.userId,
+          totalViews: increment(1),
+          [`monthlyViews.${monthKey}`]: increment(1),
+          [`dailyViews.${dayKey}`]: increment(1),
+          lastUpdated: serverTimestamp(),
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      console.error("Error tracking view:", error);
+    }
   };
 
-  const handleInquiry = () => {
-    navigate(`/brand/${brand.id}?inquiry=true`);
+  const handleLearnMore = () => {
+    trackView();
+    navigate(`/brand/${brand.id}`);
   };
 
   return (
@@ -154,32 +180,18 @@ const BrandCard = ({ brand, index = 0 }) => {
           </Box>
         </Box>
 
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={handleLearnMore}
-            sx={{
-              borderRadius: 25,
-              fontWeight: "bold",
-              py: 1,
-            }}
-          >
-            Learn More
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={handleInquiry}
-            sx={{
-              borderRadius: 25,
-              fontWeight: "bold",
-              py: 1,
-            }}
-          >
-            Inquire Now
-          </Button>
-        </Box>
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={handleLearnMore}
+          sx={{
+            borderRadius: 25,
+            fontWeight: "bold",
+            py: 1,
+          }}
+        >
+          Learn More
+        </Button>
       </CardContent>
     </MotionCard>
   );
