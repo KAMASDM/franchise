@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -43,8 +43,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { motion } from "framer-motion";
-import { db } from "../../firebase/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { useBrand } from "../../hooks/useBrand";
 import FranchiseInquiryForm from "../forms/FranchiseInquiryForm";
 
 const MotionBox = motion(Box);
@@ -53,9 +52,7 @@ const MotionCard = motion(Card);
 const BrandDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [brand, setBrand] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { brand, loading, error } = useBrand(id);
   const [showInquiryForm, setShowInquiryForm] = useState(false);
 
   const sliderSettings = {
@@ -75,30 +72,6 @@ const BrandDetail = () => {
       },
     ],
   };
-
-  useEffect(() => {
-    const fetchBrands = async () => {
-      setLoading(true);
-      try {
-        const brandsCollection = collection(db, "brands");
-        const q = query(brandsCollection, where("status", "==", "active"));
-        const querySnapshot = await getDocs(q);
-        const brandsData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        const foundBrand = brandsData.find((b) => b.id === id);
-        setBrand(foundBrand);
-      } catch (err) {
-        console.error("Error fetching brands:", err);
-        setError("Failed to load brands. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBrands();
-  }, [id]);
 
   if (loading) {
     return (

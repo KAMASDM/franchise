@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { db } from "../../firebase/firebase";
 import { useNavigate } from "react-router-dom";
-import { collection, query, where, getDocs } from "firebase/firestore";
 import {
   Box,
   CircularProgress,
@@ -10,12 +8,6 @@ import {
   Typography,
   Button,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   InputAdornment,
   IconButton,
@@ -26,26 +18,17 @@ import {
   Chip,
   useMediaQuery,
   useTheme,
-  Avatar,
-  Grid,
-  Card,
-  CardContent,
 } from "@mui/material";
-import {
-  LocationOn,
-  Search,
-  FilterList,
-  Sort,
-  Clear,
-} from "@mui/icons-material";
+import { useBrands } from "../../hooks/useBrands";
 import { useAuth } from "../../context/AuthContext";
+import BrandCardView from "./Brands/BrandCardView";
+import BrandTableView from "./Brands/BrandTableView";
+import { Search, FilterList, Clear } from "@mui/icons-material";
 
 const Brands = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [brands, setBrands] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { brands, loading, error } = useBrands(user);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: "brandName",
@@ -57,45 +40,6 @@ const Brands = () => {
   });
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  useEffect(() => {
-    const fetchBrands = async () => {
-      setLoading(true);
-      try {
-        if (!user || !user.uid) {
-          setBrands([]);
-          setLoading(false);
-          return;
-        }
-
-        const brandsCollection = collection(db, "brands");
-        const q = query(
-          brandsCollection,
-          where("status", "==", "active"),
-          where("userId", "==", user.uid)
-        );
-        const querySnapshot = await getDocs(q);
-        const brandsData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setBrands(brandsData);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching brands:", err);
-        setError("Failed to load your brands. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) {
-      fetchBrands();
-    } else {
-      setLoading(false);
-      setError("Please log in to view your brands.");
-    }
-  }, [user]);
 
   const filterOptions = {
     industry: [
@@ -194,204 +138,6 @@ const Brands = () => {
       </Container>
     );
   }
-
-  const SortableHeader = ({ label, sortKey }) => (
-    <TableCell
-      sx={{
-        fontWeight: "bold",
-        color: "primary.main",
-        cursor: "pointer",
-      }}
-      onClick={() => handleSort(sortKey)}
-    >
-      <Box display="flex" alignItems="center">
-        {label}
-        <Sort
-          sx={{
-            ml: 1,
-            opacity: sortConfig.key === sortKey ? 1 : 0.3,
-            transform:
-              sortConfig.key === sortKey && sortConfig.direction === "desc"
-                ? "rotate(180deg)"
-                : "none",
-          }}
-          fontSize="small"
-        />
-      </Box>
-    </TableCell>
-  );
-
-  const renderMobileView = () => (
-    <Grid container spacing={2} sx={{ mt: 2 }}>
-      {filteredBrands.map((brand) => (
-        <Grid item xs={12} key={brand.id}>
-          <Card
-            sx={{
-              transition: "transform 0.2s, box-shadow 0.2s",
-              "&:hover": {
-                transform: "translateY(-4px)",
-                boxShadow: 3,
-              },
-            }}
-          >
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <Avatar
-                  src={brand.brandImage}
-                  alt={brand.brandName}
-                  sx={{ width: 40, height: 40, mr: 2 }}
-                />
-                <Typography variant="h6" fontWeight="bold">
-                  {brand.brandName}
-                </Typography>
-              </Box>
-
-              <Box sx={{ mb: 1 }}>
-                {brand.industries?.map((industry, index) => (
-                  <Chip
-                    key={index}
-                    label={industry}
-                    size="small"
-                    color="primary"
-                    sx={{ mr: 1, mb: 1 }}
-                  />
-                ))}
-              </Box>
-
-              <Box sx={{ mb: 1 }}>
-                <Typography variant="body2">
-                  <strong>Model:</strong> {brand.franchiseModel}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Investment:</strong> {brand.investmentRange}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Fee:</strong> ₹{brand.initialFranchiseFee} |{" "}
-                  {brand.royaltyFee}% Royalty
-                </Typography>
-              </Box>
-
-              <Box sx={{ mb: 1 }}>
-                <Typography variant="body2">
-                  <LocationOn
-                    sx={{ fontSize: 16, mr: 0.5, color: "primary.main" }}
-                  />
-                  {brand.brandContactInformation?.city},{" "}
-                  {brand.brandContactInformation?.state}
-                </Typography>
-              </Box>
-
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => handleLearnMore(brand.id)}
-                size="small"
-              >
-                View Details
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-      ))}
-    </Grid>
-  );
-
-  const renderDesktopView = () => (
-    <TableContainer component={Paper} elevation={3} sx={{ mt: 3 }}>
-      <Table stickyHeader aria-label="brands table">
-        <TableHead>
-          <TableRow sx={{ bgcolor: "primary.light" }}>
-            <SortableHeader label="Brand" sortKey="brandName" />
-            <SortableHeader label="Industry" sortKey="industries" />
-            <SortableHeader label="Model" sortKey="franchiseModel" />
-            <SortableHeader label="Investment" sortKey="investmentRange" />
-            <SortableHeader label="Fees" sortKey="initialFranchiseFee" />
-            <SortableHeader
-              label="Location"
-              sortKey="brandContactInformation.city"
-            />
-            <TableCell sx={{ fontWeight: "bold", color: "primary.main" }}>
-              Actions
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredBrands.map((brand) => (
-            <TableRow
-              key={brand.id}
-              sx={{
-                "&:nth-of-type(odd)": {
-                  backgroundColor: "background.default",
-                },
-                "&:hover": {
-                  backgroundColor: "action.hover",
-                },
-              }}
-            >
-              <TableCell>
-                <Box display="flex" alignItems="center">
-                  <Avatar
-                    src={brand.brandImage}
-                    alt={brand.brandName}
-                    sx={{ width: 40, height: 40, mr: 2 }}
-                  />
-                  <Typography variant="subtitle1" fontWeight="medium">
-                    {brand.brandName}
-                  </Typography>
-                </Box>
-              </TableCell>
-              <TableCell>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                  {brand.industries?.map((industry, index) => (
-                    <Chip
-                      key={index}
-                      label={industry}
-                      size="small"
-                      color="primary"
-                    />
-                  ))}
-                </Box>
-              </TableCell>
-              <TableCell>{brand.franchiseModel}</TableCell>
-              <TableCell>{brand.investmentRange}</TableCell>
-              <TableCell>
-                <Box>
-                  <Typography variant="body2">
-                    <strong>Fee:</strong> ₹{brand.initialFranchiseFee}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Royalty:</strong> {brand.royaltyFee}%
-                  </Typography>
-                </Box>
-              </TableCell>
-              <TableCell>
-                {brand.brandContactInformation ? (
-                  <Box display="flex" alignItems="center">
-                    <LocationOn
-                      sx={{ fontSize: 18, mr: 0.5, color: "primary.main" }}
-                    />
-                    {brand.brandContactInformation.city},{" "}
-                    {brand.brandContactInformation.state}
-                  </Box>
-                ) : (
-                  "N/A"
-                )}
-              </TableCell>
-              <TableCell>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => handleLearnMore(brand.id)}
-                >
-                  Details
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
 
   return (
     <>
@@ -606,7 +352,19 @@ const Brands = () => {
               </Typography>
             </Box>
 
-            {isMobile ? renderMobileView() : renderDesktopView()}
+            {isMobile ? (
+              <BrandCardView
+                brands={filteredBrands}
+                onLearnMore={handleLearnMore}
+              />
+            ) : (
+              <BrandTableView
+                brands={filteredBrands}
+                sortConfig={sortConfig}
+                onSort={handleSort}
+                onLearnMore={handleLearnMore}
+              />
+            )}
           </motion.div>
         )}
       </Container>

@@ -9,41 +9,14 @@ import {
 } from "@mui/material";
 import BrandCard from "./BrandCard";
 import { motion } from "framer-motion";
-import { db } from "../../firebase/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { useBrands } from "../../hooks/useBrands";
 
 const MotionBox = motion(Box);
 
 const BrandGrid = ({ limit = null, filters = null }) => {
-  const [brands, setBrands] = useState([]);
-  const [displayBrands, setDisplayBrands] = useState([]);
+  const { brands, loading, error } = useBrands();
   const [showAll, setShowAll] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchBrands = async () => {
-      setLoading(true);
-      try {
-        const brandsCollection = collection(db, "brands");
-        const q = query(brandsCollection, where("status", "==", "active"));
-        const querySnapshot = await getDocs(q);
-        const brandsData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setBrands(brandsData);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching brands:", err);
-        setError("Failed to load brands. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBrands();
-  }, []);
+  const [displayBrands, setDisplayBrands] = useState([]);
 
   const applyFilters = useCallback(() => {
     let currentFilteredBrands = [...brands];

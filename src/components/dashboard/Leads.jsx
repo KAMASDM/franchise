@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { db } from "../../firebase/firebase";
 import { useNavigate } from "react-router-dom";
-import { collection, query, where, getDocs } from "firebase/firestore";
 import {
   Box,
   CircularProgress,
@@ -50,13 +48,12 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import { format } from "date-fns";
+import { useLeads } from "../../hooks/useLeads";
 
 const Leads = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [leads, setLeads] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { leads, loading, error } = useLeads(user);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: "createdAt",
@@ -69,47 +66,6 @@ const Leads = () => {
   });
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  useEffect(() => {
-    const fetchLeads = async () => {
-      setLoading(true);
-      try {
-        if (!user || !user.uid) {
-          setLeads([]);
-          setLoading(false);
-          return;
-        }
-
-        const leadsCollection = collection(db, "brandfranchiseInquiry");
-        const q = query(leadsCollection, where("brandOwner", "==", user.uid));
-        const querySnapshot = await getDocs(q);
-        const leadsData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: doc.data().createdAt?.toDate
-            ? doc.data().createdAt.toDate()
-            : null,
-          updatedAt: doc.data().updatedAt?.toDate
-            ? doc.data().updatedAt.toDate()
-            : null,
-        }));
-        setLeads(leadsData);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching leads:", err);
-        setError("Failed to load your leads. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) {
-      fetchLeads();
-    } else {
-      setLoading(false);
-      setError("Please log in to view your leads.");
-    }
-  }, [user]);
 
   const filterOptions = {
     status: ["new", "pending", "contacted", "converted", "rejected"],
