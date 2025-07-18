@@ -107,7 +107,7 @@ const CreateBrandProfile = () => {
           <>
             <Typography variant="h6">Now, about the investment.</Typography>
             <TextField
-              label="Investment Range (e.g., $50k - $100k)"
+              label="Investment Range (e.g., ₹50k - ₹100k)"
               name="investmentRange"
               value={formData.investmentRange}
               onChange={handleInputChange}

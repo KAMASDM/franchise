@@ -24,6 +24,7 @@ import {
   Star,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
+import { Link as RouterLink } from "react-router-dom";
 
 const stats = [
   { number: "500+", label: "Franchise Brands", icon: <Business /> },
@@ -463,8 +464,9 @@ const About = () => {
                 }}
               >
                 <Button
+                  component={RouterLink}
                   variant="contained"
-                  href="/brands"
+                  to="/brands"
                   size="large"
                   sx={{
                     bgcolor: "background.paper",
@@ -476,7 +478,8 @@ const About = () => {
                 </Button>
                 <Button
                   variant="outlined"
-                  href="/contact"
+                  component={RouterLink}
+                  to="/contact"
                   size="large"
                   sx={{
                     borderColor: "primary.contrastText",

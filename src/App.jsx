@@ -2,20 +2,21 @@ import React, { useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AuthContextProvider } from "./context/AuthContext";
 import { useAuth } from "./context/AuthContext";
-
+import { Box } from "@mui/material";
 import FAQ from "./pages/FAQ";
 import Home from "./pages/Home";
 import Blog from "./pages/Blogs";
 import About from "./pages/About";
 import Brands from "./pages/Brands";
 import Contact from "./pages/Contact";
+import Dashboard from "./pages/Dashborad";
 import BlogDetail from "./pages/BlogDetail";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import Chatbot from "./components/chat/Chatbot";
-import { Box } from "@mui/material";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import BrandDetail from "./components/brand/BrandDetail";
-import Dashboard from "./pages/Dashborad";
+import TermsAndConditions from "./pages/TermsAndConditions";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -72,6 +73,11 @@ function App() {
                   <Dashboard />
                 </ProtectedRoute>
               }
+            />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route
+              path="/terms-and-conditions"
+              element={<TermsAndConditions />}
             />
           </Routes>
         </Box>

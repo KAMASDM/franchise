@@ -55,7 +55,7 @@ const BrandDetail = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-    const sliderSettings = {
+  const sliderSettings = {
     dots: false,
     infinite: true,
     speed: 500,
@@ -268,7 +268,7 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Initial Franchise Fee"
-                    secondary={`$${brand.initialFranchiseFee}`}
+                    secondary={`₹${brand.initialFranchiseFee}`}
                   />
                 </ListItem>
                 <ListItem>
@@ -480,7 +480,7 @@ const BrandDetail = () => {
                         <Avatar
                           sx={{
                             mr: 2,
-                            bgcolor: "lightgray",
+                            bgcolor: "primary.50",
                             width: 40,
                             height: 40,
                           }}
@@ -548,19 +548,19 @@ const BrandDetail = () => {
                     <ListItem>
                       <ListItemText
                         primary="Working Capital"
-                        secondary={`$${brand.workingCapital}`}
+                        secondary={`₹${brand.workingCapital}`}
                       />
                     </ListItem>
                     <ListItem>
                       <ListItemText
                         primary="Real Estate Costs"
-                        secondary={`$${brand.realEstateCosts}`}
+                        secondary={`₹${brand.realEstateCosts}`}
                       />
                     </ListItem>
                     <ListItem>
                       <ListItemText
                         primary="Equipment Costs"
-                        secondary={`$${brand.equipmentCosts}`}
+                        secondary={`₹${brand.equipmentCosts}`}
                       />
                     </ListItem>
                   </List>

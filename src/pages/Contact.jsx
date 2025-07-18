@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Container,
   Typography,
@@ -10,10 +10,15 @@ import {
   Avatar,
   useTheme,
   Grid,
+  CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Phone, Email, LocationOn, Schedule, Send } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
+import { db } from "../firebase/firebase";
+import { addDoc, collection } from "firebase/firestore";
 
 const MotionCard = motion(Card);
 
@@ -29,6 +34,7 @@ const contactMethods = [
     description: "Speak with a franchise specialist",
     contact: "+91 98765 43210",
     action: "Call Now",
+    href: "tel:+919876543210",
   },
   {
     icon: <Email sx={{ color: "primary.dark" }} />,
@@ -36,6 +42,7 @@ const contactMethods = [
     description: "Send us your questions",
     contact: "info@franchisehub.co.in",
     action: "Email Us",
+    href: "mailto:info@franchisehub.co.in",
   },
   {
     icon: <LocationOn sx={{ color: "primary.dark" }} />,
@@ -43,6 +50,7 @@ const contactMethods = [
     description: "Visit our Indian headquarters",
     contact: "123 Business Hub, Alkapuri, Vadodara, Gujarat 390007",
     action: "Get Directions",
+    href: "https://maps.google.com/?q=123+Business+Hub,+Alkapuri,+Vadodara,+Gujarat+390007",
   },
   {
     icon: <Schedule sx={{ color: "primary.dark" }} />,
@@ -50,6 +58,7 @@ const contactMethods = [
     description: "Our operating hours",
     contact: "Mon-Fri: 10:00 AM - 7:00 PM IST",
     action: "Schedule Call",
+    href: "#contact-form",
   },
 ];
 
@@ -58,11 +67,40 @@ const Contact = () => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm();
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const onSubmit = (data) => {
-    console.log("Contact form submitted:", data);
+  const onSubmit = async (data) => {
+    const contactData = {
+      name: `${data.firstName} ${data.lastName}`,
+      email: data.email,
+      message: data.message,
+      phone: data.phone,
+      timestamp: new Date(),
+    };
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await addDoc(collection(db, "contactUs"), contactData);
+      setSubmitted(true);
+      reset();
+    } catch (err) {
+      console.error("Error submitting form:", err);
+      setError("Failed to submit form. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSubmitted(false);
+    setError(null);
   };
 
   return (
@@ -72,6 +110,23 @@ const Contact = () => {
       }}
     >
       <Container maxWidth="xl" sx={{ py: { xs: 5, md: 10 } }}>
+        <Snackbar
+          open={submitted || !!error}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          {submitted ? (
+            <Alert onClose={handleCloseSnackbar} severity="success">
+              Thank you! Your message has been sent successfully.
+            </Alert>
+          ) : (
+            <Alert onClose={handleCloseSnackbar} severity="error">
+              {error}
+            </Alert>
+          )}
+        </Snackbar>
+
         <motion.div variants={itemVariants} initial="hidden" animate="visible">
           <Typography
             component="h1"
@@ -184,6 +239,10 @@ const Contact = () => {
                     label="First Name"
                     {...register("firstName", {
                       required: "First name is required",
+                      minLength: {
+                        value: 2,
+                        message: "First name must be at least 2 characters",
+                      },
                     })}
                     error={!!errors.firstName}
                     helperText={errors.firstName?.message}
@@ -196,6 +255,10 @@ const Contact = () => {
                     label="Last Name"
                     {...register("lastName", {
                       required: "Last name is required",
+                      minLength: {
+                        value: 2,
+                        message: "Last name must be at least 2 characters",
+                      },
                     })}
                     error={!!errors.lastName}
                     helperText={errors.lastName?.message}
@@ -208,7 +271,13 @@ const Contact = () => {
                 label="Email"
                 type="email"
                 sx={{ mt: 2 }}
-                {...register("email", { required: "Email is required" })}
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "Invalid email address",
+                  },
+                })}
                 error={!!errors.email}
                 helperText={errors.email?.message}
               />
@@ -217,7 +286,17 @@ const Contact = () => {
                 variant="outlined"
                 label="Phone Number"
                 sx={{ mt: 2 }}
-                {...register("phone")}
+                {...register("phone", {
+                  pattern: {
+                    value: /^[0-9]{10,15}$/,
+                    message: "Please enter a valid phone number",
+                  },
+                })}
+                error={!!errors.phone}
+                helperText={errors.phone?.message}
+                inputProps={{
+                  inputMode: "numeric",
+                }}
               />
               <TextField
                 fullWidth
@@ -226,30 +305,49 @@ const Contact = () => {
                 multiline
                 rows={6}
                 sx={{ mt: 2 }}
-                {...register("message", { required: "Message is required" })}
+                {...register("message", {
+                  required: "Message is required",
+                  minLength: {
+                    value: 10,
+                    message: "Message must be at least 10 characters",
+                  },
+                })}
                 error={!!errors.message}
                 helperText={errors.message?.message}
               />
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                startIcon={<Send />}
-                sx={{
-                  borderRadius: 25,
-                  px: 4,
-                  py: 1.5,
-                  fontWeight: "bold",
-                  mt: 3,
-                }}
-              >
-                Send Message
-              </Button>
+              <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  startIcon={
+                    loading ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      <Send />
+                    )
+                  }
+                  disabled={loading}
+                  sx={{
+                    borderRadius: 25,
+                    px: 4,
+                    py: 1.5,
+                    fontWeight: "bold",
+                    minWidth: 180,
+                  }}
+                >
+                  {loading ? "Sending..." : "Send Message"}
+                </Button>
+              </Box>
             </form>
           </MotionCard>
         </Box>
 
-        <Box
+        <MotionCard
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
           sx={{
             width: "100%",
             height: 400,
@@ -268,7 +366,7 @@ const Contact = () => {
             referrerPolicy="no-referrer-when-downgrade"
             title="FranchiseHub Office Location - Vadodara"
           />
-        </Box>
+        </MotionCard>
       </Container>
     </Box>
   );

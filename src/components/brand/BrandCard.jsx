@@ -102,7 +102,7 @@ const BrandCard = ({ brand, index = 0 }) => {
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" fontWeight="bold">
-              {brand.initialFranchiseFee} $
+              {brand.initialFranchiseFee}₹
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Franchise Fee
@@ -110,7 +110,7 @@ const BrandCard = ({ brand, index = 0 }) => {
           </Box>
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" fontWeight="bold">
-              {brand.royaltyFee} %
+              {brand.royaltyFee}%
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Royalty Fee

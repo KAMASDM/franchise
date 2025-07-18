@@ -25,6 +25,7 @@ import {
   FormControlLabel,
   Checkbox,
   Stack,
+  FormHelperText,
 } from "@mui/material";
 import {
   CloudUpload as CloudUploadIcon,
@@ -94,12 +95,12 @@ const industries = [
 ];
 
 const investmentRanges = [
-  "Under $50K",
-  "$50K - $100K",
-  "$100K - $250K",
-  "$250K - $500K",
-  "$500K - $1M",
-  "Over $1M",
+  "Under ₹50K",
+  "₹50K - ₹100K",
+  "₹100K - ₹250K",
+  "₹250K - ₹500K",
+  "₹500K - ₹1M",
+  "Over ₹1M",
 ];
 
 const franchiseModels = [
@@ -117,6 +118,7 @@ const BrandRegistration = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [uploadedFiles, setUploadedFiles] = useState({});
 
   const [formData, setFormData] = useState({
@@ -187,10 +189,10 @@ const BrandRegistration = () => {
 
     // Legal Framework
     franchiseTermLength: "",
-    terminationConditions: "",
-    transferConditions: "",
-    disputeResolution: "",
-    nonCompeteRestrictions: "",
+    terminationConditions: false,
+    transferConditions: false,
+    disputeResolution: false,
+    nonCompeteRestrictions: false,
 
     // Additional
     industries: [],
@@ -200,6 +202,91 @@ const BrandRegistration = () => {
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error for this field on change
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleNestedInputChange = (section, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+    // Clear the specific nested error
+    const errorKey = `${section}.${field}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => ({ ...prev, [errorKey]: undefined }));
+    }
+  };
+
+  const validateStep = (step) => {
+    const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    switch (step) {
+      case 0:
+        if (!formData.brandName.trim())
+          newErrors.brandName = "Brand name is required.";
+        if (!formData.brandfoundedYear)
+          newErrors.brandfoundedYear = "Founded year is required.";
+        else if (
+          String(formData.brandfoundedYear).length !== 4 ||
+          isNaN(formData.brandfoundedYear)
+        )
+          newErrors.brandfoundedYear = "Enter a valid 4-digit year.";
+        if (!formData.brandImage)
+          newErrors.brandImage = "Brand logo is required.";
+        if (!formData.brandOwnerInformation.name.trim())
+          newErrors["brandOwnerInformation.name"] = "Owner name is required.";
+        if (!formData.brandOwnerInformation.email.trim())
+          newErrors["brandOwnerInformation.email"] = "Owner email is required.";
+        else if (!emailRegex.test(formData.brandOwnerInformation.email))
+          newErrors["brandOwnerInformation.email"] = "Invalid email format.";
+        if (!formData.brandContactInformation.email.trim())
+          newErrors["brandContactInformation.email"] =
+            "Contact email is required.";
+        else if (!emailRegex.test(formData.brandContactInformation.email))
+          newErrors["brandContactInformation.email"] = "Invalid email format.";
+        if (!formData.brandContactInformation.phone.trim())
+          newErrors["brandContactInformation.phone"] =
+            "Contact phone is required.";
+        break;
+      case 1:
+        if (formData.industries.length === 0)
+          newErrors.industries = "Please select at least one industry.";
+        if (!formData.franchiseModel)
+          newErrors.franchiseModel = "Please select a franchise type.";
+        if (!formData.businessModel)
+          newErrors.businessModel = "Please select a business model.";
+        break;
+      case 2:
+        if (!formData.initialFranchiseFee)
+          newErrors.initialFranchiseFee = "Initial franchise fee is required.";
+        else if (
+          isNaN(formData.initialFranchiseFee) ||
+          +formData.initialFranchiseFee <= 0
+        )
+          newErrors.initialFranchiseFee =
+            "Please enter a valid positive number.";
+        if (!formData.royaltyFee)
+          newErrors.royaltyFee = "Royalty fee is required.";
+        else if (isNaN(formData.royaltyFee) || +formData.royaltyFee < 0)
+          newErrors.royaltyFee = "Please enter a valid fee percentage.";
+        if (!formData.investmentRange)
+          newErrors.investmentRange = "Total investment range is required.";
+        break;
+      case 4:
+        if (!formData.franchiseTermLength.trim())
+          newErrors.franchiseTermLength = "Franchise term length is required.";
+        break;
+      default:
+        break;
+    }
+    return newErrors;
   };
 
   const handleFileUpload = (field, event) => {
@@ -208,6 +295,9 @@ const BrandRegistration = () => {
 
     if (field === "brandImage") {
       handleInputChange("brandImage", files[0]);
+      if (errors.brandImage) {
+        setErrors((prev) => ({ ...prev, brandImage: undefined }));
+      }
     } else if (field === "brandFranchiseImages") {
       // Convert FileList to array and combine with existing images
       const newFiles = Array.from(files);
@@ -253,9 +343,17 @@ const BrandRegistration = () => {
   }) => {
     // Determine if this is a single file upload (like brandImage) or multiple (like brandFranchiseImages)
     const isMultiple = field === "brandFranchiseImages";
+    const fieldError = errors[field];
 
     return (
-      <Card elevation={1} sx={{ mb: 2 }}>
+      <Card
+        elevation={1}
+        sx={{
+          mb: 2,
+          border: fieldError ? "1px solid" : "none",
+          borderColor: "error.main",
+        }}
+      >
         <CardContent>
           <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
             <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
@@ -355,7 +453,7 @@ const BrandRegistration = () => {
           <Box
             sx={{
               border: "2px dashed",
-              borderColor: "grey.300",
+              borderColor: fieldError ? "error.light" : "grey.300",
               borderRadius: 2,
               p: 3,
               textAlign: "center",
@@ -385,6 +483,11 @@ const BrandRegistration = () => {
               multiple={isMultiple}
             />
           </Box>
+          {fieldError && (
+            <FormHelperText error sx={{ mt: 1, ml: 2 }}>
+              {fieldError}
+            </FormHelperText>
+          )}
 
           {/* Add more button for multiple uploads */}
           {isMultiple && formData.brandFranchiseImages?.length > 0 && (
@@ -403,7 +506,13 @@ const BrandRegistration = () => {
   };
 
   const handleNext = () => {
-    setActiveStep((prev) => prev + 1);
+    const newErrors = validateStep(activeStep);
+    if (Object.keys(newErrors).length === 0) {
+      setErrors({}); // Clear errors before moving to the next step
+      setActiveStep((prev) => prev + 1);
+    } else {
+      setErrors(newErrors);
+    }
   };
 
   const handleBack = () => {
@@ -411,6 +520,15 @@ const BrandRegistration = () => {
   };
 
   const handleSubmit = async () => {
+    // Validate the final step before submission
+    const newErrors = validateStep(activeStep);
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setError("Please correct the errors before submitting.");
+      return;
+    }
+
+    setErrors({});
     setLoading(true);
     setError("");
 
@@ -507,21 +625,27 @@ const BrandRegistration = () => {
                   <TextField
                     label="Brand Name"
                     fullWidth
+                    required
                     value={formData.brandName}
                     onChange={(e) =>
                       handleInputChange("brandName", e.target.value)
                     }
+                    error={!!errors.brandName}
+                    helperText={errors.brandName}
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Founded Year"
                     type="number"
+                    required
                     value={formData.brandfoundedYear}
                     onChange={(e) =>
                       handleInputChange("brandfoundedYear", e.target.value)
                     }
+                    error={!!errors.brandfoundedYear}
+                    helperText={errors.brandfoundedYear}
                   />
                 </Grid>
                 <Grid item xs={12}>
@@ -552,7 +676,7 @@ const BrandRegistration = () => {
               <Box sx={{ mt: 4 }}>
                 <FileUploadSection
                   field="brandImage"
-                  label="Brand Logo/Image"
+                  label="Brand Logo/Image (Required)"
                   acceptedTypes="image/*"
                 />
               </Box>
@@ -572,42 +696,51 @@ const BrandRegistration = () => {
                 Brand Owner Information
               </Typography>
               <Grid container spacing={3}>
-                <Grid item xs={12} sm={6} md={4}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     label="Owner Name"
                     fullWidth
+                    required
                     value={formData.brandOwnerInformation.name}
                     onChange={(e) =>
-                      handleInputChange("brandOwnerInformation", {
-                        ...formData.brandOwnerInformation,
-                        name: e.target.value,
-                      })
+                      handleNestedInputChange(
+                        "brandOwnerInformation",
+                        "name",
+                        e.target.value
+                      )
                     }
+                    error={!!errors["brandOwnerInformation.name"]}
+                    helperText={errors["brandOwnerInformation.name"]}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6} md={4}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     label="Owner Email"
                     fullWidth
+                    required
                     value={formData.brandOwnerInformation.email}
                     onChange={(e) =>
-                      handleInputChange("brandOwnerInformation", {
-                        ...formData.brandOwnerInformation,
-                        email: e.target.value,
-                      })
+                      handleNestedInputChange(
+                        "brandOwnerInformation",
+                        "email",
+                        e.target.value
+                      )
                     }
+                    error={!!errors["brandOwnerInformation.email"]}
+                    helperText={errors["brandOwnerInformation.email"]}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6} md={4}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     label="Owner Phone"
                     fullWidth
                     value={formData.brandOwnerInformation.phone}
                     onChange={(e) =>
-                      handleInputChange("brandOwnerInformation", {
-                        ...formData.brandOwnerInformation,
-                        phone: e.target.value,
-                      })
+                      handleNestedInputChange(
+                        "brandOwnerInformation",
+                        "phone",
+                        e.target.value
+                      )
                     }
                   />
                 </Grid>
@@ -617,10 +750,11 @@ const BrandRegistration = () => {
                     fullWidth
                     value={formData.brandOwnerInformation.linkedinURl}
                     onChange={(e) =>
-                      handleInputChange("brandOwnerInformation", {
-                        ...formData.brandOwnerInformation,
-                        linkedinURl: e.target.value,
-                      })
+                      handleNestedInputChange(
+                        "brandOwnerInformation",
+                        "linkedinURl",
+                        e.target.value
+                      )
                     }
                   />
                 </Grid>
@@ -632,10 +766,11 @@ const BrandRegistration = () => {
                     rows={3}
                     value={formData.brandOwnerInformation.bio}
                     onChange={(e) =>
-                      handleInputChange("brandOwnerInformation", {
-                        ...formData.brandOwnerInformation,
-                        bio: e.target.value,
-                      })
+                      handleNestedInputChange(
+                        "brandOwnerInformation",
+                        "bio",
+                        e.target.value
+                      )
                     }
                   />
                 </Grid>
@@ -657,23 +792,31 @@ const BrandRegistration = () => {
               </Typography>
               <Grid container spacing={3}>
                 {Object.entries(formData.brandContactInformation).map(
-                  ([field, value]) => (
-                    <Grid item xs={12} sm={6} md={4} key={field}>
-                      <TextField
-                        label={field
-                          .replace(/URl/, " URL")
-                          .replace(/([A-Z])/g, " $1")}
-                        fullWidth
-                        value={value}
-                        onChange={(e) =>
-                          handleInputChange("brandContactInformation", {
-                            ...formData.brandContactInformation,
-                            [field]: e.target.value,
-                          })
-                        }
-                      />
-                    </Grid>
-                  )
+                  ([field, value]) => {
+                    const isRequired = field === "email" || field === "phone";
+                    const errorKey = `brandContactInformation.${field}`;
+                    return (
+                      <Grid item xs={12} sm={6} md={4} key={field}>
+                        <TextField
+                          label={field
+                            .replace(/URl/, " URL")
+                            .replace(/([A-Z])/g, " $1")}
+                          fullWidth
+                          required={isRequired}
+                          value={value}
+                          onChange={(e) =>
+                            handleNestedInputChange(
+                              "brandContactInformation",
+                              field,
+                              e.target.value
+                            )
+                          }
+                          error={!!errors[errorKey]}
+                          helperText={errors[errorKey]}
+                        />
+                      </Grid>
+                    );
+                  }
                 )}
               </Grid>
             </Box>
@@ -794,7 +937,7 @@ const BrandRegistration = () => {
           <>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
+                <FormControl fullWidth required error={!!errors.industries}>
                   <InputLabel>Select Industries</InputLabel>
                   <Select
                     multiple
@@ -816,11 +959,14 @@ const BrandRegistration = () => {
                       </MenuItem>
                     ))}
                   </Select>
+                  {errors.industries && (
+                    <FormHelperText>{errors.industries}</FormHelperText>
+                  )}
                 </FormControl>
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
+                <FormControl fullWidth required error={!!errors.franchiseModel}>
                   <InputLabel>Franchise Type</InputLabel>
                   <Select
                     value={formData.franchiseModel}
@@ -834,12 +980,15 @@ const BrandRegistration = () => {
                       </MenuItem>
                     ))}
                   </Select>
+                  {errors.franchiseModel && (
+                    <FormHelperText>{errors.franchiseModel}</FormHelperText>
+                  )}
                 </FormControl>
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Business Modal</InputLabel>
+                <FormControl fullWidth required error={!!errors.businessModel}>
+                  <InputLabel>Business Model</InputLabel>
                   <Select
                     value={formData.businessModel}
                     onChange={(e) =>
@@ -852,6 +1001,9 @@ const BrandRegistration = () => {
                       </MenuItem>
                     ))}
                   </Select>
+                  {errors.businessModel && (
+                    <FormHelperText>{errors.businessModel}</FormHelperText>
+                  )}
                 </FormControl>
               </Grid>
             </Grid>
@@ -923,7 +1075,8 @@ const BrandRegistration = () => {
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
-                          label="Initial Franchise Fee ($)"
+                          required
+                          label="Initial Franchise Fee (₹)"
                           type="number"
                           value={formData.initialFranchiseFee}
                           onChange={(e) =>
@@ -932,11 +1085,17 @@ const BrandRegistration = () => {
                               e.target.value
                             )
                           }
-                          InputProps={{ startAdornment: "$" }}
+                          error={!!errors.initialFranchiseFee}
+                          helperText={errors.initialFranchiseFee}
+                          InputProps={{ startAdornment: "₹" }}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
+                        <FormControl
+                          fullWidth
+                          required
+                          error={!!errors.investmentRange}
+                        >
                           <InputLabel>Total Investment Range</InputLabel>
                           <Select
                             value={formData.investmentRange}
@@ -953,6 +1112,11 @@ const BrandRegistration = () => {
                               </MenuItem>
                             ))}
                           </Select>
+                          {errors.investmentRange && (
+                            <FormHelperText>
+                              {errors.investmentRange}
+                            </FormHelperText>
+                          )}
                         </FormControl>
                       </Grid>
                     </Grid>
@@ -971,12 +1135,15 @@ const BrandRegistration = () => {
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
+                          required
                           label="Royalty Fee (%)"
                           type="number"
                           value={formData.royaltyFee}
                           onChange={(e) =>
                             handleInputChange("royaltyFee", e.target.value)
                           }
+                          error={!!errors.royaltyFee}
+                          helperText={errors.royaltyFee}
                           inputProps={{ min: 0, max: 100, step: 0.5 }}
                           InputProps={{ endAdornment: "%" }}
                         />
@@ -1004,37 +1171,37 @@ const BrandRegistration = () => {
               <Grid item xs={12} sm={6} md={4}>
                 <TextField
                   fullWidth
-                  label="Equipment Costs ($)"
+                  label="Equipment Costs (₹)"
                   type="number"
                   value={formData.equipmentCosts}
                   onChange={(e) =>
                     handleInputChange("equipmentCosts", e.target.value)
                   }
-                  InputProps={{ startAdornment: "$" }}
+                  InputProps={{ startAdornment: "₹" }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
                 <TextField
                   fullWidth
-                  label="Real Estate Costs ($)"
+                  label="Real Estate Costs (₹)"
                   type="number"
                   value={formData.realEstateCosts}
                   onChange={(e) =>
                     handleInputChange("realEstateCosts", e.target.value)
                   }
-                  InputProps={{ startAdornment: "$" }}
+                  InputProps={{ startAdornment: "₹" }}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
                 <TextField
                   fullWidth
-                  label="Working Capital ($)"
+                  label="Working Capital (₹)"
                   type="number"
                   value={formData.workingCapital}
                   onChange={(e) =>
                     handleInputChange("workingCapital", e.target.value)
                   }
-                  InputProps={{ startAdornment: "$" }}
+                  InputProps={{ startAdornment: "₹" }}
                 />
               </Grid>
             </Grid>
@@ -1146,12 +1313,17 @@ const BrandRegistration = () => {
                   <CardContent>
                     <TextField
                       fullWidth
+                      required
                       label="Franchise Term Length"
                       value={formData.franchiseTermLength}
                       onChange={(e) =>
                         handleInputChange("franchiseTermLength", e.target.value)
                       }
-                      placeholder="e.g., 10 years with 5-year renewal options"
+                      error={!!errors.franchiseTermLength}
+                      helperText={
+                        errors.franchiseTermLength ||
+                        "e.g., 10 years with 5-year renewal options"
+                      }
                       sx={{ mb: 2 }}
                     />
                     <FormControlLabel
@@ -1168,7 +1340,7 @@ const BrandRegistration = () => {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={formData.nonCompeteRestrictions}
+                      checked={!!formData.nonCompeteRestrictions}
                       onChange={(e) =>
                         handleInputChange(
                           "nonCompeteRestrictions",
@@ -1185,7 +1357,7 @@ const BrandRegistration = () => {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={formData.terminationConditions}
+                      checked={!!formData.terminationConditions}
                       onChange={(e) =>
                         handleInputChange(
                           "terminationConditions",
@@ -1202,7 +1374,7 @@ const BrandRegistration = () => {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={formData.transferConditions}
+                      checked={!!formData.transferConditions}
                       onChange={(e) =>
                         handleInputChange(
                           "transferConditions",
@@ -1219,7 +1391,7 @@ const BrandRegistration = () => {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={formData.disputeResolution}
+                      checked={!!formData.disputeResolution}
                       onChange={(e) =>
                         handleInputChange("disputeResolution", e.target.checked)
                       }

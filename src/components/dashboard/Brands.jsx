@@ -266,7 +266,7 @@ const Brands = () => {
                   <strong>Investment:</strong> {brand.investmentRange}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Fee:</strong> ${brand.initialFranchiseFee} |{" "}
+                  <strong>Fee:</strong> ₹{brand.initialFranchiseFee} |{" "}
                   {brand.royaltyFee}% Royalty
                 </Typography>
               </Box>
@@ -357,7 +357,7 @@ const Brands = () => {
               <TableCell>
                 <Box>
                   <Typography variant="body2">
-                    <strong>Fee:</strong> ${brand.initialFranchiseFee}
+                    <strong>Fee:</strong> ₹{brand.initialFranchiseFee}
                   </Typography>
                   <Typography variant="body2">
                     <strong>Royalty:</strong> {brand.royaltyFee}%
