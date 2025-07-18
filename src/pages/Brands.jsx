@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { db } from "../firebase/firebase";
 import BrandCard from "../components/brand/BrandCard";
 import SearchFilters from "../components/home/SearchFilters";
-import { collection, query, where, getDocs } from "firebase/firestore";
 import {
   Container,
   Typography,
