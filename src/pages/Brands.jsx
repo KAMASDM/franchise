@@ -12,6 +12,7 @@ import {
   Box,
   useTheme,
 } from "@mui/material";
+import { useBrands } from "../hooks/useBrands";
 
 const industries = [
   "Food & Beverage",
@@ -53,36 +54,8 @@ const itemVariants = {
 
 const Brands = () => {
   const theme = useTheme();
-  const [brands, setBrands] = useState([]);
+  const { brands, loading, error } = useBrands();
   const [filteredBrands, setFilteredBrands] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchBrands = async () => {
-      setLoading(true);
-      try {
-        setLoading(true);
-        const brandsCollection = collection(db, "brands");
-        const q = query(brandsCollection, where("status", "==", "active"));
-        const querySnapshot = await getDocs(q);
-        const brandsData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setBrands(brandsData);
-        setFilteredBrands(brandsData);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching brands:", err);
-        setError("Failed to load brands. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBrands();
-  }, []);
 
   const handleFilterChange = (filters) => {
     let tempBrands = [...brands];

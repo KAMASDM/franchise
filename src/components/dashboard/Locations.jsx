@@ -1,16 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { db } from "../../firebase/firebase";
 import { useNavigate } from "react-router-dom";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  updateDoc,
-  getDoc,
-} from "firebase/firestore";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
 import {
   Box,
   CircularProgress,
@@ -49,15 +41,14 @@ import {
   Sort,
   Clear,
 } from "@mui/icons-material";
+import { useBrands } from "../../hooks/useBrands";
 import { useAuth } from "../../context/AuthContext";
 import AddFranchiseLocation from "../forms/AddFranchiseLocation";
 
 const Locations = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [brands, setBrands] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { brands, loading, error } = useBrands(user);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: "brandName",
@@ -68,49 +59,9 @@ const Locations = () => {
     state: "",
     city: "",
   });
-  const [openAddDialog, setOpenAddDialog] = useState(false);
   const theme = useTheme();
+  const [openAddDialog, setOpenAddDialog] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  useEffect(() => {
-    const fetchBrands = async () => {
-      setLoading(true);
-      try {
-        if (!user || !user.uid) {
-          setBrands([]);
-          setLoading(false);
-          return;
-        }
-
-        const brandsCollection = collection(db, "brands");
-        const q = query(
-          brandsCollection,
-          where("status", "==", "active"),
-          where("userId", "==", user.uid)
-        );
-        const querySnapshot = await getDocs(q);
-        const brandsData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        console.log(brandsData);
-        setBrands(brandsData);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching brands:", err);
-        setError("Failed to load your brands. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) {
-      fetchBrands();
-    } else {
-      setLoading(false);
-      setError("Please log in to view your brands.");
-    }
-  }, [user]);
 
   const allFranchiseLocations = brands.flatMap((brand) =>
     brand.brandFranchiseLocations
@@ -185,7 +136,6 @@ const Locations = () => {
     });
 
   const handleAddLocation = async (brandId, newLocation) => {
-    console.log("--location-->", brandId, newLocation);
     try {
       const brandRef = doc(db, "brands", brandId);
       const brandDoc = await getDoc(brandRef);
