@@ -22,12 +22,12 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 const investmentRanges = [
-  "Under $50K",
-  "$50K - $100K",
-  "$100K - $250K",
-  "$250K - $500K",
-  "$500K - $1M",
-  "Over $1M",
+  "Under ₹50K",
+  "₹50K - ₹100K",
+  "₹100K - ₹250K",
+  "₹250K - ₹500K",
+  "₹500K - ₹1M",
+  "Over ₹1M",
 ];
 
 const businessExperience = [

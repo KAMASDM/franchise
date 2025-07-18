@@ -19,6 +19,15 @@ import { Close, TrendingUp } from "@mui/icons-material";
 import Gift from "@mui/icons-material/CardGiftcard";
 import { useForm, Controller } from "react-hook-form";
 
+const investmentRanges = [
+  "Under ₹50K",
+  "₹50K - ₹100K",
+  "₹100K - ₹250K",
+  "₹250K - ₹500K",
+  "₹500K - ₹1M",
+  "Over ₹1M",
+];
+
 const LeadCaptureModal = ({ open, onClose }) => {
   const [submitted, setSubmitted] = useState(false);
   const {
@@ -244,21 +253,11 @@ const LeadCaptureModal = ({ open, onClose }) => {
                             <FormControl fullWidth error={!!errors.budget}>
                               <InputLabel>Investment Budget</InputLabel>
                               <Select {...field} label="Investment Budget">
-                                <MenuItem value="under-100k">
-                                  Under $100K
-                                </MenuItem>
-                                <MenuItem value="100-200k">
-                                  $100K - $200K
-                                </MenuItem>
-                                <MenuItem value="200-300k">
-                                  $200K - $300K
-                                </MenuItem>
-                                <MenuItem value="300-500k">
-                                  $300K - $500K
-                                </MenuItem>
-                                <MenuItem value="over-500k">
-                                  Over $500K
-                                </MenuItem>
+                                {investmentRanges.map((range) => (
+                                  <MenuItem key={range} value={range}>
+                                    {range}
+                                  </MenuItem>
+                                ))}
                               </Select>
                             </FormControl>
                           )}

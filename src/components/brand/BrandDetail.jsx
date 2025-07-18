@@ -271,7 +271,7 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Initial Franchise Fee"
-                    secondary={`$${brand.initialFranchiseFee}`}
+                    secondary={`₹${brand.initialFranchiseFee}`}
                   />
                 </ListItem>
                 <ListItem>
@@ -483,7 +483,7 @@ const BrandDetail = () => {
                         <Avatar
                           sx={{
                             mr: 2,
-                            bgcolor: "lightgray",
+                            bgcolor: "primary.50",
                             width: 40,
                             height: 40,
                           }}
@@ -551,19 +551,19 @@ const BrandDetail = () => {
                     <ListItem>
                       <ListItemText
                         primary="Working Capital"
-                        secondary={`$${brand.workingCapital}`}
+                        secondary={`₹${brand.workingCapital}`}
                       />
                     </ListItem>
                     <ListItem>
                       <ListItemText
                         primary="Real Estate Costs"
-                        secondary={`$${brand.realEstateCosts}`}
+                        secondary={`₹${brand.realEstateCosts}`}
                       />
                     </ListItem>
                     <ListItem>
                       <ListItemText
                         primary="Equipment Costs"
-                        secondary={`$${brand.equipmentCosts}`}
+                        secondary={`₹${brand.equipmentCosts}`}
                       />
                     </ListItem>
                   </List>
@@ -769,14 +769,9 @@ const BrandDetail = () => {
           size="large"
           onClick={() => setShowInquiryForm(true)}
           sx={{
-            backgroundColor: "#FFD700",
-            color: "black",
-            fontWeight: "bold",
-            borderRadius: 25,
-            px: 6,
-            py: 2,
-            fontSize: "1.1rem",
-            "&:hover": { backgroundColor: "#FFC107" },
+            bgcolor: "background.paper",
+            color: "primary.main",
+            "&:hover": { bgcolor: "primary.50" },
           }}
         >
           Request Franchise Information

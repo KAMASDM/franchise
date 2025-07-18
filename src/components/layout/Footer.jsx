@@ -28,6 +28,25 @@ import { Link as RouterLink } from "react-router-dom";
 const MotionBox = motion(Box);
 const MotionButton = motion(Button);
 
+const quickLinks = [
+  { text: "About Us", href: "/about" },
+  { text: "Brands", href: "/brands" },
+  { text: "Blog", href: "/blogs" },
+  { text: "Contact", href: "/contact" },
+  { text: "FAQs", href: "/faq" },
+];
+
+const socialLinks = [
+  { icon: <Facebook />, name: "Facebook", href: "https://www.facebook.com/" },
+  { icon: <Twitter />, name: "Twitter", href: "https://twitter.com/" },
+  { icon: <LinkedIn />, name: "LinkedIn", href: "https://www.linkedin.com/" },
+  {
+    icon: <Instagram />,
+    name: "Instagram",
+    href: "https://www.instagram.com/",
+  },
+];
+
 const Footer = () => {
   const theme = useTheme();
 
@@ -70,12 +89,7 @@ const Footer = () => {
                 franchise brands.
               </Typography>
               <Box sx={{ display: "flex", gap: 1 }}>
-                {[
-                  { icon: <Facebook />, name: "Facebook" },
-                  { icon: <Twitter />, name: "Twitter" },
-                  { icon: <LinkedIn />, name: "LinkedIn" },
-                  { icon: <Instagram />, name: "Instagram" },
-                ].map((social) => (
+                {socialLinks.map((social) => (
                   <MotionButton
                     key={social.name}
                     whileHover={{ y: -3 }}
@@ -89,6 +103,9 @@ const Footer = () => {
                       },
                     }}
                     aria-label={social.name}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     {social.icon}
                   </MotionButton>
@@ -106,16 +123,11 @@ const Footer = () => {
               Quick Links
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-              {[
-                { text: "Browse Brands", href: "/brands" },
-                { text: "About Us", href: "/about" },
-                { text: "Blogs", href: "/blogs" },
-                { text: "FAQ", href: "/faq" },
-                { text: "Contact", href: "/contact" },
-              ].map((link) => (
+              {quickLinks.map((link) => (
                 <Link
                   key={link.text}
-                  href={link.href}
+                  component={RouterLink}
+                  to={link.href}
                   color="inherit"
                   underline="hover"
                   sx={{ "&:hover": { color: "primary.dark" } }}
@@ -137,7 +149,7 @@ const Footer = () => {
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 <Phone sx={{ color: "primary.main" }} />
-                <Typography variant="body2">+1 (555) 123-4567</Typography>
+                <Typography variant="body2">+91 98765 43210</Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 <Email sx={{ color: "primary.main" }} />
@@ -146,9 +158,9 @@ const Footer = () => {
               <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
                 <LocationOn sx={{ color: "primary.main", mt: 0.5 }} />
                 <Typography variant="body2" lineHeight={1.6}>
-                  123 Business Avenue, Suite 100
+                  123 Business Hub, Alkapuri
                   <br />
-                  New York, NY 10001
+                  Vadodara, Gujarat 390007
                 </Typography>
               </Box>
               <MotionButton
@@ -185,8 +197,8 @@ const Footer = () => {
             sx={{ display: "flex", gap: { xs: 2, sm: 3 }, flexWrap: "wrap" }}
           >
             {[
-              { text: "Privacy Policy", href: "/privacy" },
-              { text: "Terms of Service", href: "/terms" },
+              { text: "Privacy Policy", href: "/privacy-policy" },
+              { text: "Terms and Conditions", href: "/terms-and-conditions" },
             ].map((link) => (
               <Link
                 key={link.text}

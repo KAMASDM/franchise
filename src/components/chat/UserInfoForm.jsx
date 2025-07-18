@@ -26,6 +26,15 @@ import {
   AttachMoney,
 } from "@mui/icons-material";
 
+const investmentRanges = [
+  "Under ₹50K",
+  "₹50K - ₹100K",
+  "₹100K - ₹250K",
+  "₹250K - ₹500K",
+  "₹500K - ₹1M",
+  "Over ₹1M",
+];
+
 // A list of major Indian cities for the location chips
 const indianCities = [
   "Mumbai",
@@ -150,6 +159,13 @@ const UserInfoForm = ({ onStartChat }) => {
     }
   };
 
+  const handleBudgetSelect = (range) => {
+    setUserInfo((prev) => ({ ...prev, budget: range }));
+    if (errors.budget) {
+      setErrors((prev) => ({ ...prev, budget: "" }));
+    }
+  };
+
   const handleCustomLocationSubmit = () => {
     if (userInfo.customLocation.trim()) {
       setUserInfo((prev) => ({ ...prev, location: "Other" }));
@@ -201,11 +217,7 @@ const UserInfoForm = ({ onStartChat }) => {
         break;
       case 3: // Budget
         if (!userInfo.budget) {
-          tempErrors.budget = "Budget is required";
-        } else if (isNaN(userInfo.budget) || Number(userInfo.budget) <= 0) {
-          tempErrors.budget = "Please enter a valid budget amount";
-        } else if (Number(userInfo.budget) < 100000) {
-          tempErrors.budget = "Minimum budget should be ₹1,00,000";
+          tempErrors.budget = "Please select a budget range";
         }
         break;
     }
@@ -440,47 +452,71 @@ const UserInfoForm = ({ onStartChat }) => {
                 What's your investment budget?
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Enter your total available budget for the franchise investment
+                Select your approximate budget for the franchise investment.
               </Typography>
             </Box>
 
-            <TextField
-              label="Investment Budget"
-              name="budget"
-              type="number"
-              value={userInfo.budget}
-              onChange={handleChange}
-              variant="outlined"
-              fullWidth
-              error={!!errors.budget}
-              helperText={errors.budget || "Minimum budget: ₹1,00,000"}
-              placeholder="e.g., 1500000"
-              InputProps={{
-                startAdornment: (
-                  <Typography sx={{ mr: 1, color: "text.secondary" }}>
-                    ₹
-                  </Typography>
-                ),
-              }}
-            />
-
-            <Box
-              sx={{
-                mt: 2,
-                p: 2,
-                backgroundColor: "success.light",
-                borderRadius: 2,
-              }}
-            >
-              <Typography
-                variant="body2"
-                color="success.dark"
-                sx={{ textAlign: "center" }}
+            <FormControl error={!!errors.budget}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 1.5,
+                  justifyContent: "center",
+                }}
               >
-                🚀 You're all set! Click "Start Chat" to discover franchise
-                opportunities perfect for your budget and preferences.
-              </Typography>
-            </Box>
+                {investmentRanges.map((range) => (
+                  <Chip
+                    key={range}
+                    label={range}
+                    onClick={() => handleBudgetSelect(range)}
+                    color={userInfo.budget === range ? "primary" : "default"}
+                    variant={userInfo.budget === range ? "filled" : "outlined"}
+                    sx={{
+                      cursor: "pointer",
+                      fontSize: "0.9rem",
+                      py: 2.5,
+                      px: 1.5,
+                      "&:hover": {
+                        backgroundColor:
+                          userInfo.budget === range
+                            ? "primary.dark"
+                            : "action.hover",
+                      },
+                    }}
+                  />
+                ))}
+              </Box>
+              {errors.budget && (
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ mt: 1, textAlign: "center" }}
+                >
+                  {errors.budget}
+                </Typography>
+              )}
+            </FormControl>
+
+            {userInfo.budget && (
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  backgroundColor: "success.light",
+                  borderRadius: 2,
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  color="success.dark"
+                  sx={{ textAlign: "center" }}
+                >
+                  🚀 You're all set! Click "Start Chat" to discover franchise
+                  opportunities perfect for your budget and preferences.
+                </Typography>
+              </Box>
+            )}
           </Box>
         );
 
