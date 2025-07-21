@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import BrandCard from "../components/brand/BrandCard";
 import SearchFilters from "../components/home/SearchFilters";
@@ -37,12 +37,11 @@ const investmentRanges = [
   "Over ₹1M",
 ];
 
-const franchiseModels = [
-  "Single-Unit Franchise",
-  "Multi-Unit Development",
-  "Area Development",
+const franchiseModelOptions = [
+  "Unit",
+  "Multicity",
+  "Dealer/Distributor",
   "Master Franchise",
-  "Conversion Franchise",
 ];
 
 const itemVariants = {
@@ -54,6 +53,21 @@ const Brands = () => {
   const theme = useTheme();
   const { brands, loading, error } = useBrands();
   const [filteredBrands, setFilteredBrands] = useState([]);
+  const [availableFranchiseModels, setAvailableFranchiseModels] = useState([]);
+
+  useEffect(() => {
+    if (brands && brands.length > 0) {
+      const models = new Set();
+      brands.forEach((brand) => {
+        if (Array.isArray(brand.franchiseModels)) {
+          brand.franchiseModels.forEach((model) => models.add(model));
+        } else if (brand.franchiseModel) {
+          models.add(brand.franchiseModel);
+        }
+      });
+      setAvailableFranchiseModels(Array.from(models));
+    }
+  }, [brands]);
 
   const handleFilterChange = (filters) => {
     let tempBrands = [...brands];
@@ -85,9 +99,12 @@ const Brands = () => {
     }
 
     if (filters.franchiseModel) {
-      tempBrands = tempBrands.filter(
-        (brand) => brand.franchiseModel === filters.franchiseModel
-      );
+      tempBrands = tempBrands.filter((brand) => {
+        if (Array.isArray(brand.franchiseModels)) {
+          return brand.franchiseModels.includes(filters.franchiseModel);
+        }
+        return brand.franchiseModel === filters.franchiseModel;
+      });
     }
 
     setFilteredBrands(tempBrands);
@@ -154,7 +171,9 @@ const Brands = () => {
           onFilterChange={handleFilterChange}
           industries={industries}
           investmentRanges={investmentRanges}
-          franchiseModels={franchiseModels}
+          franchiseModels={franchiseModelOptions.filter((model) =>
+            availableFranchiseModels.includes(model)
+          )}
         />
 
         <Grid container spacing={4} sx={{ mt: 4 }}>
@@ -167,7 +186,9 @@ const Brands = () => {
           ) : (
             <Grid item xs={12}>
               <Typography variant="h6" align="center" sx={{ mt: 4 }}>
-                No brands found matching your criteria.
+                {brands.length === 0
+                  ? "No brands available yet."
+                  : "No brands found matching your criteria."}
               </Typography>
             </Grid>
           )}

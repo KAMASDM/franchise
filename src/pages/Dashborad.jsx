@@ -48,6 +48,7 @@ import Leads from "../components/dashboard/Leads";
 import Locations from "../components/dashboard/Locations";
 import BrandRegistration from "../components/forms/BrandRegistration";
 import BrandDetail from "../components/dashboard/BrandDetail";
+import Notifications from "../components/dashboard/Notification/Notification";
 
 const drawerWidth = 240;
 
@@ -191,14 +192,20 @@ const Dashboard = () => {
       <CssBaseline />
       <StyledAppBar>
         <Toolbar>
-          <IconButton
-            component={RouterLink}
-            to="/"
-            sx={{ color: "inherit", mr: 2 }}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
           >
-            <RestaurantIcon />
-          </IconButton>
-          <Typography variant="h6">FranchiseHub</Typography>
+            <IconButton component={RouterLink} to="/" sx={{ color: "inherit" }}>
+              <RestaurantIcon sx={{ mr: 1 }} />
+              <Typography variant="h6">FranchiseHub</Typography>
+            </IconButton>
+            <Notifications />
+          </Box>
         </Toolbar>
       </StyledAppBar>
 
