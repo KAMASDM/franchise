@@ -44,34 +44,18 @@ const SearchFilters = ({
     onFilterChange,
   ]);
 
-  const handleKeywordChange = (event) => {
-    setKeyword(event.target.value);
-  };
-
-  const handleIndustryChange = (event) => {
-    setSelectedIndustry(event.target.value);
-  };
-
-  const handleInvestmentRangeChange = (event) => {
-    setSelectedInvestmentRange(event.target.value);
-  };
-
-  const handleFranchiseModelChange = (event) => {
-    setSelectedFranchiseModel(event.target.value);
-  };
-
   const handleClearFilters = () => {
     setKeyword("");
     setSelectedIndustry("");
     setSelectedInvestmentRange("");
     setSelectedFranchiseModel("");
-    onFilterChange({
-      keyword: "",
-      industry: "",
-      investmentRange: "",
-      franchiseModel: "",
-    });
   };
+
+  const isAnyFilterActive =
+    keyword !== "" ||
+    selectedIndustry !== "" ||
+    selectedInvestmentRange !== "" ||
+    selectedFranchiseModel !== "";
 
   return (
     <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
@@ -85,7 +69,7 @@ const SearchFilters = ({
             variant="outlined"
             fullWidth
             value={keyword}
-            onChange={handleKeywordChange}
+            onChange={(e) => setKeyword(e.target.value)}
             sx={{ borderRadius: 1 }}
           />
         </Grid>
@@ -95,13 +79,13 @@ const SearchFilters = ({
             <InputLabel>Industry</InputLabel>
             <Select
               value={selectedIndustry}
-              onChange={handleIndustryChange}
+              onChange={(e) => setSelectedIndustry(e.target.value)}
               label="Industry"
             >
               <MenuItem value="">
                 <em>All Industries</em>
               </MenuItem>
-              {industries.map((industry) => (
+              {industries?.map((industry) => (
                 <MenuItem key={industry} value={industry}>
                   {industry}
                 </MenuItem>
@@ -115,13 +99,13 @@ const SearchFilters = ({
             <InputLabel>Investment Range</InputLabel>
             <Select
               value={selectedInvestmentRange}
-              onChange={handleInvestmentRangeChange}
+              onChange={(e) => setSelectedInvestmentRange(e.target.value)}
               label="Investment Range"
             >
               <MenuItem value="">
                 <em>All Ranges</em>
               </MenuItem>
-              {investmentRanges.map((range) => (
+              {investmentRanges?.map((range) => (
                 <MenuItem key={range} value={range}>
                   {range}
                 </MenuItem>
@@ -135,13 +119,13 @@ const SearchFilters = ({
             <InputLabel>Franchise Model</InputLabel>
             <Select
               value={selectedFranchiseModel}
-              onChange={handleFranchiseModelChange}
+              onChange={(e) => setSelectedFranchiseModel(e.target.value)}
               label="Franchise Model"
             >
               <MenuItem value="">
                 <em>All Models</em>
               </MenuItem>
-              {franchiseModels.map((model) => (
+              {franchiseModels?.map((model) => (
                 <MenuItem key={model} value={model}>
                   {model}
                 </MenuItem>
@@ -150,17 +134,22 @@ const SearchFilters = ({
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sx={{ display: "flex", justifyContent: "flex-end" }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleClearFilters}
-            startIcon={<Clear />}
-            sx={{ borderRadius: 25, px: 3, py: 1 }}
+        {isAnyFilterActive && (
+          <Grid
+            item
+            xs={12}
+            sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}
           >
-            Clear Filters
-          </Button>
-        </Grid>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleClearFilters}
+              startIcon={<Clear />}
+            >
+              Clear Filters
+            </Button>
+          </Grid>
+        )}
       </Grid>
     </Paper>
   );

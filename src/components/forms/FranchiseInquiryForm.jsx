@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -18,8 +19,14 @@ import {
 } from "@mui/material";
 import { db } from "../../firebase/firebase";
 import { Close, Send, LocationOn } from "@mui/icons-material";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  updateDoc,
+  increment,
+} from "firebase/firestore";
 
 const investmentRanges = [
   "Under ₹50K",
@@ -180,7 +187,31 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
         updatedAt: serverTimestamp(),
       };
 
-      await addDoc(collection(db, "brandfranchiseInquiry"), inquiryData);
+      const inquiryRef = await addDoc(
+        collection(db, "brandfranchiseInquiry"),
+        inquiryData
+      );
+
+      const notificationData = {
+        type: "new_inquiry",
+        title: `New Franchise Inquiry for ${brand.brandName}`,
+        message: `${formData.firstName} ${formData.lastName} is interested in your franchise.`,
+        inquiryId: inquiryRef.id,
+        brandId: brand.id,
+        read: false,
+        createdAt: serverTimestamp(),
+      };
+
+      await addDoc(
+        collection(db, "users", brand.userId, "notifications"),
+        notificationData
+      );
+
+      await updateDoc(doc(db, "users", brand.userId), {
+        unreadNotificationsCount: increment(1),
+        lastNotificationTime: serverTimestamp(),
+      });
+
       setSubmitted(true);
       navigate("/");
     } catch (error) {

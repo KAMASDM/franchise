@@ -26,6 +26,13 @@ import BrandCardView from "./Brands/BrandCardView";
 import BrandTableView from "./Brands/BrandTableView";
 import { Search, FilterList, Clear } from "@mui/icons-material";
 
+const franchiseModelOptions = [
+  "Unit",
+  "Multicity",
+  "Dealer/Distributor",
+  "Master Franchise",
+];
+
 const Brands = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -58,14 +65,28 @@ const Brands = () => {
     }));
   }, [brands, brandViews]);
 
-  const filterOptions = {
-    industry: [
+  const filterOptions = useMemo(() => {
+    const industries = [
       ...new Set(brands.flatMap((brand) => brand.industries || [])),
-    ].filter(Boolean),
-    franchiseModel: [
-      ...new Set(brands.map((brand) => brand.franchiseModel)),
-    ].filter(Boolean),
-  };
+    ].filter(Boolean);
+
+    const usedFranchiseModels = [
+      ...new Set(
+        brands.flatMap((brand) =>
+          Array.isArray(brand.franchiseModels)
+            ? brand.franchiseModels
+            : brand.franchiseModel
+            ? [brand.franchiseModel]
+            : []
+        )
+      ),
+    ].filter(Boolean);
+
+    return {
+      industry: industries,
+      franchiseModel: usedFranchiseModels,
+    };
+  }, [brands]);
 
   const handleSort = (key) => {
     let direction = "asc";
@@ -90,50 +111,56 @@ const Brands = () => {
     setSearchTerm("");
   };
 
-  const filteredBrands = brandsWithViews
-    .filter((brand) => {
-      const searchLower = searchTerm.toLowerCase();
-      const matchesSearch =
-        brand.brandName?.toLowerCase().includes(searchLower) ||
-        brand.industries?.some((industry) =>
-          industry.toLowerCase().includes(searchLower)
-        ) ||
-        brand.brandContactInformation?.city
-          ?.toLowerCase()
-          .includes(searchLower) ||
-        brand.investmentRange?.toLowerCase().includes(searchLower) ||
-        brand.totalViews?.toString().includes(searchLower);
+  const filteredBrands = useMemo(() => {
+    return brandsWithViews
+      .filter((brand) => {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch =
+          brand.brandName?.toLowerCase().includes(searchLower) ||
+          brand.industries?.some((industry) =>
+            industry.toLowerCase().includes(searchLower)
+          ) ||
+          brand.brandContactInformation?.city
+            ?.toLowerCase()
+            .includes(searchLower) ||
+          brand.investmentRange?.toLowerCase().includes(searchLower) ||
+          brand.totalViews?.toString().includes(searchLower);
 
-      const matchesFilters =
-        (!filters.industry ||
-          (brand.industries && brand.industries.includes(filters.industry))) &&
-        (!filters.franchiseModel ||
-          brand.franchiseModel === filters.franchiseModel);
+        const matchesIndustry =
+          !filters.industry ||
+          (brand.industries && brand.industries.includes(filters.industry));
 
-      return matchesSearch && matchesFilters;
-    })
-    .sort((a, b) => {
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
+        const matchesFranchiseModel =
+          !filters.franchiseModel ||
+          (Array.isArray(brand.franchiseModels)
+            ? brand.franchiseModels.includes(filters.franchiseModel)
+            : brand.franchiseModel === filters.franchiseModel);
 
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        return sortConfig.direction === "asc"
-          ? aValue - bValue
-          : bValue - aValue;
-      }
+        return matchesSearch && matchesIndustry && matchesFranchiseModel;
+      })
+      .sort((a, b) => {
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortConfig.direction === "asc"
+            ? aValue - bValue
+            : bValue - aValue;
+        }
 
       // Ensure values are strings before comparing to avoid errors with null/undefined
-      const valA = String(aValue || "");
-      const valB = String(bValue || "");
+        const valA = String(aValue || "");
+        const valB = String(bValue || "");
 
-      if (valA < valB) {
-        return sortConfig.direction === "asc" ? -1 : 1;
-      }
-      if (valA > valB) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
+        if (valA < valB) {
+          return sortConfig.direction === "asc" ? -1 : 1;
+        }
+        if (valA > valB) {
+          return sortConfig.direction === "asc" ? 1 : -1;
+        }
+        return 0;
+      });
+  }, [brandsWithViews, searchTerm, filters, sortConfig]);
 
   const handleLearnMore = (brandId) => {
     navigate(`/dashboard/brand-details/${brandId}`);
@@ -338,11 +365,15 @@ const Brands = () => {
                       label="Franchise Model"
                     >
                       <MenuItem value="">All Models</MenuItem>
-                      {filterOptions.franchiseModel.map((model) => (
-                        <MenuItem key={model} value={model}>
-                          {model}
-                        </MenuItem>
-                      ))}
+                      {franchiseModelOptions
+                        .filter((model) =>
+                          filterOptions.franchiseModel.includes(model)
+                        )
+                        .map((model) => (
+                          <MenuItem key={model} value={model}>
+                            {model}
+                          </MenuItem>
+                        ))}
                     </Select>
                   </FormControl>
 
