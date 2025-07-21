@@ -13,7 +13,7 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
-import { LocationOn, Sort } from "@mui/icons-material";
+import { LocationOn, Sort, Visibility } from "@mui/icons-material";
 
 const SortableHeader = ({ label, sortKey, sortConfig, onSort }) => (
   <TableCell
@@ -71,6 +71,9 @@ const BrandTableView = ({ brands, sortConfig, onSort, onLearnMore }) => {
               sortConfig={sortConfig}
               onSort={onSort}
             />
+            <TableCell sx={{ fontWeight: "bold", color: "primary.main" }}>
+              Area Required
+            </TableCell>
             <SortableHeader
               label="Fees"
               sortKey="initialFranchiseFee"
@@ -80,6 +83,12 @@ const BrandTableView = ({ brands, sortConfig, onSort, onLearnMore }) => {
             <SortableHeader
               label="Location"
               sortKey="brandContactInformation.city"
+              sortConfig={sortConfig}
+              onSort={onSort}
+            />
+            <SortableHeader
+              label="Views"
+              sortKey="totalViews"
               sortConfig={sortConfig}
               onSort={onSort}
             />
@@ -128,6 +137,10 @@ const BrandTableView = ({ brands, sortConfig, onSort, onLearnMore }) => {
               <TableCell>{brand.franchiseModel}</TableCell>
               <TableCell>{brand.investmentRange}</TableCell>
               <TableCell>
+                {brand?.areaRequired?.min} - {brand?.areaRequired?.max}{" "}
+                {brand?.areaRequired?.unit}
+              </TableCell>
+              <TableCell>
                 <Box>
                   <Typography variant="body2">
                     <strong>Fee:</strong> ₹{brand.initialFranchiseFee}
@@ -149,6 +162,14 @@ const BrandTableView = ({ brands, sortConfig, onSort, onLearnMore }) => {
                 ) : (
                   "N/A"
                 )}
+              </TableCell>
+              <TableCell>
+                <Box display="flex" alignItems="center">
+                  <Visibility
+                    sx={{ fontSize: 18, mr: 0.5, color: "primary.main" }}
+                  />
+                  {brand.totalViews}
+                </Box>
               </TableCell>
               <TableCell>
                 <Button

@@ -36,6 +36,7 @@ import {
   Instagram,
   LinkedIn,
   Person,
+  CropLandscape,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import Slider from "react-slick";
@@ -207,7 +208,8 @@ const BrandDetail = () => {
                 <strong>Business Model:</strong> {brand.businessModel}
               </Typography>
               <Typography paragraph>
-                <strong>Franchise Model:</strong> {brand.franchiseModel}
+                <strong>Franchise Model:</strong>{" "}
+                {brand?.franchiseModels?.join(", ")}
               </Typography>
               <Typography paragraph>
                 <strong>Vision:</strong> {brand.brandVission}
@@ -234,6 +236,15 @@ const BrandDetail = () => {
                   <ListItemText
                     primary="Investment Range"
                     secondary={brand.investmentRange}
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <CropLandscape color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Area Required"
+                    secondary={`${brand?.areaRequired?.min} - ${brand?.areaRequired?.max} ${brand?.areaRequired?.unit}`}
                   />
                 </ListItem>
                 <ListItem>
