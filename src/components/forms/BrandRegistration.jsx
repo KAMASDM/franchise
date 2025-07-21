@@ -26,6 +26,8 @@ import {
   Checkbox,
   Stack,
   FormHelperText,
+  FormGroup,
+  FormLabel,
 } from "@mui/material";
 import {
   CloudUpload as CloudUploadIcon,
@@ -103,13 +105,14 @@ const investmentRanges = [
   "Over ₹1M",
 ];
 
-const franchiseModels = [
-  "Single-Unit Franchise",
-  "Multi-Unit Development",
-  "Area Development",
+const franchiseModelOptions = [
+  "Unit",
+  "Multicity",
+  "Dealer/Distributor",
   "Master Franchise",
-  "Conversion Franchise",
 ];
+
+const areaUnit = ["Sq.ft", "Sq.mt", "Sq.yrd", "Acre"];
 
 const BrandRegistration = () => {
   const { user } = useAuth();
@@ -176,6 +179,11 @@ const BrandRegistration = () => {
     financingOptions: "",
     equipmentCosts: "",
     realEstateCosts: "",
+    areaRequired: {
+      min: "",
+      max: "",
+      unit: "",
+    },
 
     // Operations & Support
     franchiseeObligations: false,
@@ -197,7 +205,7 @@ const BrandRegistration = () => {
     // Additional
     industries: [],
     investmentRange: "",
-    franchiseModel: "",
+    franchiseModels: [],
   });
 
   const handleInputChange = (field, value) => {
@@ -221,6 +229,19 @@ const BrandRegistration = () => {
     if (errors[errorKey]) {
       setErrors((prev) => ({ ...prev, [errorKey]: undefined }));
     }
+  };
+
+  const handleFranchiseModelChange = (event) => {
+    const { value, checked } = event.target;
+    const currentModels = formData.franchiseModels;
+
+    let newModels;
+    if (checked) {
+      newModels = [...currentModels, value];
+    } else {
+      newModels = currentModels.filter((model) => model !== value);
+    }
+    handleInputChange("franchiseModels", newModels);
   };
 
   const validateStep = (step) => {
@@ -258,8 +279,9 @@ const BrandRegistration = () => {
       case 1:
         if (formData.industries.length === 0)
           newErrors.industries = "Please select at least one industry.";
-        if (!formData.franchiseModel)
-          newErrors.franchiseModel = "Please select a franchise type.";
+        if (formData.franchiseModels.length === 0)
+          newErrors.franchiseModels =
+            "Please select at least one franchise type.";
         if (!formData.businessModel)
           newErrors.businessModel = "Please select a business model.";
         break;
@@ -278,6 +300,15 @@ const BrandRegistration = () => {
           newErrors.royaltyFee = "Please enter a valid fee percentage.";
         if (!formData.investmentRange)
           newErrors.investmentRange = "Total investment range is required.";
+        if (!formData.areaRequired.min)
+          newErrors["areaRequired.min"] = "Min area is required.";
+        if (!formData.areaRequired.max)
+          newErrors["areaRequired.max"] = "Max area is required.";
+        if (+formData.areaRequired.max < +formData.areaRequired.min)
+          newErrors["areaRequired.max"] =
+            "Max area must be greater than or equal to min area.";
+        if (!formData.areaRequired.unit)
+          newErrors["areaRequired.unit"] = "Please select an area unit.";
         break;
       case 4:
         if (!formData.franchiseTermLength.trim())
@@ -966,27 +997,6 @@ const BrandRegistration = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth required error={!!errors.franchiseModel}>
-                  <InputLabel>Franchise Type</InputLabel>
-                  <Select
-                    value={formData.franchiseModel}
-                    onChange={(e) =>
-                      handleInputChange("franchiseModel", e.target.value)
-                    }
-                  >
-                    {franchiseModels.map((model) => (
-                      <MenuItem key={model} value={model}>
-                        {model}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.franchiseModel && (
-                    <FormHelperText>{errors.franchiseModel}</FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
                 <FormControl fullWidth required error={!!errors.businessModel}>
                   <InputLabel>Business Model</InputLabel>
                   <Select
@@ -1007,6 +1017,35 @@ const BrandRegistration = () => {
                 </FormControl>
               </Grid>
             </Grid>
+
+            <Grid item xs={12} md={6} mt={2}>
+                <FormControl
+                  component="fieldset"
+                  fullWidth
+                  required
+                  error={!!errors.franchiseModels}
+                >
+                  <FormLabel component="legend">Franchise Type</FormLabel>
+                  <FormGroup row>
+                    {franchiseModelOptions.map((model) => (
+                      <FormControlLabel
+                        key={model}
+                        control={
+                          <Checkbox
+                            checked={formData.franchiseModels.includes(model)}
+                            onChange={handleFranchiseModelChange}
+                            value={model}
+                          />
+                        }
+                        label={model}
+                      />
+                    ))}
+                  </FormGroup>
+                  {errors.franchiseModels && (
+                    <FormHelperText>{errors.franchiseModels}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
 
             <Grid container spacing={3} sx={{ mt: 2 }}>
               <Grid item xs={12} md={4}>
@@ -1160,6 +1199,86 @@ const BrandRegistration = () => {
                           inputProps={{ min: 0, max: 100, step: 0.5 }}
                           InputProps={{ endAdornment: "%" }}
                         />
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Card elevation={1}>
+                  <CardHeader
+                    title="Space Requirements"
+                    titleTypographyProps={{ variant: "subtitle1" }}
+                  />
+                  <CardContent>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          fullWidth
+                          required
+                          label="Min Area"
+                          type="number"
+                          value={formData.areaRequired.min}
+                          onChange={(e) =>
+                            handleNestedInputChange(
+                              "areaRequired",
+                              "min",
+                              e.target.value
+                            )
+                          }
+                          error={!!errors["areaRequired.min"]}
+                          helperText={errors["areaRequired.min"]}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          fullWidth
+                          required
+                          label="Max Area"
+                          type="number"
+                          value={formData.areaRequired.max}
+                          onChange={(e) =>
+                            handleNestedInputChange(
+                              "areaRequired",
+                              "max",
+                              e.target.value
+                            )
+                          }
+                          error={!!errors["areaRequired.max"]}
+                          helperText={errors["areaRequired.max"]}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <FormControl
+                          fullWidth
+                          required
+                          error={!!errors["areaRequired.unit"]}
+                        >
+                          <InputLabel>Unit</InputLabel>
+                          <Select
+                            value={formData.areaRequired.unit}
+                            label="Unit"
+                            onChange={(e) =>
+                              handleNestedInputChange(
+                                "areaRequired",
+                                "unit",
+                                e.target.value
+                              )
+                            }
+                          >
+                            {areaUnit.map((unit) => (
+                              <MenuItem key={unit} value={unit}>
+                                {unit}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          {errors["areaRequired.unit"] && (
+                            <FormHelperText>
+                              {errors["areaRequired.unit"]}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
                       </Grid>
                     </Grid>
                   </CardContent>

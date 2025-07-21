@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { LocationOn } from "@mui/icons-material";
+import { LocationOn, Visibility } from "@mui/icons-material";
 import { useAuth } from "../../../context/AuthContext";
 import {
   Box,
@@ -20,17 +20,28 @@ import {
   CardContent,
 } from "@mui/material";
 import { useBrands } from "../../../hooks/useBrands";
+import { useBrandViews } from "../../../hooks/useBrandViews";
 
 const Brands = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { brands, loading, error } = useBrands(user);
+  const {
+    brandViews,
+    loading: isViewsLoading,
+    error: viewError,
+  } = useBrandViews(user);
+
+  const brandViewsMap = brandViews.reduce((acc, view) => {
+    acc[view.brandId] = view.totalViews || 0;
+    return acc;
+  }, {});
 
   const onLearnMore = (brandId) => {
     navigate(`/dashboard/brand-details/${brandId}`);
   };
 
-  if (loading) {
+  if (loading || isViewsLoading) {
     return (
       <Box sx={{ p: 3 }}>
         <Skeleton variant="rectangular" width="100%" height={400} />
@@ -38,10 +49,10 @@ const Brands = () => {
     );
   }
 
-  if (error) {
+  if (error || viewError) {
     return (
       <Alert severity="error" sx={{ m: 2 }}>
-        {error}
+        {error || viewError}
       </Alert>
     );
   }
@@ -72,8 +83,10 @@ const Brands = () => {
                 <TableCell sx={{ fontWeight: "bold" }}>Industries</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Model</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Investment</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Area Required</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Fees</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Location</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Views</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -118,6 +131,10 @@ const Brands = () => {
                   <TableCell>{brand.franchiseModel || "N/A"}</TableCell>
                   <TableCell>{brand.investmentRange || "N/A"}</TableCell>
                   <TableCell>
+                    {brand?.areaRequired?.min} - {brand?.areaRequired?.max}{" "}
+                    {brand?.areaRequired?.unit}
+                  </TableCell>
+                  <TableCell>
                     <Box>
                       <Typography variant="body2">
                         <strong>Fee:</strong> ₹
@@ -140,6 +157,14 @@ const Brands = () => {
                     ) : (
                       "N/A"
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <Box display="flex" alignItems="center">
+                      <Visibility
+                        sx={{ fontSize: 18, mr: 0.5, color: "primary.main" }}
+                      />
+                      {brandViewsMap[brand.id]}
+                    </Box>
                   </TableCell>
                   <TableCell>
                     <Button

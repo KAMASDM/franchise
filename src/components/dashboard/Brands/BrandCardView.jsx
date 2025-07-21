@@ -57,8 +57,15 @@ const BrandCardView = ({ brands, onLearnMore }) => {
                   <strong>Investment:</strong> {brand.investmentRange}
                 </Typography>
                 <Typography variant="body2">
+                  <strong>Area Required:</strong> {brand?.areaRequired?.min} -
+                  {brand?.areaRequired?.max} {brand?.areaRequired?.unit}
+                </Typography>
+                <Typography variant="body2">
                   <strong>Fee:</strong> ₹{brand.initialFranchiseFee} |{" "}
                   {brand.royaltyFee}% Royalty
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Views:</strong> {brand.totalViews}
                 </Typography>
               </Box>
 

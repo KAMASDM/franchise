@@ -13,7 +13,13 @@ import {
 } from "@mui/material";
 import { db } from "../../firebase/firebase";
 import { doc, setDoc, increment, serverTimestamp } from "firebase/firestore";
-import { LocationOn, TrendingUp, AccessTime, Star } from "@mui/icons-material";
+import {
+  LocationOn,
+  TrendingUp,
+  AccessTime,
+  Star,
+  CropLandscape,
+} from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -25,12 +31,6 @@ const BrandCard = ({ brand, index = 0 }) => {
 
   const trackView = async () => {
     try {
-      const now = new Date();
-      const monthKey = `${now.getFullYear()}-${String(
-        now.getMonth() + 1
-      ).padStart(2, "0")}`;
-      const dayKey = now.toISOString().split("T")[0];
-
       const viewRef = doc(db, "brandViews", brand.id);
 
       await setDoc(
@@ -39,8 +39,6 @@ const BrandCard = ({ brand, index = 0 }) => {
           brandId: brand.id,
           brandOwnerId: brand.userId,
           totalViews: increment(1),
-          [`monthlyViews.${monthKey}`]: increment(1),
-          [`dailyViews.${dayKey}`]: increment(1),
           lastUpdated: serverTimestamp(),
         },
         { merge: true }
@@ -159,6 +157,13 @@ const BrandCard = ({ brand, index = 0 }) => {
             <TrendingUp sx={{ color: "success.main", mr: 1, fontSize: 20 }} />
             <Typography variant="body2" fontWeight="bold">
               Investment: {brand.investmentRange}
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <CropLandscape sx={{ color: "success", mr: 1, fontSize: 20 }} />
+            <Typography variant="body2" fontWeight="bold">
+              Area Required: {brand?.areaRequired?.min} -{" "}
+              {brand?.areaRequired?.max} {brand?.areaRequired?.unit}
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>

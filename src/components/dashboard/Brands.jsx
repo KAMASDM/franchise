@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import { useBrands } from "../../hooks/useBrands";
 import { useAuth } from "../../context/AuthContext";
+import { useBrandViews } from "../../hooks/useBrandViews";
 import BrandCardView from "./Brands/BrandCardView";
 import BrandTableView from "./Brands/BrandTableView";
 import { Search, FilterList, Clear } from "@mui/icons-material";
@@ -29,6 +30,11 @@ const Brands = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { brands, loading, error } = useBrands(user);
+  const {
+    brandViews,
+    loading: isViewsLoading,
+    error: viewError,
+  } = useBrandViews(user);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: "brandName",
@@ -40,6 +46,17 @@ const Brands = () => {
   });
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const brandsWithViews = useMemo(() => {
+    const viewsMap = new Map(
+      brandViews.map((view) => [view.brandId, view.totalViews])
+    );
+
+    return brands.map((brand) => ({
+      ...brand,
+      totalViews: viewsMap.get(brand.id),
+    }));
+  }, [brands, brandViews]);
 
   const filterOptions = {
     industry: [
@@ -73,13 +90,19 @@ const Brands = () => {
     setSearchTerm("");
   };
 
-  const filteredBrands = brands
+  const filteredBrands = brandsWithViews
     .filter((brand) => {
-      const matchesSearch = Object.values(brand).some(
-        (value) =>
-          value &&
-          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch =
+        brand.brandName?.toLowerCase().includes(searchLower) ||
+        brand.industries?.some((industry) =>
+          industry.toLowerCase().includes(searchLower)
+        ) ||
+        brand.brandContactInformation?.city
+          ?.toLowerCase()
+          .includes(searchLower) ||
+        brand.investmentRange?.toLowerCase().includes(searchLower) ||
+        brand.totalViews?.toString().includes(searchLower);
 
       const matchesFilters =
         (!filters.industry ||
@@ -90,10 +113,23 @@ const Brands = () => {
       return matchesSearch && matchesFilters;
     })
     .sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortConfig.direction === "asc"
+          ? aValue - bValue
+          : bValue - aValue;
+      }
+
+      // Ensure values are strings before comparing to avoid errors with null/undefined
+      const valA = String(aValue || "");
+      const valB = String(bValue || "");
+
+      if (valA < valB) {
         return sortConfig.direction === "asc" ? -1 : 1;
       }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
+      if (valA > valB) {
         return sortConfig.direction === "asc" ? 1 : -1;
       }
       return 0;
@@ -103,7 +139,7 @@ const Brands = () => {
     navigate(`/dashboard/brand-details/${brandId}`);
   };
 
-  if (loading) {
+  if (loading || isViewsLoading) {
     return (
       <Box
         display="flex"
@@ -119,11 +155,11 @@ const Brands = () => {
     );
   }
 
-  if (error) {
+  if (error || viewError) {
     return (
       <Container sx={{ py: 8, textAlign: "center" }}>
         <Typography variant="h6" color="error">
-          {error}
+          {error || viewError}
         </Typography>
         {!user && (
           <Button
