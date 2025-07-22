@@ -130,7 +130,12 @@ const Footer = () => {
                   to={link.href}
                   color="inherit"
                   underline="hover"
-                  sx={{ "&:hover": { color: "primary.dark" } }}
+                  sx={{
+                    "&:hover": {
+                      color: "primary.dark",
+                      textDecoration: "none",
+                    },
+                  }}
                 >
                   {link.text}
                 </Link>
@@ -202,10 +207,13 @@ const Footer = () => {
             ].map((link) => (
               <Link
                 key={link.text}
-                href={link.href}
+                component={RouterLink}
+                to={link.href}
                 color="inherit"
                 underline="hover"
-                sx={{ "&:hover": { color: "primary.dark" } }}
+                sx={{
+                  "&:hover": { color: "primary.dark", textDecoration: "none" },
+                }}
               >
                 {link.text}
               </Link>

@@ -20,7 +20,6 @@ import remarkGfm from "remark-gfm";
 import ReactMarkdown from "react-markdown";
 import UserInfoForm from "./UserInfoForm";
 
-const START_CHAT_URL = import.meta.env.VITE_FIREBASE_START_CHAT_URL;
 const SEND_MESSAGE_URL = import.meta.env.VITE_FIREBASE_SEND_MESSAGE_URL;
 
 const Chatbot = () => {
@@ -34,7 +33,6 @@ const Chatbot = () => {
   const [userResponses, setUserResponses] = useState({});
   const chatEndRef = useRef(null);
 
-  // Function to scroll to the latest message
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -78,40 +76,9 @@ const Chatbot = () => {
     }
   };
 
-  const callStartChatFunction = async (systemPrompt, initialMessage) => {
-    try {
-      const response = await fetch(START_CHAT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          systemPrompt: systemPrompt,
-          initialMessage: initialMessage,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error);
-      }
-
-      return data.response;
-    } catch (error) {
-      console.error("error", error);
-      throw error;
-    }
-  };
-
   const getResponseOptions = (step, language) => {
     const options = {
       1: {
-        // Business category
         English: [
           {
             key: "A",
@@ -187,7 +154,6 @@ const Chatbot = () => {
         ],
       },
       2: {
-        // Experience level
         English: [
           {
             key: "A",
@@ -252,7 +218,6 @@ const Chatbot = () => {
         ],
       },
       3: {
-        // Risk tolerance
         English: [
           {
             key: "A",
@@ -306,7 +271,6 @@ const Chatbot = () => {
         ],
       },
       4: {
-        // Investment goals
         English: [
           {
             key: "A",
@@ -376,13 +340,11 @@ const Chatbot = () => {
       },
     };
 
-    // Add fallback for other languages to English
     const languageOptions =
       options[step]?.[language] || options[step]?.["English"] || [];
     return languageOptions;
   };
 
-  // Function to create the detailed system prompt
   const createSystemPrompt = (info) => {
     return `You are "FranchiseHub Assistant," a specialized AI expert in Indian franchise opportunities. Your goal is to provide helpful, accurate, and well-formatted information to users looking to invest in a franchise in India.
 
@@ -485,13 +447,12 @@ Remember: You must respond in ${
     setIsLoading(true);
 
     try {
-      // Find the system prompt and construct the history for the API
       const systemPrompt = messages.find(
         (msg) => msg.id === "system-prompt"
       )?.text;
       const chatHistory = messages
         .filter((msg) => msg.id !== "system-prompt" && msg.sender !== "system")
-        .slice(1) // Skip the initial bot greeting to ensure history starts with a user
+        .slice(1)
         .map((msg) => ({
           role: msg.sender === "user" ? "user" : "model",
           parts: [{ text: msg.text }],
@@ -513,15 +474,12 @@ Remember: You must respond in ${
         },
       ]);
 
-      // Update current question step
       if (currentQuestionStep < 4) {
         setCurrentQuestionStep((prev) => prev + 1);
       } else {
-        // After all questions, switch to free chat
         setChatPhase("free-chat");
       }
 
-      // Store user responses for context
       setUserResponses((prev) => ({
         ...prev,
         [`step_${currentQuestionStep}`]: responseText,
@@ -615,7 +573,6 @@ Remember: You must respond in ${
     setOpen(false);
   };
 
-  // Get current response options
   const currentOptions = getResponseOptions(
     currentQuestionStep,
     userInfo?.language || "English"
@@ -698,7 +655,6 @@ Remember: You must respond in ${
             <UserInfoForm onStartChat={handleStartChat} />
           ) : (
             <>
-              {/* Messages */}
               <Box sx={{ flexGrow: 1, p: 2, overflowY: "auto" }}>
                 {messages
                   .filter((msg) => msg.id !== "system-prompt")
@@ -761,10 +717,8 @@ Remember: You must respond in ${
                 <div ref={chatEndRef} />
               </Box>
 
-              {/* Input Area - Chips or Text Input */}
               <Box sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
                 {showChips && !isLoading ? (
-                  // Show response chips during question flow
                   <Box>
                     <Typography
                       variant="caption"
@@ -790,7 +744,7 @@ Remember: You must respond in ${
                             mb: 1,
                             "&:hover": {
                               backgroundColor: "primary.light",
-                              color: "white",
+                              color: "primary.main",
                             },
                           }}
                         />
@@ -798,7 +752,6 @@ Remember: You must respond in ${
                     </Box>
                   </Box>
                 ) : (
-                  // Show text input for free chat or when loading
                   <Box sx={{ display: "flex", gap: 1 }}>
                     <TextField
                       fullWidth
