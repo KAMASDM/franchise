@@ -16,19 +16,16 @@ import {
   Chip,
 } from "@mui/material";
 import { Chat as ChatIcon, Close, Send, Support } from "@mui/icons-material";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import ReactMarkdown from "react-markdown";
+import UserInfoForm from "./UserInfoForm";
 
-import UserInfoForm from "./UserInfoForm"; // Import the new component
-
-// Initialize the Gemini AI model using the Vite-specific environment variable
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const START_CHAT_URL = import.meta.env.VITE_FIREBASE_START_CHAT_URL;
+const SEND_MESSAGE_URL = import.meta.env.VITE_FIREBASE_SEND_MESSAGE_URL;
 
 const Chatbot = () => {
   const [open, setOpen] = useState(false);
-  const [chatPhase, setChatPhase] = useState("pre-chat"); // 'pre-chat', 'chatting', 'free-chat'
+  const [chatPhase, setChatPhase] = useState("pre-chat");
   const [userInfo, setUserInfo] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -46,7 +43,71 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Define response options for each step in multiple languages
+  const callFirebaseFunction = async (
+    message,
+    chatHistory = [],
+    systemPrompt = ""
+  ) => {
+    try {
+      const response = await fetch(SEND_MESSAGE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: message,
+          chatHistory: chatHistory,
+          systemPrompt: systemPrompt,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error);
+      }
+
+      return data.response;
+    } catch (error) {
+      console.error("error", error);
+      throw error;
+    }
+  };
+
+  const callStartChatFunction = async (systemPrompt, initialMessage) => {
+    try {
+      const response = await fetch(START_CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          systemPrompt: systemPrompt,
+          initialMessage: initialMessage,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error);
+      }
+
+      return data.response;
+    } catch (error) {
+      console.error("error", error);
+      throw error;
+    }
+  };
+
   const getResponseOptions = (step, language) => {
     const options = {
       1: {
@@ -436,25 +497,17 @@ Remember: You must respond in ${
           parts: [{ text: msg.text }],
         }));
 
-      const chat = model.startChat({
-        history: chatHistory,
-        generationConfig: {
-          maxOutputTokens: 500,
-        },
-        systemInstruction: {
-          parts: [{ text: systemPrompt }],
-        },
-      });
-
-      const result = await chat.sendMessage(responseText);
-      const botResponse = await result.response;
-      const text = botResponse.text();
+      const responseText_ai = await callFirebaseFunction(
+        responseText,
+        chatHistory,
+        systemPrompt
+      );
 
       setMessages((prev) => [
         ...prev,
         {
           id: prev.length + 1,
-          text,
+          text: responseText_ai,
           sender: "bot",
           timestamp: new Date(),
         },
@@ -474,7 +527,6 @@ Remember: You must respond in ${
         [`step_${currentQuestionStep}`]: responseText,
       }));
     } catch (error) {
-      console.error("Error sending message to Gemini:", error);
       const errorMessage =
         userInfo?.language === "Hindi"
           ? "क्षमा करें, मुझे कनेक्ट करने में समस्या हो रही है। कृपया बाद में पुनः प्रयास करें।"
@@ -522,31 +574,22 @@ Remember: You must respond in ${
           parts: [{ text: msg.text }],
         }));
 
-      const chat = model.startChat({
-        history: chatHistory,
-        generationConfig: {
-          maxOutputTokens: 500,
-        },
-        systemInstruction: {
-          parts: [{ text: systemPrompt }],
-        },
-      });
-
-      const result = await chat.sendMessage(inputMessage);
-      const botResponse = await result.response;
-      const text = botResponse.text();
+      const responseText = await callFirebaseFunction(
+        inputMessage,
+        chatHistory,
+        systemPrompt
+      );
 
       setMessages((prev) => [
         ...prev,
         {
           id: prev.length + 1,
-          text,
+          text: responseText,
           sender: "bot",
           timestamp: new Date(),
         },
       ]);
     } catch (error) {
-      console.error("Error sending message to Gemini:", error);
       const errorMessage =
         userInfo?.language === "Hindi"
           ? "क्षमा करें, मुझे कनेक्ट करने में समस्या हो रही है। कृपया बाद में पुनः प्रयास करें।"
