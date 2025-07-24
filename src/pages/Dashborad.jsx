@@ -239,7 +239,7 @@ const Dashboard = () => {
             <Route path="/" element={<Overview />} />
             <Route path="register-brand" element={<BrandRegistration />} />
             <Route path="brands" element={<Brands />} />
-            <Route path="brand-details/:id" element={<BrandDetail />} />
+            <Route path="brand-details/:slug" element={<BrandDetail />} />
             <Route path="locations" element={<Locations />} />
             <Route path="leads" element={<Leads />} />
             <Route path="reviews" element={<Review />} />

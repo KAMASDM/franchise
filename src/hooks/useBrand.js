@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
-export const useBrand = (id, user = null) => {
+export const useBrand = (brandName, user = null) => {
   const [brand, setBrand] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,11 +13,17 @@ export const useBrand = (id, user = null) => {
       setError(null);
 
       try {
-        const docRef = doc(db, "brands", id);
-        const docSnap = await getDoc(docRef);
+        const q = query(
+          collection(db, "brands"),
+          where("brandName", "==", brandName)
+        );
 
-        if (docSnap.exists()) {
-          setBrand({ id: docSnap.id, ...docSnap.data() });
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            setBrand({ id: doc.id, ...doc.data() });
+          });
         } else {
           setError("Brand not found");
         }
@@ -30,7 +36,7 @@ export const useBrand = (id, user = null) => {
     };
 
     fetchBrand();
-  }, [id, user]);
+  }, [brandName, user]);
 
   return { brand, loading, error };
 };
