@@ -127,7 +127,8 @@ const BrandRegistration = () => {
   const [formData, setFormData] = useState({
     //Basic Information
     brandName: "",
-    brandImage: null,
+    brandLogo: null,
+    brandBanner: null,
     brandVission: "",
     brandMission: "",
     brandfoundedYear: "",
@@ -166,7 +167,7 @@ const BrandRegistration = () => {
     ],
 
     // Business Details
-    businessModel: "",
+    businessModel: "Company Owned - Company Operated",
     uniqueSellingProposition: false,
     targetMarket: false,
     competitiveAdvantage: false,
@@ -182,7 +183,7 @@ const BrandRegistration = () => {
     areaRequired: {
       min: "",
       max: "",
-      unit: "",
+      unit: "Sq.ft",
     },
 
     // Operations & Support
@@ -203,9 +204,9 @@ const BrandRegistration = () => {
     nonCompeteRestrictions: false,
 
     // Additional
-    industries: [],
-    investmentRange: "",
-    franchiseModels: [],
+    industries: ["Food & Beverage"],
+    investmentRange: "Under ₹50K",
+    franchiseModels: ["Unit"],
   });
 
   const handleInputChange = (field, value) => {
@@ -259,8 +260,8 @@ const BrandRegistration = () => {
           isNaN(formData.brandfoundedYear)
         )
           newErrors.brandfoundedYear = "Enter a valid 4-digit year.";
-        if (!formData.brandImage)
-          newErrors.brandImage = "Brand logo is required.";
+        if (!formData.brandLogo)
+          newErrors.brandLogo = "Brand logo is required.";
         if (!formData.brandOwnerInformation.name.trim())
           newErrors["brandOwnerInformation.name"] = "Owner name is required.";
         if (!formData.brandOwnerInformation.email.trim())
@@ -324,10 +325,10 @@ const BrandRegistration = () => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    if (field === "brandImage") {
-      handleInputChange("brandImage", files[0]);
-      if (errors.brandImage) {
-        setErrors((prev) => ({ ...prev, brandImage: undefined }));
+    if (field === "brandLogo" || field === "brandBanner") {
+      handleInputChange(field, files[0]);
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
       }
     } else if (field === "brandFranchiseImages") {
       // Convert FileList to array and combine with existing images
@@ -350,8 +351,8 @@ const BrandRegistration = () => {
   };
 
   const removeFile = (field) => {
-    if (field === "brandImage") {
-      handleInputChange("brandImage", null);
+    if (field === "brandLogo" || field === "brandBanner") {
+      handleInputChange(field, null);
     } else if (field === "brandFranchiseImages") {
       setFormData((prev) => ({
         ...prev,
@@ -372,7 +373,7 @@ const BrandRegistration = () => {
     acceptedTypes = "image/*",
     helpText,
   }) => {
-    // Determine if this is a single file upload (like brandImage) or multiple (like brandFranchiseImages)
+    // Determine if this is a single file upload (like brandLogo) or multiple (like brandFranchiseImages)
     const isMultiple = field === "brandFranchiseImages";
     const fieldError = errors[field];
 
@@ -399,7 +400,7 @@ const BrandRegistration = () => {
             )}
           </Box>
 
-          {/* Single file upload preview (for brandImage) */}
+          {/* Single file upload preview (for brandLogo/brandBanner) */}
           {!isMultiple && (formData[field] || uploadedFiles[field]) && (
             <Box
               sx={{
@@ -414,14 +415,13 @@ const BrandRegistration = () => {
               <DescriptionIcon sx={{ mr: 2, color: "success.dark" }} />
               <Box sx={{ flexGrow: 1 }}>
                 <Typography variant="body2" fontWeight="medium">
-                  {field === "brandImage"
-                    ? formData.brandImage?.name
-                    : uploadedFiles[field]?.name}
+                  {formData[field]?.name || uploadedFiles[field]?.name}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {field === "brandImage"
-                    ? `${(formData.brandImage?.size / 1024).toFixed(1)} KB`
-                    : `${(uploadedFiles[field]?.size / 1024).toFixed(1)} KB`}
+                  {(
+                    (formData[field]?.size || uploadedFiles[field]?.size) / 1024
+                  ).toFixed(1)}{" "}
+                  KB
                 </Typography>
               </Box>
               <IconButton onClick={() => removeFile(field)} color="error">
@@ -590,12 +590,20 @@ const BrandRegistration = () => {
         });
       };
 
-      let brandImageUrl = null;
-      if (formData.brandImage) {
-        const imagePath = `brands/${user.uid}/${
+      let brandLogoUrl = null;
+      if (formData.brandLogo) {
+        const logoPath = `brands/${user.uid}/${
           formData.brandName
-        }/logo_${Date.now()}_${formData.brandImage.name}`;
-        brandImageUrl = await uploadFile(formData.brandImage, imagePath);
+        }/logo_${Date.now()}_${formData.brandLogo.name}`;
+        brandLogoUrl = await uploadFile(formData.brandLogo, logoPath);
+      }
+
+      let brandBannerUrl = null;
+      if (formData.brandBanner) {
+        const bannerPath = `brands/${user.uid}/${
+          formData.brandName
+        }/banner_${Date.now()}_${formData.brandBanner.name}`;
+        brandBannerUrl = await uploadFile(formData.brandBanner, bannerPath);
       }
 
       const franchiseImageUrls = await Promise.all(
@@ -609,7 +617,8 @@ const BrandRegistration = () => {
 
       const submissionData = {
         ...formData,
-        brandImage: brandImageUrl,
+        brandLogo: brandLogoUrl,
+        brandBanner: brandBannerUrl,
         brandFranchiseImages: franchiseImageUrls.filter((url) => url),
         createdAt: serverTimestamp(),
         createdBy: user.uid,
@@ -679,36 +688,46 @@ const BrandRegistration = () => {
                     helperText={errors.brandfoundedYear}
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Vision"
-                    fullWidth
-                    multiline
-                    rows={4}
-                    value={formData.brandVission}
-                    onChange={(e) =>
-                      handleInputChange("brandVission", e.target.value)
-                    }
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Mission"
-                    fullWidth
-                    multiline
-                    rows={4}
-                    value={formData.brandMission}
-                    onChange={(e) =>
-                      handleInputChange("brandMission", e.target.value)
-                    }
-                  />
-                </Grid>
+                <TextField
+                  label="Vision"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={formData.brandVission}
+                  onChange={(e) =>
+                    handleInputChange("brandVission", e.target.value)
+                  }
+                />
+                <TextField
+                  label="Mission"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  value={formData.brandMission}
+                  onChange={(e) =>
+                    handleInputChange("brandMission", e.target.value)
+                  }
+                />
               </Grid>
-              <Box sx={{ mt: 4 }}>
+              <Box
+                sx={{
+                  mt: 4,
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  alignItems: "center",
+                  gap: 2,
+                }}
+              >
                 <FileUploadSection
-                  field="brandImage"
-                  label="Brand Logo/Image (Required)"
+                  field="brandLogo"
+                  label="Brand Logo (Required)"
                   acceptedTypes="image/*"
+                />
+                <FileUploadSection
+                  field="brandBanner"
+                  label="Brand Banner Image"
+                  acceptedTypes="image/*"
+                  helpText="A high-quality banner for your brand page (e.g., 1200x400px)."
                 />
               </Box>
             </Box>
@@ -1019,33 +1038,33 @@ const BrandRegistration = () => {
             </Grid>
 
             <Grid item xs={12} md={6} mt={2}>
-                <FormControl
-                  component="fieldset"
-                  fullWidth
-                  required
-                  error={!!errors.franchiseModels}
-                >
-                  <FormLabel component="legend">Franchise Type</FormLabel>
-                  <FormGroup row>
-                    {franchiseModelOptions.map((model) => (
-                      <FormControlLabel
-                        key={model}
-                        control={
-                          <Checkbox
-                            checked={formData.franchiseModels.includes(model)}
-                            onChange={handleFranchiseModelChange}
-                            value={model}
-                          />
-                        }
-                        label={model}
-                      />
-                    ))}
-                  </FormGroup>
-                  {errors.franchiseModels && (
-                    <FormHelperText>{errors.franchiseModels}</FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
+              <FormControl
+                component="fieldset"
+                fullWidth
+                required
+                error={!!errors.franchiseModels}
+              >
+                <FormLabel component="legend">Franchise Type</FormLabel>
+                <FormGroup row>
+                  {franchiseModelOptions.map((model) => (
+                    <FormControlLabel
+                      key={model}
+                      control={
+                        <Checkbox
+                          checked={formData.franchiseModels.includes(model)}
+                          onChange={handleFranchiseModelChange}
+                          value={model}
+                        />
+                      }
+                      label={model}
+                    />
+                  ))}
+                </FormGroup>
+                {errors.franchiseModels && (
+                  <FormHelperText>{errors.franchiseModels}</FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
 
             <Grid container spacing={3} sx={{ mt: 2 }}>
               <Grid item xs={12} md={4}>

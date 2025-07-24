@@ -28,7 +28,8 @@ import {
   MyLocation as MyLocationIcon,
   Leaderboard as LeaderboardIcon,
   Restaurant as RestaurantIcon,
-  Reviews as ReviewsIcon
+  Reviews as ReviewsIcon,
+  Quiz as QuizIcon,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import {
@@ -51,6 +52,7 @@ import BrandRegistration from "../components/forms/BrandRegistration";
 import BrandDetail from "../components/dashboard/BrandDetail";
 import Notifications from "../components/dashboard/Notification/Notification";
 import Review from "../components/dashboard/Review";
+import FAQs from "../components/dashboard/FAQs";
 
 const drawerWidth = 240;
 
@@ -109,8 +111,9 @@ const Dashboard = () => {
     {
       text: "Review",
       path: "/dashboard/reviews",
-      icon: <ReviewsIcon />
+      icon: <ReviewsIcon />,
     },
+    { text: "FAQs", path: "/dashboard/faqs", icon: <QuizIcon /> },
     { text: "Settings", path: "/dashboard/settings", icon: <SettingsIcon /> },
     { text: "Help & Support", path: "/dashboard/help", icon: <HelpIcon /> },
   ];
@@ -243,6 +246,7 @@ const Dashboard = () => {
             <Route path="locations" element={<Locations />} />
             <Route path="leads" element={<Leads />} />
             <Route path="reviews" element={<Review />} />
+            <Route path="faqs" element={<FAQs />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />
           </Routes>
