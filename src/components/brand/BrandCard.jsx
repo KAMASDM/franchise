@@ -50,7 +50,7 @@ const BrandCard = ({ brand, index = 0 }) => {
 
   const handleLearnMore = () => {
     trackView();
-    navigate(`/brand/${brand.id}`);
+    navigate(`/brand/${brand.brandName.replace(/\s+/g, "-").toLowerCase()}`);
   };
 
   return (

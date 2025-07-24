@@ -51,9 +51,13 @@ const MotionBox = motion(Box);
 const MotionCard = motion(Card);
 
 const BrandDetail = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
+  const brandName = slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
   const navigate = useNavigate();
-  const { brand, loading, error } = useBrand(id);
+  const { brand, loading, error } = useBrand(brandName);
   const [showInquiryForm, setShowInquiryForm] = useState(false);
 
   const sliderSettings = {

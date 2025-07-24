@@ -175,7 +175,7 @@ const BrandTableView = ({ brands, sortConfig, onSort, onLearnMore }) => {
                 <Button
                   variant="outlined"
                   size="small"
-                  onClick={() => onLearnMore(brand.id)}
+                  onClick={() => onLearnMore(brand.brandName)}
                 >
                   Details
                 </Button>

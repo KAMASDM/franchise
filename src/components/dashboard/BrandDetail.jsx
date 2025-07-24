@@ -49,10 +49,14 @@ const MotionBox = motion(Box);
 const MotionCard = motion(Card);
 
 const BrandDetail = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
+  const brandName = slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { brand, loading, error } = useBrand(id, user);
+  const { brand, loading, error } = useBrand(brandName, user);
 
   const sliderSettings = {
     dots: false,

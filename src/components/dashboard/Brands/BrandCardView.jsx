@@ -82,7 +82,7 @@ const BrandCardView = ({ brands, onLearnMore }) => {
               <Button
                 variant="outlined"
                 fullWidth
-                onClick={() => onLearnMore(brand.id)}
+                onClick={() => onLearnMore(brand.brandName)}
                 size="small"
               >
                 View Details
