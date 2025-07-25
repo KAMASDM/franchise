@@ -10,12 +10,10 @@ import {
   MenuItem,
   Button,
   CircularProgress,
-  Grid,
   FormHelperText,
   IconButton,
-  Divider,
 } from "@mui/material";
-import { Add as AddIcon, Remove as RemoveIcon } from "@mui/icons-material";
+import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
 import { useAuth } from "../../../context/AuthContext";
@@ -120,21 +118,17 @@ const AddFAQs = ({ open, onClose, brands }) => {
 
     setLoading(true);
     try {
-      const batch = [];
-
-      formData.faqs.forEach((faq) => {
-        batch.push({
+      const collectionRef = collection(db, "faqs");
+      const promises = formData.faqs.map((faq) =>
+        addDoc(collectionRef, {
           userName: formData.userName,
           brand: formData.brand,
           question: faq.question,
           answer: faq.answer,
           userId: user?.uid,
           createdAt: new Date(),
-        });
-      });
-
-      const collectionRef = collection(db, "faqs");
-      const promises = batch.map((faq) => addDoc(collectionRef, faq));
+        })
+      );
       await Promise.all(promises);
 
       onClose();
@@ -175,149 +169,126 @@ const AddFAQs = ({ open, onClose, brands }) => {
         </Typography>
 
         <form onSubmit={handleSubmit} noValidate>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Your Name"
-                name="userName"
-                value={formData.userName}
-                onChange={handleChange}
-                required
-                error={!!errors.userName}
-                helperText={errors.userName}
-              />
-            </Grid>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <TextField
+              fullWidth
+              label="Your Name"
+              name="userName"
+              value={formData.userName}
+              onChange={handleChange}
+              required
+              error={!!errors.userName}
+              helperText={errors.userName}
+            />
 
-            <Grid item xs={12}>
-              <FormControl fullWidth required error={!!errors.brand}>
-                <InputLabel>Brand</InputLabel>
-                <Select
-                  name="brand"
-                  value={formData.brand}
-                  label="Brand"
-                  onChange={handleChange}
-                >
-                  {brands.map((brand) => (
-                    <MenuItem key={brand.id} value={brand.brandName}>
-                      {brand.brandName}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.brand && (
-                  <FormHelperText>{errors.brand}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
+            <FormControl fullWidth required error={!!errors.brand}>
+              <InputLabel>Brand</InputLabel>
+              <Select
+                name="brand"
+                value={formData.brand}
+                label="Brand"
+                onChange={handleChange}
+              >
+                {brands.map((brand) => (
+                  <MenuItem key={brand.id} value={brand.brandName}>
+                    {brand.brandName}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.brand && <FormHelperText>{errors.brand}</FormHelperText>}
+            </FormControl>
 
             {formData.faqs.map((faq, index) => (
-              <React.Fragment key={index}>
-                <Grid item xs={12}>
-                  <Grid container spacing={2} alignItems="flex-start">
-                    <Grid item xs={12} md={5.5}>
-                      <TextField
-                        fullWidth
-                        label={`Question ${
-                          formData.faqs.length > 1 ? `#${index + 1}` : ""
-                        }`}
-                        value={faq.question}
-                        onChange={(e) =>
-                          handleFAQChange(index, "question", e.target.value)
-                        }
-                        required
-                        error={!!errors[`faq-${index}-question`]}
-                        helperText={errors[`faq-${index}-question`]}
-                        multiline
-                        rows={2}
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} md={5.5}>
-                      <TextField
-                        fullWidth
-                        label="Answer"
-                        value={faq.answer}
-                        onChange={(e) =>
-                          handleFAQChange(index, "answer", e.target.value)
-                        }
-                        required
-                        error={!!errors[`faq-${index}-answer`]}
-                        helperText={errors[`faq-${index}-answer`]}
-                        multiline
-                        rows={2}
-                      />
-                    </Grid>
-
-                    <Grid
-                      item
-                      xs={12}
-                      md={1}
-                      sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "flex-start",
-                        pt: 1,
-                      }}
-                    >
-                      {formData.faqs.length > 1 && (
-                        <IconButton
-                          onClick={() => removeFAQ(index)}
-                          color="error"
-                          aria-label="Remove FAQ"
-                        >
-                          <RemoveIcon />
-                        </IconButton>
-                      )}
-                    </Grid>
-                  </Grid>
-                </Grid>
-
-                {index < formData.faqs.length - 1 && (
-                  <Grid item xs={12}>
-                    <Divider sx={{ my: 2 }} />
-                  </Grid>
+              <Box
+                key={index}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  border: "1px solid #ddd",
+                  p: 2,
+                  borderRadius: 1,
+                  position: "relative",
+                }}
+              >
+                <TextField
+                  fullWidth
+                  label={`Question ${
+                    formData.faqs.length > 1 ? `#${index + 1}` : ""
+                  }`}
+                  value={faq.question}
+                  onChange={(e) =>
+                    handleFAQChange(index, "question", e.target.value)
+                  }
+                  required
+                  error={!!errors[`faq-${index}-question`]}
+                  helperText={errors[`faq-${index}-question`]}
+                  multiline
+                  rows={4}
+                />
+                <TextField
+                  fullWidth
+                  label="Answer"
+                  value={faq.answer}
+                  onChange={(e) =>
+                    handleFAQChange(index, "answer", e.target.value)
+                  }
+                  required
+                  error={!!errors[`faq-${index}-answer`]}
+                  helperText={errors[`faq-${index}-answer`]}
+                  multiline
+                  rows={4}
+                />
+                {formData.faqs.length > 1 && (
+                  <IconButton
+                    color="error"
+                    onClick={() => removeFAQ(index)}
+                    sx={{ position: "absolute", top: 14, right: 14 }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
                 )}
-              </React.Fragment>
+              </Box>
             ))}
 
-            <Grid item xs={12}>
-              <Button
-                startIcon={<AddIcon />}
-                onClick={addFAQ}
-                variant="outlined"
-                fullWidth
-              >
-                Add Another FAQ
-              </Button>
-            </Grid>
+            <Button
+              startIcon={<AddIcon />}
+              onClick={addFAQ}
+              variant="outlined"
+              fullWidth
+            >
+              Add Another FAQ
+            </Button>
 
-            <Grid item xs={12}>
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-                <Button onClick={onClose} variant="outlined" disabled={loading}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    `Submit ${formData.faqs.length} FAQ${
-                      formData.faqs.length > 1 ? "s" : ""
-                    }`
-                  )}
-                </Button>
-              </Box>
-              {errors.form && (
-                <Typography color="error" sx={{ textAlign: "right", mt: 1 }}>
-                  {errors.form}
-                </Typography>
-              )}
-            </Grid>
-          </Grid>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+              <Button onClick={onClose} variant="outlined" disabled={loading}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  `Submit ${formData.faqs.length} FAQ${
+                    formData.faqs.length > 1 ? "s" : ""
+                  }`
+                )}
+              </Button>
+            </Box>
+
+            {errors.form && (
+              <Typography
+                color="error"
+                sx={{ textAlign: "right", mt: -2, mb: -1 }}
+              >
+                {errors.form}
+              </Typography>
+            )}
+          </Box>
         </form>
       </Box>
     </Modal>
