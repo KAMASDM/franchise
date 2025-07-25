@@ -49,6 +49,7 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   const location = useLocation();
   const isDashboardRoute = location.pathname.startsWith("/dashboard");
+  const isHomePage = location.pathname === "/";
 
   return (
     <AuthContextProvider>
@@ -81,7 +82,7 @@ function App() {
             />
           </Routes>
         </Box>
-        {!isDashboardRoute && <Footer />}
+        {isHomePage && <Footer />}
         {!isDashboardRoute && <Chatbot />}
       </Box>
     </AuthContextProvider>
