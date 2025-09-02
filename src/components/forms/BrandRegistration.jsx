@@ -573,9 +573,7 @@ const BrandRegistration = () => {
           uploadTask.on(
             "state_changed",
             (snapshot) => {
-              const progress =
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              console.log("Upload is " + progress + "% done");
+              // Optional: handle progress
             },
             (error) => {
               console.error("Upload failed:", error);
@@ -590,21 +588,18 @@ const BrandRegistration = () => {
         });
       };
 
-      let brandImageUrl = null;
-      if (formData.brandImage) {
-        const imagePath = `brands/${user.uid}/${
-          formData.brandName
-        }/logo_${Date.now()}_${formData.brandImage.name}`;
-        brandImageUrl = await uploadFile(formData.brandImage, imagePath);
-      }
+      const brandImageUrl = await uploadFile(
+        formData.brandImage,
+        `brands/${user.uid}/logo_${Date.now()}_${formData.brandImage.name}`
+      );
 
       const franchiseImageUrls = await Promise.all(
-        formData.brandFranchiseImages.map((file, index) => {
-          const imagePath = `brands/${user.uid}/${
-            formData.brandName
-          }/gallery_${Date.now()}_${index}_${file.name}`;
-          return uploadFile(file, imagePath);
-        })
+        formData.brandFranchiseImages.map((file, index) =>
+          uploadFile(
+            file,
+            `brands/${user.uid}/gallery_${Date.now()}_${index}_${file.name}`
+          )
+        )
       );
 
       const submissionData = {
@@ -614,21 +609,36 @@ const BrandRegistration = () => {
         createdAt: serverTimestamp(),
         createdBy: user.uid,
         userId: user.uid,
-        status: "pending",
+        status: "pending", // Set status to pending for admin review
       };
+      
+      delete submissionData.brandImageFile; // Ensure file object isn't sent to Firestore
 
       // Add brand data to Firestore
-      await addDoc(collection(db, "brands"), submissionData);
+      const docRef = await addDoc(collection(db, "brands"), submissionData);
+
+      // --- ADMIN NOTIFICATION ---
+      // 1. Get your Admin's UID from Firebase Authentication
+      // 2. Replace the placeholder below with the actual UID
+      const ADMIN_UID = "REPLACE_WITH_YOUR_ADMIN_UID"; 
+      if (ADMIN_UID) {
+          const notificationData = {
+              type: "new_brand_pending",
+              title: `New Brand for Review: ${formData.brandName}`,
+              message: `Submitted by ${user.email}. Please verify.`,
+              brandId: docRef.id,
+              read: false,
+              createdAt: serverTimestamp(),
+          };
+          await addDoc(collection(db, "users", ADMIN_UID, "notifications"), notificationData);
+      }
+      // --- END ADMIN NOTIFICATION ---
 
       setLoading(false);
-      navigate("/brands");
-    } catch (error) {
-      console.log("error", error);
-      setError(
-        "Failed to submit application. Please check the console for details and try again."
-      );
-      setLoading(false);
-    } finally {
+      navigate("/dashboard?submission=success");
+    } catch (err) {
+      console.error("Error during brand registration:", err);
+      setError("Failed to submit application. Please check the console for details and try again.");
       setLoading(false);
     }
   };

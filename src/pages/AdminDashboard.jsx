@@ -1,0 +1,119 @@
+import React from 'react';
+import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme } from '@mui/material';
+import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom';
+import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp } from '@mui/icons-material';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase/firebase';
+import { useNavigate } from 'react-router-dom';
+
+import AdminOverview from '../components/admin/AdminOverview';
+import AdminBrandManagement from '../components/admin/AdminBrandManagement';
+import AdminUserManagement from '../components/admin/AdminUserManagement';
+import AdminNotifications from '../components/admin/AdminNotifications';
+import BrandDetail from '../components/dashboard/BrandDetail'; // Import the detail component
+
+// Create a theme that matches the main application
+const adminTheme = createTheme({
+  palette: {
+    primary: {
+      50: "#f0f4ff", main: "#5a76a9", dark: "#3a5483", contrastText: "#ffffff",
+    },
+    secondary: {
+      50: "#f0faf7", main: "#92baac", light: "#a5cdbf", dark: "#6c9486",
+    },
+    background: {
+      default: "#f0f4ff", paper: "#ffffff",
+    },
+    text: {
+      primary: "#1a325d", secondary: "#3a5483",
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  },
+  shape: {
+    borderRadius: 12,
+  },
+});
+
+const drawerWidth = 240;
+
+const AdminDashboard = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await signOut(auth);
+        navigate('/');
+    };
+
+    const navItems = [
+        { text: 'Overview', path: '/admin', icon: <Dashboard /> },
+        { text: 'Brand Management', path: '/admin/brands', icon: <Store /> },
+        { text: 'User Management', path: '/admin/users', icon: <People /> },
+        { text: 'Send Notifications', path: '/admin/notifications', icon: <NotificationsIcon /> },
+    ];
+
+    const drawer = (
+        <div>
+            <Toolbar sx={{ backgroundColor: 'primary.dark', color: 'white' }}>
+                <Typography variant="h6" noWrap>Admin Panel</Typography>
+            </Toolbar>
+            <Divider />
+            <List>
+                {navItems.map((item) => (
+                    <ListItemButton key={item.text} component={RouterLink} to={item.path} selected={location.pathname === item.path}>
+                        <ListItemIcon>{item.icon}</ListItemIcon>
+                        <ListItemText primary={item.text} />
+                    </ListItemButton>
+                ))}
+            </List>
+            <Divider />
+            <List>
+                <ListItemButton onClick={handleLogout}>
+                    <ListItemIcon><ExitToApp /></ListItemIcon>
+                    <ListItemText primary="Logout" />
+                </ListItemButton>
+            </List>
+        </div>
+    );
+
+    return (
+        <ThemeProvider theme={adminTheme}>
+            <Box sx={{ display: 'flex' }}>
+                <CssBaseline />
+                <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'primary.dark' }}>
+                    <Toolbar>
+                        <Typography variant="h6" noWrap component="div">
+                            FranchiseHub Admin
+                        </Typography>
+                    </Toolbar>
+                </AppBar>
+                <Drawer
+                    variant="permanent"
+                    sx={{
+                        width: drawerWidth,
+                        flexShrink: 0,
+                        [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+                    }}
+                >
+                    <Toolbar />
+                    {drawer}
+                </Drawer>
+                <Box component="main" sx={{ flexGrow: 1, p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
+                    <Toolbar />
+                    <Routes>
+                        <Route path="/" element={<AdminOverview />} />
+                        <Route path="brands" element={<AdminBrandManagement />} />
+                        {/* THIS IS THE NEW, CORRECTED ROUTE */}
+                        <Route path="brands/:id" element={<BrandDetail />} /> 
+                        <Route path="users" element={<AdminUserManagement />} />
+                        <Route path="notifications" element={<AdminNotifications />} />
+                    </Routes>
+                </Box>
+            </Box>
+        </ThemeProvider>
+    );
+};
+
+export default AdminDashboard;

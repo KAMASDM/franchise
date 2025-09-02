@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Drawer,
@@ -16,6 +16,7 @@ import {
   BottomNavigationAction,
   Paper,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -49,6 +50,7 @@ import Locations from "../components/dashboard/Locations";
 import BrandRegistration from "../components/forms/BrandRegistration";
 import BrandDetail from "../components/dashboard/BrandDetail";
 import Notifications from "../components/dashboard/Notification/Notification";
+import { useAdminStatus } from "../hooks/useAdminStatus";
 
 const drawerWidth = 240;
 
@@ -75,6 +77,14 @@ const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { isAdmin, loading: adminLoading } = useAdminStatus();
+
+  // This effect handles the redirect for admin users.
+  useEffect(() => {
+    if (!adminLoading && isAdmin) {
+      navigate('/admin', { replace: true });
+    }
+  }, [isAdmin, adminLoading, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -186,6 +196,16 @@ const Dashboard = () => {
       </List>
     </>
   );
+
+  // While checking for admin status, show a loader to prevent flicker.
+  // If the user is an admin, this component will redirect, so we render nothing.
+  if (adminLoading || isAdmin) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.50" }}>

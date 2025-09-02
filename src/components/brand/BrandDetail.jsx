@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -8,81 +8,277 @@ import {
   CardContent,
   Button,
   Chip,
-  Avatar,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Paper,
   Dialog,
-  Link,
-  IconButton,
   CircularProgress,
   Divider,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Avatar,
+  LinearProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Tab,
+  Tabs,
+  Badge,
+  Rating,
+  Stepper,
+  Step,
+  StepLabel,
+  Tooltip,
+  Fab,
+  SpeedDial,
+  SpeedDialAction,
+  Drawer,
+  AppBar,
+  Toolbar,
+  useScrollTrigger,
+  Slide,
+  Zoom,
+  Fade,
 } from "@mui/material";
 import {
   LocationOn,
   Star,
-  CheckCircle,
   Phone,
-  Business,
-  Timeline,
-  AttachMoney,
-  Support,
-  School,
-  BusinessCenter,
-  SupportAgent,
-  EmojiEvents,
   Email,
-  Person,
+  Business,
+  AttachMoney,
+  TrendingUp,
+  Schedule,
+  Home,
+  School,
+  Support,
   Facebook,
   Twitter,
   Instagram,
   LinkedIn,
+  ExpandMore,
+  PlayArrow,
+  GetApp,
+  Share,
+  Favorite,
+  FavoriteBorder,
+  Bookmark,
+  BookmarkBorder,
+  Compare,
+  Calculate,
+  Timeline,
+  Assessment,
+  Group,
+  Security,
+  Verified,
+  CheckCircle,
+  LocalOffer,
+  Storefront,
+  Psychology,
+  EmojiEvents,
+  TrendingDown,
+  ShowChart,
+  MonetizationOn,
+  AccountBalance,
+  BusinessCenter,
+  ContactSupport,
+  LiveHelp,
+  MenuBook,
+  Description,
+  CameraAlt,
+  VideoCall,
+  PersonAdd,
+  Event,
+  Notifications,
+  Settings,
+  MoreVert,
+  KeyboardArrowUp,
+  Launch,
+  Print,
+  Person,
   CropLandscape,
+  SupportAgent,
 } from "@mui/icons-material";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { motion } from "framer-motion";
-import { useBrand } from "../../hooks/useBrand";
+import { motion, AnimatePresence } from "framer-motion";
+import useBrand from "../../hooks/useBrand";
 import FranchiseInquiryForm from "../forms/FranchiseInquiryForm";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
+const MotionGrid = motion(Grid);
+
+// Floating Action Button Component
+const ScrollTop = ({ children }) => {
+  const trigger = useScrollTrigger({
+    disableHysteresis: true,
+    threshold: 100,
+  });
+
+  const handleClick = (event) => {
+    const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  return (
+    <Zoom in={trigger}>
+      <Box
+        onClick={handleClick}
+        role="presentation"
+        sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1000 }}
+      >
+        {children}
+      </Box>
+    </Zoom>
+  );
+};
+
+// Interactive Stats Component
+const StatCard = ({ icon, value, label, color = "primary", trend }) => (
+  <MotionCard
+    whileHover={{ scale: 1.05, boxShadow: "0 8px 25px rgba(0,0,0,0.15)" }}
+    transition={{ duration: 0.2 }}
+    sx={{ 
+      height: "100%", 
+      background: `linear-gradient(135deg, ${color}.main, ${color}.dark)`,
+      color: "white",
+      overflow: "hidden",
+      position: "relative"
+    }}
+  >
+    <CardContent sx={{ position: "relative", zIndex: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+        <Avatar sx={{ bgcolor: "rgba(255,255,255,0.2)" }}>
+          {icon}
+        </Avatar>
+        {trend && (
+          <Chip 
+            icon={trend > 0 ? <TrendingUp /> : <TrendingDown />}
+            label={`${Math.abs(trend)}%`}
+            size="small"
+            sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "white" }}
+          />
+        )}
+      </Box>
+      <Typography variant="h4" fontWeight="bold" sx={{ mb: 1 }}>
+        {value}
+      </Typography>
+      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+        {label}
+      </Typography>
+    </CardContent>
+    <Box
+      sx={{
+        position: "absolute",
+        top: -20,
+        right: -20,
+        width: 100,
+        height: 100,
+        borderRadius: "50%",
+        bgcolor: "rgba(255,255,255,0.1)",
+      }}
+    />
+  </MotionCard>
+);
+
+// ROI Calculator Component
+const ROICalculator = ({ brand }) => {
+  const [investment, setInvestment] = useState(brand?.initialFranchiseFee || 0);
+  const [roi, setROI] = useState(0);
+  
+  useEffect(() => {
+    // Simple ROI calculation based on brand data
+    const baseROI = 25; // Assume 25% base ROI
+    const calculatedROI = (investment * baseROI) / 100;
+    setROI(calculatedROI);
+  }, [investment]);
+
+  return (
+    <Card sx={{ p: 3, bgcolor: "gradient.main", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", color: "white" }}>
+      <Typography variant="h6" fontWeight="bold" gutterBottom>
+        ROI Calculator
+      </Typography>
+      <Box sx={{ my: 2 }}>
+        <Typography variant="body2" gutterBottom>
+          Investment Amount: ₹{investment?.toLocaleString()}
+        </Typography>
+        <LinearProgress 
+          variant="determinate" 
+          value={(investment / 10000000) * 100} 
+          sx={{ height: 8, borderRadius: 4, bgcolor: "rgba(255,255,255,0.3)" }}
+        />
+      </Box>
+      <Typography variant="h5" fontWeight="bold">
+        Estimated Annual Return: ₹{roi?.toLocaleString()}
+      </Typography>
+      <Button 
+        variant="contained" 
+        sx={{ mt: 2, bgcolor: "rgba(255,255,255,0.2)" }}
+        fullWidth
+      >
+        Get Detailed Analysis
+      </Button>
+    </Card>
+  );
+};
 
 const BrandDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { brand, loading, error } = useBrand(id);
   const [showInquiryForm, setShowInquiryForm] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showCompare, setShowCompare] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedSection, setExpandedSection] = useState(false);
 
   const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 4000,
+    fade: true,
+  };
+
+  const gallerySettings = {
     dots: false,
     infinite: true,
     speed: 500,
-    slidesToShow: 2,
+    slidesToShow: 3,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
     responsive: [
-      {
-        breakpoint: 900,
-        settings: {
-          slidesToShow: 1,
-        },
-      },
-    ],
+      { breakpoint: 1024, settings: { slidesToShow: 2 } },
+      { breakpoint: 600, settings: { slidesToShow: 1 } }
+    ]
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
   };
 
   if (loading) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="80vh"
-      >
-        <CircularProgress />
+      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress size={60} thickness={4} />
+        <Typography variant="h6" sx={{ mt: 2 }}>Loading brand details...</Typography>
+        <LinearProgress sx={{ width: 200, mt: 2 }} />
       </Box>
     );
   }
@@ -93,11 +289,7 @@ const BrandDetail = () => {
         <Typography variant="h4" color="error" sx={{ mb: 2 }}>
           {error}
         </Typography>
-        <Button
-          variant="contained"
-          onClick={() => window.location.reload()}
-          sx={{ mt: 2, borderRadius: 25 }}
-        >
+        <Button variant="contained" onClick={() => window.location.reload()}>
           Retry
         </Button>
       </Container>
@@ -113,7 +305,7 @@ const BrandDetail = () => {
         <Button
           variant="contained"
           onClick={() => navigate("/brands")}
-          sx={{ mt: 2, borderRadius: 25 }}
+          sx={{ mt: 2 }}
         >
           Back to Brands
         </Button>
@@ -121,659 +313,889 @@ const BrandDetail = () => {
     );
   }
 
+  const steps = ['Initial Contact', 'Application Review', 'Interview Process', 'Agreement Signing', 'Training & Launch'];
+
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <MotionCard
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        sx={{ mb: 4, boxShadow: 5, borderRadius: 3, overflow: "hidden" }}
-      >
-        <Box
+    <>
+      <div id="back-to-top-anchor" />
+      
+      {/* Hero Section with Advanced Layout */}
+      <Box sx={{ position: "relative", overflow: "hidden", width: "100%" }}>
+        <MotionBox
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1.2 }}
           sx={{
-            position: "relative",
-            minHeight: { xs: 250, md: 350 },
-            backgroundImage: `url(${brand.brandImage})`,
+            minHeight: { xs: 400, md: 600 },
+            background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.3)), url(${brand.brandImage})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            color: "white",
+            backgroundAttachment: "fixed",
             display: "flex",
-            alignItems: "flex-end",
-            p: { xs: 2, md: 4 },
+            alignItems: "center",
+            color: "white",
+            position: "relative",
+            width: "100%",
           }}
         >
-          <Box
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background:
-                "linear-gradient(to top, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0) 80%)",
-            }}
-          />
-          <Box sx={{ position: "relative", zIndex: 1 }}>
-            <Typography
-              variant="h2"
-              component="h1"
-              fontWeight="bold"
-              sx={{ fontSize: { xs: "2.5rem", md: "3.5rem" } }}
+          {/* Floating Action Buttons */}
+          <Box sx={{ position: "absolute", top: 20, right: 20, zIndex: 10 }}>
+            <IconButton 
+              onClick={() => setIsFavorite(!isFavorite)}
+              sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "white", mr: 1 }}
             >
-              {brand.brandName}
-            </Typography>
-            <Typography variant="h6" sx={{ opacity: 0.9, maxWidth: "60ch" }}>
-              {brand.brandMission}
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
-              {brand.industries?.map((industry, index) => (
-                <Chip
-                  key={index}
-                  label={industry}
-                  color="secondary"
-                  size="small"
-                />
-              ))}
-            </Box>
+              {isFavorite ? <Favorite /> : <FavoriteBorder />}
+            </IconButton>
+            <IconButton 
+              onClick={() => setIsBookmarked(!isBookmarked)}
+              sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "white", mr: 1 }}
+            >
+              {isBookmarked ? <Bookmark /> : <BookmarkBorder />}
+            </IconButton>
+            <IconButton sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "white" }}>
+              <Share />
+            </IconButton>
           </Box>
-        </Box>
-      </MotionCard>
 
-      {/* Main Content - Flex Layout */}
-      <MotionBox
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: 4,
-        }}
-      >
-        {/* Left Side */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          {/* About Us Card */}
-          <MotionCard
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            sx={{ mb: 4, boxShadow: 3 }}
-          >
-            <CardContent>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                About Us
-              </Typography>
-              <Typography paragraph>
-                <strong>Founded:</strong> {brand.brandfoundedYear} years ago
-              </Typography>
-              <Typography paragraph>
-                <strong>Business Model:</strong> {brand.businessModel}
-              </Typography>
-              <Typography paragraph>
-                <strong>Franchise Model:</strong>{" "}
-                {brand?.franchiseModels?.join(", ")}
-              </Typography>
-              <Typography paragraph>
-                <strong>Vision:</strong> {brand.brandVission}
-              </Typography>
-            </CardContent>
-          </MotionCard>
-
-          {/* Business Details Card */}
-          <MotionCard
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            sx={{ mb: 4, boxShadow: 3 }}
-          >
-            <CardContent>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                Business Details
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemIcon>
-                    <AttachMoney color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Investment Range"
-                    secondary={brand.investmentRange}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <CropLandscape color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Area Required"
-                    secondary={`${brand?.areaRequired?.min} - ${brand?.areaRequired?.max} ${brand?.areaRequired?.unit}`}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Business color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Initial Franchise Fee"
-                    secondary={`₹${brand.initialFranchiseFee}`}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Timeline color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Franchise Term"
-                    secondary={`${brand.franchiseTermLength} years`}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Support color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Royalty Fee"
-                    secondary={`${brand.royaltyFee}%`}
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </MotionCard>
-
-          {/* Contact Information Card */}
-          <MotionCard
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            sx={{ mb: 4, boxShadow: 3 }}
-          >
-            <CardContent>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                Contact Information
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemIcon>
-                    <Phone color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Phone"
-                    secondary={brand.brandContactInformation.phone}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Email color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Email"
-                    secondary={brand.brandContactInformation.email}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <LocationOn color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Address"
-                    secondary={`${brand.brandContactInformation.address}, ${brand.brandContactInformation.city}, ${brand.brandContactInformation.state} ${brand.brandContactInformation.zipCode}`}
-                  />
-                </ListItem>
-              </List>
-              <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-                {brand.brandContactInformation.facebookURl && (
-                  <IconButton
-                    href={brand.brandContactInformation.facebookURl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+          <Container maxWidth="xl" sx={{ width: "100%" }}>
+            <Grid container spacing={4} alignItems="center" sx={{ width: "100%" }}>
+              <Grid item xs={12} md={8}>
+                <MotionBox
+                  initial={{ x: -100, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <Verified sx={{ mr: 2, color: "#4caf50" }} />
+                    <Typography variant="body1">Verified Franchise</Typography>
+                  </Box>
+                  
+                  <Typography 
+                    variant="h2" 
+                    component="h1" 
+                    fontWeight="bold" 
+                    sx={{ 
+                      fontSize: { xs: "2.5rem", md: "4rem" },
+                      mb: 2,
+                      textShadow: "2px 2px 4px rgba(0,0,0,0.3)"
+                    }}
                   >
-                    <Facebook color="primary" />
-                  </IconButton>
-                )}
-                {brand.brandContactInformation.twitterURl && (
-                  <IconButton
-                    href={brand.brandContactInformation.twitterURl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Twitter color="primary" />
-                  </IconButton>
-                )}
-                {brand.brandContactInformation.instagramURl && (
-                  <IconButton
-                    href={brand.brandContactInformation.instagramURl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Instagram color="primary" />
-                  </IconButton>
-                )}
-                {brand.brandContactInformation.linkedinURl && (
-                  <IconButton
-                    href={brand.brandContactInformation.linkedinURl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <LinkedIn color="primary" />
-                  </IconButton>
-                )}
-              </Box>
-            </CardContent>
-          </MotionCard>
-
-          {/* Locations Card */}
-          <MotionCard
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            sx={{ boxShadow: 3 }}
-          >
-            <CardContent>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                Locations
-              </Typography>
-              {brand.brandFranchiseLocations.map((location, index) => (
-                <Box key={index} sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    {location.address}
+                    {brand.brandName}
                   </Typography>
-                  <Typography color="text.secondary">
-                    {location.city}, {location.state} {location.zipCode}
+                  
+                  <Typography variant="h5" sx={{ mb: 3, opacity: 0.9, fontWeight: 300 }}>
+                    {brand.brandMission}
                   </Typography>
-                  <Typography sx={{ mt: 1 }}>
-                    <Phone fontSize="small" sx={{ mr: 1 }} />
-                    {location.phone}
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    startIcon={<LocationOn />}
-                    href={location.googleMapsURl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{ mt: 1 }}
-                  >
-                    View on Map
-                  </Button>
-                  {index < brand.brandFranchiseLocations.length - 1 && (
-                    <Divider sx={{ my: 2 }} />
-                  )}
-                </Box>
-              ))}
-            </CardContent>
-          </MotionCard>
-        </Box>
-
-        {/* Right Side */}
-        <Box sx={{ flex: 2, minWidth: 0 }}>
-          {/* Key Advantages Card */}
-          <MotionCard
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            sx={{ mb: 4, boxShadow: 3 }}
-          >
-            <CardContent>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                Key Advantages
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                {[
-                  {
-                    condition: brand.uniqueSellingProposition,
-                    icon: <EmojiEvents color="primary" />,
-                    text: "Unique Selling Proposition",
-                  },
-                  {
-                    condition: brand.competitiveAdvantage,
-                    icon: <Star color="primary" />,
-                    text: "Competitive Advantage",
-                  },
-                  {
-                    condition: brand.territoryRights,
-                    icon: <CheckCircle color="primary" />,
-                    text: "Exclusive Territory Rights",
-                  },
-                  {
-                    condition: brand.nonCompeteRestrictions,
-                    icon: <BusinessCenter color="primary" />,
-                    text: "Non-Compete Restrictions",
-                  },
-                  {
-                    condition: brand.franchisorSupport,
-                    icon: <SupportAgent color="primary" />,
-                    text: "Franchisor Support",
-                  },
-                  {
-                    condition: brand.marketingSupport,
-                    icon: <Business color="primary" />,
-                    text: "Marketing Support",
-                  },
-                ].map(
-                  (item, index) =>
-                    item.condition && (
-                      <Box
+                  
+                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
+                    {brand.industries?.map((industry, index) => (
+                      <Chip
                         key={index}
-                        sx={{
-                          flex: "1 1 calc(50% - 16px)",
-                          minWidth: 200,
-                          display: "flex",
-                          alignItems: "center",
-                          p: 2,
-                          border: "1px solid",
-                          borderColor: "divider",
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Avatar
-                          sx={{
-                            mr: 2,
-                            bgcolor: "primary.50",
-                            width: 40,
-                            height: 40,
-                          }}
-                        >
-                          {item.icon}
-                        </Avatar>
-                        <Typography variant="body1">{item.text}</Typography>
-                      </Box>
-                    )
-                )}
-              </Box>
-            </CardContent>
-          </MotionCard>
-          {brand.brandFranchiseImages?.length > 0 && (
-            <MotionCard
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              sx={{ mb: 4, boxShadow: 3 }}
-            >
-              <CardContent>
-                <Typography variant="h5" gutterBottom fontWeight="bold">
-                  Gallery
-                </Typography>
-                <Slider {...sliderSettings}>
-                  {brand.brandFranchiseImages.map((image, index) => (
-                    <Box key={index} sx={{ px: 1.5 }}>
-                      <Box
-                        component="img"
-                        src={image}
-                        alt={`Franchise gallery image ${index + 1}`}
-                        sx={{
-                          width: "100%",
-                          objectFit: "cover",
-                          borderRadius: 2,
+                        label={industry}
+                        sx={{ 
+                          bgcolor: "rgba(255,255,255,0.2)", 
+                          color: "white",
+                          backdropFilter: "blur(10px)"
                         }}
                       />
-                    </Box>
-                  ))}
-                </Slider>
-              </CardContent>
-            </MotionCard>
-          )}
-          {/* Franchise Details Card */}
-          <MotionCard
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            sx={{ mb: 4, boxShadow: 3 }}
-          >
-            <CardContent>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                Franchise Details
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                <Box sx={{ flex: 1, minWidth: 300 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    gutterBottom
-                  >
-                    Financial Requirements
-                  </Typography>
-                  <List>
-                    <ListItem>
-                      <ListItemText
-                        primary="Working Capital"
-                        secondary={`₹${brand.workingCapital}`}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Real Estate Costs"
-                        secondary={`₹${brand.realEstateCosts}`}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Equipment Costs"
-                        secondary={`₹${brand.equipmentCosts}`}
-                      />
-                    </ListItem>
-                  </List>
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 300 }}>
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight="bold"
-                    gutterBottom
-                  >
-                    Franchise Terms
-                  </Typography>
-                  <List>
-                    <ListItem>
-                      <ListItemText
-                        primary="Transfer Conditions"
-                        secondary={brand.transferConditions ? "Yes" : "No"}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Termination Conditions"
-                        secondary={brand.terminationConditions ? "Yes" : "No"}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Dispute Resolution"
-                        secondary={brand.disputeResolution ? "Yes" : "No"}
-                      />
-                    </ListItem>
-                  </List>
-                </Box>
-              </Box>
-            </CardContent>
-          </MotionCard>
+                    ))}
+                  </Box>
 
-          {/* Training & Support Card */}
-          <MotionCard
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            sx={{ mb: 4, boxShadow: 3 }}
-          >
-            <CardContent>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                Training & Support
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                <Box sx={{ flex: 1, minWidth: 300 }}>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <School color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="Training Program"
-                        secondary={
-                          brand.trainingProgram ? "Available" : "Not Available"
-                        }
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <SupportAgent color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="Ongoing Support"
-                        secondary={
-                          brand.ongoingSupport ? "Available" : "Not Available"
-                        }
-                      />
-                    </ListItem>
-                  </List>
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 300 }}>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <CheckCircle color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="Operational Standards"
-                        secondary={
-                          brand.operationalStandards
-                            ? "Available"
-                            : "Not Available"
-                        }
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Business color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="Marketing Support"
-                        secondary={
-                          brand.marketingSupport ? "Available" : "Not Available"
-                        }
-                      />
-                    </ListItem>
-                  </List>
-                </Box>
-              </Box>
-            </CardContent>
-          </MotionCard>
-
-          {/* Brand Owner Card */}
-          <MotionCard
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            sx={{ boxShadow: 3 }}
-          >
-            <CardContent>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                Brand Owner
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                <Box sx={{ flex: 1, minWidth: 300 }}>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Person color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="Name"
-                        secondary={brand.brandOwnerInformation.name}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Email color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="Email"
-                        secondary={brand.brandOwnerInformation.email}
-                      />
-                    </ListItem>
-                  </List>
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 300 }}>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Phone color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="Phone"
-                        secondary={brand.brandOwnerInformation.phone}
-                      />
-                    </ListItem>
-                    {brand.brandOwnerInformation.linkedinURl && (
-                      <ListItem>
-                        <ListItemIcon>
-                          <LinkedIn color="primary" />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary="LinkedIn"
-                          secondary={
-                            <Link
-                              href={brand.brandOwnerInformation.linkedinURl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              View Profile
-                            </Link>
-                          }
+                  <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      startIcon={<PersonAdd />}
+                      onClick={() => setShowInquiryForm(true)}
+                      sx={{
+                        bgcolor: "#ff6b35",
+                        "&:hover": { bgcolor: "#e55a2b" },
+                        borderRadius: 3,
+                        px: 4,
+                        py: 1.5,
+                      }}
+                    >
+                      Apply Now
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="large"
+                      startIcon={<VideoCall />}
+                      sx={{
+                        borderColor: "white",
+                        color: "white",
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
+                        borderRadius: 3,
+                        px: 4,
+                        py: 1.5,
+                      }}
+                    >
+                      Virtual Tour
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="large"
+                      startIcon={<GetApp />}
+                      sx={{
+                        borderColor: "white",
+                        color: "white",
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
+                        borderRadius: 3,
+                        px: 4,
+                        py: 1.5,
+                      }}
+                    >
+                      Download Brochure
+                    </Button>
+                  </Box>
+                </MotionBox>
+              </Grid>
+              
+              <Grid item xs={12} md={4}>
+                <MotionCard
+                  initial={{ y: 100, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                  sx={{ 
+                    bgcolor: "rgba(255,255,255,0.95)", 
+                    backdropFilter: "blur(20px)",
+                    borderRadius: 4,
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+                  }}
+                >
+                  <CardContent sx={{ p: 4 }}>
+                    <Typography variant="h6" fontWeight="bold" gutterBottom color="text.primary">
+                      Quick Info
+                    </Typography>
+                    <List dense>
+                      <ListItem disablePadding sx={{ mb: 1 }}>
+                        <AttachMoney sx={{ mr: 2, color: "primary.main" }} />
+                        <ListItemText 
+                          primary="Investment Range" 
+                          secondary={brand.investmentRange}
+                          secondaryTypographyProps={{ fontWeight: "bold" }}
                         />
                       </ListItem>
-                    )}
-                  </List>
+                      <ListItem disablePadding sx={{ mb: 1 }}>
+                        <Home sx={{ mr: 2, color: "primary.main" }} />
+                        <ListItemText 
+                          primary="Space Required" 
+                          secondary={`${brand?.areaRequired?.min}-${brand?.areaRequired?.max} ${brand?.areaRequired?.unit}`}
+                          secondaryTypographyProps={{ fontWeight: "bold" }}
+                        />
+                      </ListItem>
+                      <ListItem disablePadding sx={{ mb: 1 }}>
+                        <ShowChart sx={{ mr: 2, color: "primary.main" }} />
+                        <ListItemText 
+                          primary="Royalty Fee" 
+                          secondary={`${brand.royaltyFee}%`}
+                          secondaryTypographyProps={{ fontWeight: "bold" }}
+                        />
+                      </ListItem>
+                      <ListItem disablePadding>
+                        <Schedule sx={{ mr: 2, color: "primary.main" }} />
+                        <ListItemText 
+                          primary="Franchise Term" 
+                          secondary={`${brand.franchiseTermLength} years`}
+                          secondaryTypographyProps={{ fontWeight: "bold" }}
+                        />
+                      </ListItem>
+                    </List>
+                    <Button 
+                      variant="contained" 
+                      fullWidth 
+                      size="large"
+                      startIcon={<Calculate />}
+                      sx={{ mt: 2, borderRadius: 3 }}
+                    >
+                      Calculate ROI
+                    </Button>
+                  </CardContent>
+                </MotionCard>
+              </Grid>
+            </Grid>
+          </Container>
+        </MotionBox>
+      </Box>
+
+      {/* Key Stats Section */}
+      <Container maxWidth="xl" sx={{ py: 6, mt: -6, position: "relative", zIndex: 10 }}>
+        <Grid container spacing={3} sx={{ width: "100%" }}>
+          {[
+            { icon: <EmojiEvents />, value: `${new Date().getFullYear() - brand.brandfoundedYear}+`, label: "Years in Business", color: "primary", trend: 15 },
+            { icon: <Storefront />, value: brand.brandFranchiseLocations?.length || "50+", label: "Active Outlets", color: "success", trend: 25 },
+            { icon: <Group />, value: "1000+", label: "Happy Franchisees", color: "info", trend: 18 },
+            { icon: <MonetizationOn />, value: "₹2.5Cr+", label: "Avg. Annual Revenue", color: "warning", trend: 22 }
+          ].map((stat, index) => (
+            <Grid item xs={12} sm={6} md={3} key={index}>
+              <StatCard {...stat} />
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+
+      <Container maxWidth="xl" sx={{ py: 6 }}>
+        {/* Navigation Tabs */}
+        <Paper sx={{ mb: 4, borderRadius: 3, overflow: "hidden" }}>
+          <Tabs 
+            value={activeTab} 
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{ 
+              bgcolor: "primary.main",
+              "& .MuiTab-root": { 
+                color: "rgba(255,255,255,0.7)",
+                fontWeight: "bold",
+                minHeight: 72,
+                "&.Mui-selected": { color: "white" }
+              }
+            }}
+          >
+            <Tab label="Overview" icon={<Description />} />
+            <Tab label="Investment Details" icon={<MonetizationOn />} />
+            <Tab label="Training & Support" icon={<School />} />
+            <Tab label="Locations" icon={<LocationOn />} />
+            <Tab label="Gallery" icon={<CameraAlt />} />
+            <Tab label="Process" icon={<Timeline />} />
+          </Tabs>
+        </Paper>
+
+        <Grid container spacing={4} sx={{ width: "100%" }}>
+          {/* Main Content Area */}
+          <Grid item xs={12} lg={8}>
+            <AnimatePresence mode="wait">
+              {/* Tab 0: Overview */}
+              {activeTab === 0 && (
+                <MotionBox
+                  key="overview"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {/* About Section */}
+                  <MotionCard sx={{ mb: 4, borderRadius: 3, overflow: "hidden" }}>
+                    <Box sx={{ p: 4, background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", color: "white" }}>
+                      <Typography variant="h4" fontWeight="bold" gutterBottom>
+                        About {brand.brandName}
+                      </Typography>
+                      <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                        Your Gateway to Entrepreneurial Success
+                      </Typography>
+                    </Box>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography paragraph sx={{ fontSize: "1.1rem", lineHeight: 1.8, mb: 3 }}>
+                        <strong>{brand.brandName}</strong> represents more than just a business opportunity – it's a 
+                        pathway to entrepreneurial freedom. Founded {brand.brandfoundedYear} years ago, we've been pioneering 
+                        innovation in the {brand.businessModel} sector, creating sustainable business models that 
+                        empower our franchise partners to achieve their dreams.
+                      </Typography>
+                      
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                          <Box sx={{ p: 3, bgcolor: "grey.50", borderRadius: 2 }}>
+                            <Business sx={{ color: "primary.main", mb: 1 }} />
+                            <Typography variant="h6" fontWeight="bold" gutterBottom>
+                              Business Model
+                            </Typography>
+                            <Typography>{brand.businessModel}</Typography>
+                          </Box>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <Box sx={{ p: 3, bgcolor: "grey.50", borderRadius: 2 }}>
+                            <Psychology sx={{ color: "primary.main", mb: 1 }} />
+                            <Typography variant="h6" fontWeight="bold" gutterBottom>
+                              Our Vision
+                            </Typography>
+                            <Typography>{brand.brandVission}</Typography>
+                          </Box>
+                        </Grid>
+                      </Grid>
+
+                      {brand?.franchiseModels?.length > 0 && (
+                        <Box sx={{ mt: 3, p: 3, bgcolor: "info.50", borderRadius: 2 }}>
+                          <Typography variant="h6" fontWeight="bold" gutterBottom>
+                            Franchise Models Available
+                          </Typography>
+                          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                            {brand.franchiseModels.map((model, index) => (
+                              <Chip key={index} label={model} color="info" />
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
+                    </CardContent>
+                  </MotionCard>
+
+                  {/* Key Features Grid */}
+                  <MotionCard sx={{ mb: 4, borderRadius: 3 }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ mb: 3 }}>
+                        Why Choose {brand.brandName}?
+                      </Typography>
+                      <Grid container spacing={3}>
+                        {[
+                          { icon: <Star />, title: "Unique Selling Proposition", desc: "Stand out in the market with our distinctive approach", available: brand.uniqueSellingProposition },
+                          { icon: <TrendingUp />, title: "Competitive Advantage", desc: "Leverage our proven strategies for market dominance", available: brand.competitiveAdvantage },
+                          { icon: <Security />, title: "Exclusive Territory Rights", desc: "Protected territory with guaranteed exclusivity", available: brand.territoryRights },
+                          { icon: <Support />, title: "Comprehensive Support", desc: "End-to-end support from setup to operations", available: brand.franchisorSupport },
+                          { icon: <Assessment />, title: "Marketing Excellence", desc: "Professional marketing support and campaigns", available: brand.marketingSupport },
+                          { icon: <School />, title: "Training Programs", desc: "Comprehensive training for you and your team", available: brand.trainingProgram }
+                        ].map((feature, index) => 
+                          feature.available && (
+                            <Grid item xs={12} sm={6} md={4} key={index}>
+                              <MotionCard
+                                whileHover={{ scale: 1.05 }}
+                                sx={{ 
+                                  height: "100%", 
+                                  cursor: "pointer",
+                                  border: "2px solid transparent",
+                                  "&:hover": { borderColor: "primary.main" }
+                                }}
+                              >
+                                <CardContent sx={{ textAlign: "center", p: 3 }}>
+                                  <Avatar sx={{ bgcolor: "primary.main", mx: "auto", mb: 2, width: 60, height: 60 }}>
+                                    {feature.icon}
+                                  </Avatar>
+                                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                    {feature.title}
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {feature.desc}
+                                  </Typography>
+                                </CardContent>
+                              </MotionCard>
+                            </Grid>
+                          )
+                        )}
+                      </Grid>
+                    </CardContent>
+                  </MotionCard>
+                </MotionBox>
+              )}
+
+              {/* Tab 1: Investment Details */}
+              {activeTab === 1 && (
+                <MotionBox
+                  key="investment"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <MotionCard sx={{ mb: 4, borderRadius: 3 }}>
+                    <Box sx={{ p: 4, background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)", color: "white" }}>
+                      <Typography variant="h4" fontWeight="bold">
+                        Investment Breakdown
+                      </Typography>
+                      <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                        Transparent pricing with no hidden costs
+                      </Typography>
+                    </Box>
+                    <CardContent sx={{ p: 4 }}>
+                      <Grid container spacing={4}>
+                        <Grid item xs={12} md={8}>
+                          <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2 }}>
+                            <Table>
+                              <TableBody>
+                                {[
+                                  { label: "Initial Franchise Fee", value: `₹${brand.initialFranchiseFee}`, icon: <LocalOffer /> },
+                                  { label: "Total Investment Range", value: brand.investmentRange, icon: <AttachMoney /> },
+                                  { label: "Working Capital", value: `₹${brand.workingCapital}`, icon: <AccountBalance /> },
+                                  { label: "Equipment Costs", value: `₹${brand.equipmentCosts}`, icon: <BusinessCenter /> },
+                                  { label: "Real Estate Costs", value: `₹${brand.realEstateCosts}`, icon: <Home /> },
+                                  { label: "Royalty Fee", value: `${brand.royaltyFee}% of revenue`, icon: <ShowChart /> },
+                                  { label: "Franchise Term", value: `${brand.franchiseTermLength} years`, icon: <Schedule /> }
+                                ].map((item, index) => (
+                                  <TableRow key={index} sx={{ "&:hover": { bgcolor: "grey.50" } }}>
+                                    <TableCell sx={{ display: "flex", alignItems: "center", fontWeight: "medium" }}>
+                                      <Box sx={{ mr: 2, color: "primary.main" }}>{item.icon}</Box>
+                                      {item.label}
+                                    </TableCell>
+                                    <TableCell sx={{ fontWeight: "bold", fontSize: "1.1rem" }}>
+                                      {item.value}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <ROICalculator brand={brand} />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </MotionCard>
+
+                  {/* Business Requirements */}
+                  <MotionCard sx={{ borderRadius: 3 }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography variant="h5" fontWeight="bold" gutterBottom>
+                        Space & Location Requirements
+                      </Typography>
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                          <Box sx={{ p: 3, bgcolor: "primary.50", borderRadius: 2, height: "100%" }}>
+                            <CropLandscape sx={{ color: "primary.main", fontSize: 40, mb: 2 }} />
+                            <Typography variant="h6" fontWeight="bold" gutterBottom>
+                              Space Requirement
+                            </Typography>
+                            <Typography variant="h4" color="primary.main" fontWeight="bold">
+                              {brand?.areaRequired?.min}-{brand?.areaRequired?.max}
+                            </Typography>
+                            <Typography variant="h6" color="primary.main">
+                              {brand?.areaRequired?.unit}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <Box sx={{ p: 3, bgcolor: "success.50", borderRadius: 2, height: "100%" }}>
+                            <LocationOn sx={{ color: "success.main", fontSize: 40, mb: 2 }} />
+                            <Typography variant="h6" fontWeight="bold" gutterBottom>
+                              Property Type
+                            </Typography>
+                            <Typography variant="h5" color="success.main" fontWeight="bold">
+                              Commercial Space
+                            </Typography>
+                            <Typography color="success.main">
+                              High-traffic locations preferred
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </MotionCard>
+                </MotionBox>
+              )}
+
+              {/* Tab 2: Training & Support */}
+              {activeTab === 2 && (
+                <MotionBox
+                  key="training"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <MotionCard sx={{ borderRadius: 3 }}>
+                    <Box sx={{ p: 4, background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", color: "white" }}>
+                      <Typography variant="h4" fontWeight="bold">
+                        Training & Support Program
+                      </Typography>
+                      <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                        Comprehensive support from day one
+                      </Typography>
+                    </Box>
+                    <CardContent sx={{ p: 4 }}>
+                      <Grid container spacing={4}>
+                        {[
+                          {
+                            title: "Initial Training",
+                            icon: <School />,
+                            available: brand.trainingProgram,
+                            details: "Comprehensive training program covering all aspects of operations"
+                          },
+                          {
+                            title: "Ongoing Support",
+                            icon: <SupportAgent />,
+                            available: brand.ongoingSupport,
+                            details: "Continuous support through phone, email, and on-site visits"
+                          },
+                          {
+                            title: "Marketing Support",
+                            icon: <Assessment />,
+                            available: brand.marketingSupport,
+                            details: "Professional marketing materials and campaign support"
+                          },
+                          {
+                            title: "Operational Standards",
+                            icon: <CheckCircle />,
+                            available: brand.operationalStandards,
+                            details: "Detailed operational manuals and quality standards"
+                          }
+                        ].map((support, index) => (
+                          <Grid item xs={12} md={6} key={index}>
+                            <MotionCard
+                              whileHover={{ scale: 1.02 }}
+                              sx={{ 
+                                height: "100%",
+                                opacity: support.available ? 1 : 0.5,
+                                border: support.available ? "2px solid" : "2px dashed",
+                                borderColor: support.available ? "success.main" : "grey.300"
+                              }}
+                            >
+                              <CardContent sx={{ p: 3, textAlign: "center" }}>
+                                <Avatar sx={{ 
+                                  bgcolor: support.available ? "success.main" : "grey.300", 
+                                  mx: "auto", 
+                                  mb: 2, 
+                                  width: 60, 
+                                  height: 60 
+                                }}>
+                                  {support.icon}
+                                </Avatar>
+                                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                  {support.title}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {support.available ? support.details : "Contact for more details"}
+                                </Typography>
+                                {support.available && (
+                                  <Chip 
+                                    label="Available" 
+                                    color="success" 
+                                    size="small" 
+                                    sx={{ mt: 2 }}
+                                  />
+                                )}
+                              </CardContent>
+                            </MotionCard>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </CardContent>
+                  </MotionCard>
+                </MotionBox>
+              )}
+
+              {/* Tab 3: Locations */}
+              {activeTab === 3 && (
+                <MotionBox
+                  key="locations"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <MotionCard sx={{ borderRadius: 3 }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography variant="h5" fontWeight="bold" gutterBottom>
+                        Our Presence Across India
+                      </Typography>
+                      {brand.brandFranchiseLocations && brand.brandFranchiseLocations.length > 0 ? (
+                        <Grid container spacing={3}>
+                          {brand.brandFranchiseLocations.map((location, index) => (
+                            <Grid item xs={12} md={6} key={index}>
+                              <MotionCard
+                                whileHover={{ scale: 1.02 }}
+                                sx={{ 
+                                  border: "1px solid",
+                                  borderColor: "divider",
+                                  "&:hover": { borderColor: "primary.main", boxShadow: 3 }
+                                }}
+                              >
+                                <CardContent>
+                                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                                    {location.city}, {location.state}
+                                  </Typography>
+                                  <Typography color="text.secondary" gutterBottom>
+                                    {location.address}
+                                  </Typography>
+                                  <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+                                    <Phone sx={{ mr: 1, color: "primary.main" }} />
+                                    <Typography>{location.phone}</Typography>
+                                  </Box>
+                                  <Button
+                                    variant="outlined"
+                                    startIcon={<Launch />}
+                                    href={location.googleMapsURl}
+                                    target="_blank"
+                                    sx={{ mt: 2 }}
+                                    fullWidth
+                                  >
+                                    View on Maps
+                                  </Button>
+                                </CardContent>
+                              </MotionCard>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Box sx={{ textAlign: "center", py: 4 }}>
+                          <LocationOn sx={{ fontSize: 80, color: "grey.300", mb: 2 }} />
+                          <Typography variant="h6" color="text.secondary">
+                            Location information will be updated soon
+                          </Typography>
+                        </Box>
+                      )}
+                    </CardContent>
+                  </MotionCard>
+                </MotionBox>
+              )}
+
+              {/* Tab 4: Gallery */}
+              {activeTab === 4 && (
+                <MotionBox
+                  key="gallery"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <MotionCard sx={{ borderRadius: 3 }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography variant="h5" fontWeight="bold" gutterBottom>
+                        Brand Gallery
+                      </Typography>
+                      {brand.brandFranchiseImages && brand.brandFranchiseImages.length > 0 ? (
+                        <Slider {...gallerySettings}>
+                          {brand.brandFranchiseImages.map((image, index) => (
+                            <Box key={index} sx={{ px: 1 }}>
+                              <MotionBox
+                                whileHover={{ scale: 1.05 }}
+                                component="img"
+                                src={image}
+                                alt={`${brand.brandName} gallery image ${index + 1}`}
+                                sx={{
+                                  width: "100%",
+                                  height: 300,
+                                  objectFit: "cover",
+                                  borderRadius: 2,
+                                  cursor: "pointer"
+                                }}
+                              />
+                            </Box>
+                          ))}
+                        </Slider>
+                      ) : (
+                        <Box sx={{ textAlign: "center", py: 4 }}>
+                          <CameraAlt sx={{ fontSize: 80, color: "grey.300", mb: 2 }} />
+                          <Typography variant="h6" color="text.secondary">
+                            Gallery images will be updated soon
+                          </Typography>
+                        </Box>
+                      )}
+                    </CardContent>
+                  </MotionCard>
+                </MotionBox>
+              )}
+
+              {/* Tab 5: Process */}
+              {activeTab === 5 && (
+                <MotionBox
+                  key="process"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <MotionCard sx={{ borderRadius: 3 }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ mb: 4 }}>
+                        Franchise Application Process
+                      </Typography>
+                      <Stepper activeStep={-1} orientation="vertical">
+                        {steps.map((step, index) => (
+                          <Step key={step}>
+                            <StepLabel>
+                              <Typography variant="h6" fontWeight="bold">
+                                {step}
+                              </Typography>
+                            </StepLabel>
+                            <Box sx={{ pb: 3 }}>
+                              <Typography color="text.secondary">
+                                {index === 0 && "Submit your initial inquiry and express interest"}
+                                {index === 1 && "Our team reviews your application and qualifications"}
+                                {index === 2 && "Face-to-face or virtual interview process"}
+                                {index === 3 && "Sign the franchise agreement and complete payments"}
+                                {index === 4 && "Comprehensive training and grand opening support"}
+                              </Typography>
+                            </Box>
+                          </Step>
+                        ))}
+                      </Stepper>
+                    </CardContent>
+                  </MotionCard>
+                </MotionBox>
+              )}
+            </AnimatePresence>
+          </Grid>
+
+          {/* Sidebar */}
+          <Grid item xs={12} lg={4}>
+            <Box sx={{ position: "sticky", top: 20 }}>
+              {/* Contact Card */}
+              <MotionCard sx={{ mb: 4, borderRadius: 3, overflow: "hidden" }}>
+                <Box sx={{ p: 3, background: "linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)", color: "white" }}>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom>
+                    Get Started Today
+                  </Typography>
+                  <Typography sx={{ opacity: 0.9 }}>
+                    Connect with our franchise team
+                  </Typography>
                 </Box>
-              </Box>
-            </CardContent>
-          </MotionCard>
-        </Box>
-      </MotionBox>
+                <CardContent sx={{ p: 3 }}>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    startIcon={<PersonAdd />}
+                    onClick={() => setShowInquiryForm(true)}
+                    sx={{ mb: 2, borderRadius: 3, py: 1.5 }}
+                  >
+                    Apply for Franchise
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    size="large"
+                    startIcon={<VideoCall />}
+                    sx={{ mb: 2, borderRadius: 3, py: 1.5 }}
+                  >
+                    Schedule Video Call
+                  </Button>
 
-      {/* Call to Action */}
-      <MotionBox
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-        sx={{
-          backgroundColor: "primary.main",
-          color: "white",
-          borderRadius: 1,
-          p: 6,
-          mt: 4,
-          textAlign: "center",
-        }}
-      >
-        <Typography variant="h4" fontWeight="bold" sx={{ mb: 3 }}>
-          Ready to Join the {brand.brandName} Family?
-        </Typography>
-        <Typography variant="h6" sx={{ mb: 4, maxWidth: 800, mx: "auto" }}>
-          Take the first step towards owning your own {brand.brandName}{" "}
-          franchise today.
-        </Typography>
-        <Button
-          variant="contained"
-          size="large"
-          onClick={() => setShowInquiryForm(true)}
-          sx={{
-            bgcolor: "background.paper",
-            color: "primary.main",
-            "&:hover": { bgcolor: "primary.50" },
-          }}
-        >
-          Request Franchise Information
-        </Button>
-      </MotionBox>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    size="large"
+                    startIcon={<GetApp />}
+                    sx={{ mb: 3, borderRadius: 3, py: 1.5 }}
+                  >
+                    Download Info Pack
+                  </Button>
 
+                  <Divider sx={{ my: 3 }} />
+
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Contact Information
+                  </Typography>
+                  
+                  <List dense>
+                    <ListItem disablePadding sx={{ mb: 1 }}>
+                      <Phone sx={{ mr: 2, color: "primary.main" }} />
+                      <ListItemText primary={brand.brandContactInformation?.phone} />
+                    </ListItem>
+                    <ListItem disablePadding sx={{ mb: 1 }}>
+                      <Email sx={{ mr: 2, color: "primary.main" }} />
+                      <ListItemText primary={brand.brandContactInformation?.email} />
+                    </ListItem>
+                    <ListItem disablePadding>
+                      <LocationOn sx={{ mr: 2, color: "primary.main" }} />
+                      <ListItemText 
+                        primary={`${brand.brandContactInformation?.city}, ${brand.brandContactInformation?.state}`}
+                      />
+                    </ListItem>
+                  </List>
+
+                  <Box sx={{ display: "flex", gap: 1, mt: 3, justifyContent: "center" }}>
+                    {[
+                      { url: brand.brandContactInformation?.facebookURl, icon: <Facebook /> },
+                      { url: brand.brandContactInformation?.twitterURl, icon: <Twitter /> },
+                      { url: brand.brandContactInformation?.instagramURl, icon: <Instagram /> },
+                      { url: brand.brandContactInformation?.linkedinURl, icon: <LinkedIn /> }
+                    ].map((social, index) => 
+                      social.url && (
+                        <IconButton 
+                          key={index}
+                          href={social.url} 
+                          target="_blank"
+                          sx={{ 
+                            bgcolor: "primary.main", 
+                            color: "white",
+                            "&:hover": { bgcolor: "primary.dark" }
+                          }}
+                        >
+                          {social.icon}
+                        </IconButton>
+                      )
+                    )}
+                  </Box>
+                </CardContent>
+              </MotionCard>
+
+              {/* Brand Owner Card */}
+              <MotionCard sx={{ mb: 4, borderRadius: 3 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Meet the Brand Owner
+                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <Avatar sx={{ width: 60, height: 60, mr: 2, bgcolor: "primary.main" }}>
+                      {brand.brandOwnerInformation?.name?.charAt(0)}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="h6" fontWeight="bold">
+                        {brand.brandOwnerInformation?.name}
+                      </Typography>
+                      <Typography color="text.secondary">
+                        Founder & CEO
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {brand.brandOwnerInformation?.email}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {brand.brandOwnerInformation?.phone}
+                  </Typography>
+                  {brand.brandOwnerInformation?.linkedinURl && (
+                    <Button
+                      variant="outlined"
+                      startIcon={<LinkedIn />}
+                      href={brand.brandOwnerInformation.linkedinURl}
+                      target="_blank"
+                      fullWidth
+                      sx={{ mt: 2 }}
+                    >
+                      Connect on LinkedIn
+                    </Button>
+                  )}
+                </CardContent>
+              </MotionCard>
+
+              {/* Investment Highlight */}
+              <MotionCard sx={{ bgcolor: "primary.main", color: "white", borderRadius: 3 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Investment Highlight
+                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <AttachMoney sx={{ mr: 1 }} />
+                    <Typography variant="body1">
+                      Investment: {brand.investmentRange}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <CropLandscape sx={{ mr: 1 }} />
+                    <Typography variant="body1">
+                      Area: {brand?.areaRequired?.min}-{brand?.areaRequired?.max} {brand?.areaRequired?.unit}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Schedule sx={{ mr: 1 }} />
+                    <Typography variant="body1">
+                      Term: {brand.franchiseTermLength} years
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </MotionCard>
+            </Box>
+          </Grid>
+        </Grid>
+      </Container>
+
+      {/* Inquiry Form Dialog */}
       <Dialog
         open={showInquiryForm}
         onClose={() => setShowInquiryForm(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 }
+        }}
       >
         <FranchiseInquiryForm
           brand={brand}
           onClose={() => setShowInquiryForm(false)}
         />
       </Dialog>
-    </Container>
+
+      {/* Scroll to Top Button */}
+      <ScrollTop>
+        <Fab color="primary" size="small">
+          <KeyboardArrowUp />
+        </Fab>
+      </ScrollTop>
+    </>
   );
 };
 

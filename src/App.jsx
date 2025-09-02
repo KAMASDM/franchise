@@ -1,8 +1,7 @@
 import React, { useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { AuthContextProvider } from "./context/AuthContext";
-import { useAuth } from "./context/AuthContext";
-import { Box } from "@mui/material";
+import { AuthContextProvider, useAuth } from "./context/AuthContext";
+import { Box, CircularProgress } from "@mui/material";
 import FAQ from "./pages/FAQ";
 import Home from "./pages/Home";
 import Blog from "./pages/Blogs";
@@ -17,28 +16,24 @@ import Chatbot from "./components/chat/Chatbot";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import BrandDetail from "./components/brand/BrandDetail";
 import TermsAndConditions from "./pages/TermsAndConditions";
+import { useAdminStatus } from "./hooks/useAdminStatus";
+import AdminDashboard from "./pages/AdminDashboard";
 
+// This component protects routes that require a user to be logged in.
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/");
+      navigate("/"); // Redirect to home if not logged in
     }
   }, [user, loading, navigate]);
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        Loading authentication...
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <CircularProgress />
       </Box>
     );
   }
@@ -46,18 +41,39 @@ const ProtectedRoute = ({ children }) => {
   return user ? children : null;
 };
 
+// This component protects routes that require the user to be an admin.
+const AdminRoute = ({ children }) => {
+    const { isAdmin, loading } = useAdminStatus();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!loading && !isAdmin) {
+            navigate('/dashboard'); // Redirect non-admins to their standard dashboard
+        }
+    }, [isAdmin, loading, navigate]);
+
+    if (loading) {
+        return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+    }
+
+    return isAdmin ? children : null;
+};
+
+
 function App() {
   const location = useLocation();
+  // Determine if the current route is part of any dashboard to hide public Header/Footer
   const isDashboardRoute = location.pathname.startsWith("/dashboard");
+  const isAdminRoute = location.pathname.startsWith("/admin");
+  const showPublicLayout = !isDashboardRoute && !isAdminRoute;
 
   return (
     <AuthContextProvider>
-      <Box
-        sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
-      >
-        {!isDashboardRoute && <Header />}
+      <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        {showPublicLayout && <Header />}
         <Box component="main" sx={{ flex: 1 }}>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/brands" element={<Brands />} />
@@ -66,6 +82,10 @@ function App() {
             <Route path="/blog/:id" element={<BlogDetail />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+            
+            {/* Protected User Dashboard Route */}
             <Route
               path="/dashboard/*"
               element={
@@ -74,15 +94,20 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            
+            {/* Protected Admin Dashboard Route */}
             <Route
-              path="/terms-and-conditions"
-              element={<TermsAndConditions />}
+                path="/admin/*"
+                element={
+                    <AdminRoute>
+                        <AdminDashboard />
+                    </AdminRoute>
+                }
             />
           </Routes>
         </Box>
-        {!isDashboardRoute && <Footer />}
-        {!isDashboardRoute && <Chatbot />}
+        {showPublicLayout && <Footer />}
+        {showPublicLayout && <Chatbot />}
       </Box>
     </AuthContextProvider>
   );
