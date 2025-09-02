@@ -117,10 +117,21 @@ const AdminActions = ({ brand, setBrandLocally }) => {
 };
 
 const BrandDetail = () => {
+<<<<<<< HEAD
   const { id } = useParams();
   const navigate = useNavigate();
   const { brand, setBrand, loading, error } = useBrand(id);
   const { isAdmin } = useAdminStatus();
+=======
+  const { slug } = useParams();
+  const brandName = slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { brand, loading, error } = useBrand(brandName, user);
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
 
   const sliderSettings = {
     dots: true,

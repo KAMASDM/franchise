@@ -2,6 +2,7 @@ const functions = require("firebase-functions");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const cors = require("cors")({ origin: true });
 
+<<<<<<< HEAD
 // Initialize the Gemini AI model
 // First try environment variable, then fall back to functions.config()
 const API_KEY = process.env.GEMINI_API_KEY || functions.config()?.gemini?.api_key;
@@ -9,10 +10,15 @@ const API_KEY = process.env.GEMINI_API_KEY || functions.config()?.gemini?.api_ke
 if (!API_KEY) {
   console.error("GEMINI_API_KEY not found in environment or config");
 }
+=======
+const API_KEY =
+  process.env.GEMINI_API_KEY || functions.config()?.gemini?.api_key;
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
+<<<<<<< HEAD
 // Cloud Function to handle Gemini API calls
 exports.sendMessage = functions
   .runWith({
@@ -23,6 +29,15 @@ exports.sendMessage = functions
   .onRequest((req, res) => {
     return cors(req, res, async () => {
       // Only allow POST requests
+=======
+exports.sendMessage = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: "1GB",
+  })
+  .https.onRequest((req, res) => {
+    return cors(req, res, async () => {
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
       if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
       }
@@ -30,7 +45,10 @@ exports.sendMessage = functions
       try {
         const { message, chatHistory, systemPrompt } = req.body;
 
+<<<<<<< HEAD
         // Validate required fields
+=======
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
         if (!message) {
           return res.status(400).json({ error: "Message is required" });
         }
@@ -39,6 +57,7 @@ exports.sendMessage = functions
           return res.status(500).json({ error: "API key not configured" });
         }
 
+<<<<<<< HEAD
         // Start a new chat session with the provided history and system instruction
         const chat = model.startChat({
           history: chatHistory || [],
@@ -99,6 +118,10 @@ exports.startChat = functions
 
         const chat = model.startChat({
           history: [],
+=======
+        const chat = model.startChat({
+          history: chatHistory,
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
           generationConfig: {
             maxOutputTokens: 500,
           },
@@ -107,7 +130,11 @@ exports.startChat = functions
           },
         });
 
+<<<<<<< HEAD
         const result = await chat.sendMessage(initialMessage);
+=======
+        const result = await chat.sendMessage(message);
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
         const response = await result.response;
         const text = response.text();
 
@@ -115,9 +142,14 @@ exports.startChat = functions
           success: true,
           response: text,
         });
+<<<<<<< HEAD
 
       } catch (error) {
         console.error("Error starting chat:", error);
+=======
+      } catch (error) {
+        console.error("error", error);
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
         return res.status(500).json({
           error: "Internal server error",
           message: error.message,

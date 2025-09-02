@@ -16,14 +16,23 @@ import {
   Chip,
 } from "@mui/material";
 import { Chat as ChatIcon, Close, Send, Support } from "@mui/icons-material";
+<<<<<<< HEAD
 import ReactMarkdown from "react-markdown";
+=======
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
 import remarkGfm from "remark-gfm";
+import ReactMarkdown from "react-markdown";
+import UserInfoForm from "./UserInfoForm";
 
+<<<<<<< HEAD
 import UserInfoForm from "./UserInfoForm";
 
 // Use environment variables for Firebase Function URLs
 const SEND_MESSAGE_URL = import.meta.env.VITE_FIREBASE_SEND_MESSAGE_URL || "https://us-central1-franchise-2d12e.cloudfunctions.net/sendMessage";
 const START_CHAT_URL = import.meta.env.VITE_FIREBASE_START_CHAT_URL || "https://us-central1-franchise-2d12e.cloudfunctions.net/startChat";
+=======
+const SEND_MESSAGE_URL = import.meta.env.VITE_FIREBASE_SEND_MESSAGE_URL;
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
 
 const Chatbot = () => {
   const [open, setOpen] = useState(false);
@@ -36,7 +45,6 @@ const Chatbot = () => {
   const [userResponses, setUserResponses] = useState({});
   const chatEndRef = useRef(null);
 
-  // Function to scroll to the latest message
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -45,8 +53,16 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages]);
 
+<<<<<<< HEAD
   // Function to call Firebase Function instead of Gemini directly
   const callFirebaseFunction = async (message, chatHistory = [], systemPrompt = "") => {
+=======
+  const callFirebaseFunction = async (
+    message,
+    chatHistory = [],
+    systemPrompt = ""
+  ) => {
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
     try {
       const response = await fetch(SEND_MESSAGE_URL, {
         method: "POST",
@@ -65,6 +81,7 @@ const Chatbot = () => {
       }
 
       const data = await response.json();
+<<<<<<< HEAD
       
       if (!data.success) {
         throw new Error(data.error || "Unknown error occurred");
@@ -99,20 +116,31 @@ const Chatbot = () => {
       
       if (!data.success) {
         throw new Error(data.error || "Unknown error occurred");
+=======
+
+      if (!data.success) {
+        throw new Error(data.error);
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
       }
 
       return data.response;
     } catch (error) {
+<<<<<<< HEAD
       console.error("Error calling Start Chat Function:", error);
+=======
+      console.error("error", error);
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
       throw error;
     }
   };
 
+<<<<<<< HEAD
   // Define response options for each step in multiple languages (same as before)
+=======
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
   const getResponseOptions = (step, language) => {
     const options = {
       1: {
-        // Business category
         English: [
           {
             key: "A",
@@ -188,7 +216,6 @@ const Chatbot = () => {
         ],
       },
       2: {
-        // Experience level
         English: [
           {
             key: "A",
@@ -253,7 +280,6 @@ const Chatbot = () => {
         ],
       },
       3: {
-        // Risk tolerance
         English: [
           {
             key: "A",
@@ -307,7 +333,6 @@ const Chatbot = () => {
         ],
       },
       4: {
-        // Investment goals
         English: [
           {
             key: "A",
@@ -382,7 +407,10 @@ const Chatbot = () => {
     return languageOptions;
   };
 
+<<<<<<< HEAD
   // Function to create the detailed system prompt (same as before)
+=======
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
   const createSystemPrompt = (info) => {
     return `You are "FranchiseHub Assistant," a specialized AI expert in Indian franchise opportunities. Your goal is to provide helpful, accurate, and well-formatted information to users looking to invest in a franchise in India.
 
@@ -485,20 +513,27 @@ Remember: You must respond in ${
     setIsLoading(true);
 
     try {
-      // Find the system prompt and construct the history for the API
       const systemPrompt = messages.find(
         (msg) => msg.id === "system-prompt"
       )?.text;
       const chatHistory = messages
         .filter((msg) => msg.id !== "system-prompt" && msg.sender !== "system")
-        .slice(1) // Skip the initial bot greeting to ensure history starts with a user
+        .slice(1)
         .map((msg) => ({
           role: msg.sender === "user" ? "user" : "model",
           parts: [{ text: msg.text }],
         }));
 
+<<<<<<< HEAD
       // Call Firebase Function instead of Gemini directly
       const responseText_ai = await callFirebaseFunction(responseText, chatHistory, systemPrompt);
+=======
+      const responseText_ai = await callFirebaseFunction(
+        responseText,
+        chatHistory,
+        systemPrompt
+      );
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
 
       setMessages((prev) => [
         ...prev,
@@ -510,21 +545,21 @@ Remember: You must respond in ${
         },
       ]);
 
-      // Update current question step
       if (currentQuestionStep < 4) {
         setCurrentQuestionStep((prev) => prev + 1);
       } else {
-        // After all questions, switch to free chat
         setChatPhase("free-chat");
       }
 
-      // Store user responses for context
       setUserResponses((prev) => ({
         ...prev,
         [`step_${currentQuestionStep}`]: responseText,
       }));
     } catch (error) {
+<<<<<<< HEAD
       console.error("Error sending message:", error);
+=======
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
       const errorMessage =
         userInfo?.language === "Hindi"
           ? "क्षमा करें, मुझे कनेक्ट करने में समस्या हो रही है। कृपया बाद में पुनः प्रयास करें।"
@@ -572,8 +607,16 @@ Remember: You must respond in ${
           parts: [{ text: msg.text }],
         }));
 
+<<<<<<< HEAD
       // Call Firebase Function instead of Gemini directly
       const responseText = await callFirebaseFunction(inputMessage, chatHistory, systemPrompt);
+=======
+      const responseText = await callFirebaseFunction(
+        inputMessage,
+        chatHistory,
+        systemPrompt
+      );
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
 
       setMessages((prev) => [
         ...prev,
@@ -585,7 +628,10 @@ Remember: You must respond in ${
         },
       ]);
     } catch (error) {
+<<<<<<< HEAD
       console.error("Error sending message:", error);
+=======
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
       const errorMessage =
         userInfo?.language === "Hindi"
           ? "क्षमा करें, मुझे कनेक्ट करने में समस्या हो रही है। कृपया बाद में पुनः प्रयास करें।"
@@ -611,7 +657,6 @@ Remember: You must respond in ${
     setOpen(false);
   };
 
-  // Get current response options
   const currentOptions = getResponseOptions(
     currentQuestionStep,
     userInfo?.language || "English"
@@ -694,7 +739,6 @@ Remember: You must respond in ${
             <UserInfoForm onStartChat={handleStartChat} />
           ) : (
             <>
-              {/* Messages */}
               <Box sx={{ flexGrow: 1, p: 2, overflowY: "auto" }}>
                 {messages
                   .filter((msg) => msg.id !== "system-prompt")
@@ -757,10 +801,8 @@ Remember: You must respond in ${
                 <div ref={chatEndRef} />
               </Box>
 
-              {/* Input Area - Chips or Text Input */}
               <Box sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
                 {showChips && !isLoading ? (
-                  // Show response chips during question flow
                   <Box>
                     <Typography
                       variant="caption"
@@ -786,7 +828,7 @@ Remember: You must respond in ${
                             mb: 1,
                             "&:hover": {
                               backgroundColor: "primary.light",
-                              color: "white",
+                              color: "primary.main",
                             },
                           }}
                         />
@@ -794,7 +836,6 @@ Remember: You must respond in ${
                     </Box>
                   </Box>
                 ) : (
-                  // Show text input for free chat or when loading
                   <Box sx={{ display: "flex", gap: 1 }}>
                     <TextField
                       fullWidth

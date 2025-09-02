@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
+<<<<<<< HEAD
 const useBrand = (id) => {
+=======
+export const useBrand = (brandName, user = null) => {
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
   const [brand, setBrand] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,11 +28,17 @@ const useBrand = (id) => {
       }
 
       try {
-        const docRef = doc(db, "brands", id);
-        const docSnap = await getDoc(docRef);
+        const q = query(
+          collection(db, "brands"),
+          where("brandName", "==", brandName)
+        );
 
-        if (docSnap.exists()) {
-          setBrand({ id: docSnap.id, ...docSnap.data() });
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            setBrand({ id: doc.id, ...doc.data() });
+          });
         } else {
           setError("Brand not found");
         }
@@ -46,7 +56,11 @@ const useBrand = (id) => {
     };
 
     fetchBrand();
+<<<<<<< HEAD
   }, [id]);
+=======
+  }, [brandName, user]);
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
 
   return { brand, setBrand: setBrandLocally, loading, error };
 };

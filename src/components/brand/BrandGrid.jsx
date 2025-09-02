@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  Grid,
   Box,
   Typography,
   Button,
@@ -110,13 +109,28 @@ const BrandGrid = ({ limit = null, filters = null }) => {
 
   return (
     <Box>
-      <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: { xs: 2, sm: 3, md: 4 },
+        }}
+      >
         {displayBrands.map((brand, index) => (
-          <Grid item xs={12} sm={6} md={4} key={brand.id}>
+          <Box
+            key={brand.id}
+            sx={{
+              width: {
+                xs: "100%",
+                sm: "calc(50% - 12px)",
+                md: "calc(33.333% - 21.33px)",
+              },
+            }}
+          >
             <BrandCard brand={brand} index={index} />
-          </Grid>
+          </Box>
         ))}
-      </Grid>
+      </Box>
 
       {limit && brands.length > limit && !showAll && (
         <MotionBox

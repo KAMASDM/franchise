@@ -2,7 +2,6 @@ import React from "react";
 import {
   Card,
   CardContent,
-  CardMedia,
   Typography,
   Box,
   Button,
@@ -13,13 +12,7 @@ import {
 } from "@mui/material";
 import { db } from "../../firebase/firebase";
 import { doc, setDoc, increment, serverTimestamp } from "firebase/firestore";
-import {
-  LocationOn,
-  TrendingUp,
-  AccessTime,
-  Star,
-  CropLandscape,
-} from "@mui/icons-material";
+import { TrendingUp, AccessTime, CropLandscape } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -50,69 +43,57 @@ const BrandCard = ({ brand, index = 0 }) => {
 
   const handleLearnMore = () => {
     trackView();
-    navigate(`/brand/${brand.id}`);
+    navigate(`/brand/${brand.brandName.replace(/\s+/g, "-").toLowerCase()}`);
   };
 
   return (
     <MotionCard
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
-      viewport={{ once: true }}
-      whileHover={{ y: -10, scale: 1.02 }}
       sx={{
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        borderRadius: 3,
+        borderRadius: 4,
         overflow: "hidden",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
         transition: "all 0.3s ease",
         "&:hover": {
-          boxShadow: "0 8px 40px rgba(0,0,0,0.2)",
+          boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
         },
       }}
     >
-      <CardMedia
-        component="img"
-        height="200"
-        image={brand.brandImage}
-        alt={brand.brandName}
-        sx={{ objectFit: "cover" }}
-      />
-
-      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            mb: 2,
-          }}
-        >
-          <Box>
-            <Typography variant="h5" fontWeight="bold" sx={{ mb: 1 }}>
-              {brand.brandName}
-            </Typography>
-            {brand.industries &&
-              brand.industries.length > 0 &&
-              brand.industries.map((industry, index) => (
-                <Chip
-                  key={index}
-                  label={industry}
-                  size="small"
-                  color="primary"
-                  sx={{ fontWeight: "bold", mr: 1 }}
-                />
-              ))}
-          </Box>
+      <CardContent
+        sx={{ flexGrow: 1, p: 3, display: "flex", flexDirection: "column" }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <Avatar
+            src={brand.brandLogo}
+            alt={`${brand.brandName} Logo`}
             sx={{
-              background: `linear-gradient(135deg, ${theme.customColors.secondary[400]} 0%, ${theme.customColors.secondary[600]} 100%)`,
+              width: 64,
+              height: 64,
+              mr: 2,
+              border: `2px solid ${theme.palette.divider}`,
             }}
           >
-            <Star />
+            {!brand.brandLogo && brand.brandName?.charAt(0)}
           </Avatar>
+          <Box>
+            <Typography variant="h5" fontWeight="bold">
+              {brand.brandName}
+            </Typography>
+            <Box sx={{ mt: 0.5 }}>
+              {brand.industries?.map((industry, i) => (
+                <Chip
+                  key={i}
+                  label={industry}
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  sx={{ fontWeight: "medium", mr: 1 }}
+                />
+              ))}
+            </Box>
+          </Box>
         </Box>
 
         <Typography
@@ -120,68 +101,74 @@ const BrandCard = ({ brand, index = 0 }) => {
           color="text.secondary"
           sx={{ mb: 3, lineHeight: 1.6 }}
         >
-          {brand.brandStory || brand.mission}
+          {brand.brandMission}
         </Typography>
 
-        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-          <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h6" fontWeight="bold">
-              {brand.initialFranchiseFee}₹
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Franchise Fee
-            </Typography>
+        <Box sx={{ flexGrow: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-around",
+              textAlign: "center",
+              gap: 2,
+              mb: 3,
+              p: 2,
+              backgroundColor: theme.palette.action.hover,
+              borderRadius: 2,
+            }}
+          >
+            <Box>
+              <Typography variant="h6" fontWeight="bold">
+                {Number(brand.initialFranchiseFee).toLocaleString("en-IN")}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Franchise Fee
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="h6" fontWeight="bold">
+                {brand.royaltyFee}%
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Royalty Fee
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="h6" fontWeight="bold">
+                {brand.franchiseTermLength} yrs
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Term Length
+              </Typography>
+            </Box>
           </Box>
-          <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h6" fontWeight="bold">
-              {brand.royaltyFee}%
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Royalty Fee
-            </Typography>
-          </Box>
-          <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h6" fontWeight="bold">
-              {brand.franchiseTermLength} years
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Term Length
-            </Typography>
-          </Box>
-        </Box>
 
-        <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 2, display: "none" }} />
 
-        <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <TrendingUp sx={{ color: "success.main", mr: 1, fontSize: 20 }} />
-            <Typography variant="body2" fontWeight="bold">
-              Investment: {brand.investmentRange}
-            </Typography>
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <CropLandscape sx={{ color: "success", mr: 1, fontSize: 20 }} />
-            <Typography variant="body2" fontWeight="bold">
-              Area Required: {brand?.areaRequired?.min} -{" "}
-              {brand?.areaRequired?.max} {brand?.areaRequired?.unit}
-            </Typography>
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <AccessTime sx={{ color: "info.main", mr: 1, fontSize: 20 }} />
-            <Typography variant="body2">
-              Founded: {brand.brandfoundedYear} years
-            </Typography>
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <LocationOn sx={{ color: "warning.main", mr: 1, fontSize: 20 }} />
-            <Typography variant="body2">
-              Location:{" "}
-              {brand.brandContactInformation.city +
-                ", " +
-                brand.brandContactInformation.state +
-                ", " +
-                brand.brandContactInformation.country}
-            </Typography>
+          <Box sx={{ mb: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1.5 }}>
+              <TrendingUp
+                sx={{ color: "success.main", mr: 1.5, fontSize: 22 }}
+              />
+              <Typography variant="body2" fontWeight="medium">
+                Investment: {brand.investmentRange}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 1.5 }}>
+              <CropLandscape
+                sx={{ color: "primary.main", mr: 1.5, fontSize: 22 }}
+              />
+              <Typography variant="body2" fontWeight="medium">
+                Area: {brand.areaRequired?.min}-{brand.areaRequired?.max}{" "}
+                {brand.areaRequired?.unit}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <AccessTime sx={{ color: "info.main", mr: 1.5, fontSize: 22 }} />
+              <Typography variant="body2" fontWeight="medium">
+                Founded: {brand.brandfoundedYear}
+              </Typography>
+            </Box>
           </Box>
         </Box>
 
@@ -192,7 +179,7 @@ const BrandCard = ({ brand, index = 0 }) => {
           sx={{
             borderRadius: 25,
             fontWeight: "bold",
-            py: 1,
+            py: 1.5,
           }}
         >
           Learn More

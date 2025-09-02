@@ -64,8 +64,12 @@ function App() {
   const location = useLocation();
   // Determine if the current route is part of any dashboard to hide public Header/Footer
   const isDashboardRoute = location.pathname.startsWith("/dashboard");
+<<<<<<< HEAD
   const isAdminRoute = location.pathname.startsWith("/admin");
   const showPublicLayout = !isDashboardRoute && !isAdminRoute;
+=======
+  const isHomePage = location.pathname === "/";
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
 
   return (
     <AuthContextProvider>
@@ -77,7 +81,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/brands" element={<Brands />} />
-            <Route path="/brand/:id" element={<BrandDetail />} />
+            <Route path="/brand/:slug" element={<BrandDetail />} />
             <Route path="/blogs" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogDetail />} />
             <Route path="/contact" element={<Contact />} />
@@ -106,8 +110,13 @@ function App() {
             />
           </Routes>
         </Box>
+<<<<<<< HEAD
         {showPublicLayout && <Footer />}
         {showPublicLayout && <Chatbot />}
+=======
+        {isHomePage && <Footer />}
+        {!isDashboardRoute && <Chatbot />}
+>>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
       </Box>
     </AuthContextProvider>
   );

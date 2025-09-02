@@ -148,7 +148,7 @@ const Brands = () => {
             : bValue - aValue;
         }
 
-      // Ensure values are strings before comparing to avoid errors with null/undefined
+        // Ensure values are strings before comparing to avoid errors with null/undefined
         const valA = String(aValue || "");
         const valB = String(bValue || "");
 
@@ -162,8 +162,10 @@ const Brands = () => {
       });
   }, [brandsWithViews, searchTerm, filters, sortConfig]);
 
-  const handleLearnMore = (brandId) => {
-    navigate(`/dashboard/brand-details/${brandId}`);
+  const handleLearnMore = (brandName) => {
+    navigate(
+      `/dashboard/brand-details/${brandName.replace(/\s+/g, "-").toLowerCase()}`
+    );
   };
 
   if (loading || isViewsLoading) {
