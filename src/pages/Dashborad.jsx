@@ -28,7 +28,7 @@ import {
   ExitToApp as LogoutIcon,
   MyLocation as MyLocationIcon,
   Leaderboard as LeaderboardIcon,
-  Restaurant as RestaurantIcon,
+  Palette as RestaurantIcon,
   Reviews as ReviewsIcon,
   Quiz as QuizIcon,
 } from "@mui/icons-material";
@@ -157,7 +157,7 @@ const Dashboard = () => {
         >
           <RestaurantIcon />
         </IconButton>
-        <Typography variant="h6">FranchiseHub</Typography>
+        <Typography variant="h6">iKama</Typography>
       </Box>
       <List sx={{ px: 1 }}>
         {dashboardNavItems.map((item) => (
@@ -232,7 +232,7 @@ const Dashboard = () => {
           >
             <IconButton component={RouterLink} to="/" sx={{ color: "inherit" }}>
               <RestaurantIcon sx={{ mr: 1 }} />
-              <Typography variant="h6">FranchiseHub</Typography>
+              <Typography variant="h6">iKama</Typography>
             </IconButton>
             <Notifications />
           </Box>

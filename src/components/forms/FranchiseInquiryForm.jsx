@@ -82,6 +82,9 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Check if brand has locations
+  const hasLocations = brand?.brandFranchiseLocations && brand.brandFranchiseLocations.length > 0;
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -122,9 +125,11 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
     if (!formData.userCity.trim()) newErrors.userCity = "City is required";
     if (!formData.userState) newErrors.userState = "State is required";
 
-    // Franchise Info Validation
-    if (!formData.brandFranchiseLocation)
+    // Franchise Info Validation - Only require location if brand has locations
+    if (hasLocations && !formData.brandFranchiseLocation) {
       newErrors.brandFranchiseLocation = "Location is required";
+    }
+    
     if (!formData.budget) newErrors.budget = "Investment budget is required";
     if (!formData.agreement)
       newErrors.agreement = "You must agree to be contacted";
@@ -139,9 +144,13 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
 
     setLoading(true);
     try {
-      const selectedLocation = brand.brandFranchiseLocations.find(
-        (loc) => loc.city === formData.brandFranchiseLocation
-      );
+      // Find selected location or create a default one
+      let selectedLocation = null;
+      if (hasLocations && formData.brandFranchiseLocation) {
+        selectedLocation = brand.brandFranchiseLocations.find(
+          (loc) => loc.city === formData.brandFranchiseLocation
+        );
+      }
 
       const inquiryData = {
         // Personal Information
@@ -159,16 +168,18 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
           country: formData.userCountry,
         },
 
-        // Franchise Information
-        brandFranchiseLocation: {
-          city: selectedLocation.city,
-          state: selectedLocation.state,
-          country: selectedLocation.country,
-          zipCode: selectedLocation.zipCode,
-          address: selectedLocation.address,
-          phone: selectedLocation.phone,
-          googleMapsURl: selectedLocation.googleMapsURl,
-        },
+        // Franchise Information - Only include if location exists
+        ...(selectedLocation && {
+          brandFranchiseLocation: {
+            city: selectedLocation.city,
+            state: selectedLocation.state,
+            country: selectedLocation.country,
+            zipCode: selectedLocation.zipCode,
+            address: selectedLocation.address,
+            phone: selectedLocation.phone,
+            googleMapsURl: selectedLocation.googleMapsURl,
+          }
+        }),
 
         budget: formData.budget,
         experience: formData.experience,
@@ -258,6 +269,13 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
           <Close />
         </IconButton>
       </Box>
+
+      {/* Show warning if no locations */}
+      {!hasLocations && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          This brand doesn't have specific locations listed yet. Your inquiry will be sent directly to the brand owner.
+        </Alert>
+      )}
 
       <form onSubmit={handleSubmit}>
         <Typography variant="h6" gutterBottom sx={{ mt: 2, mb: 1 }}>
@@ -379,29 +397,31 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
           Franchise Information
         </Typography>
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth error={!!errors.brandFranchiseLocation}>
-              <InputLabel>Preferred Location *</InputLabel>
-              <Select
-                name="brandFranchiseLocation"
-                value={formData.brandFranchiseLocation}
-                onChange={handleChange}
-                label="Preferred Location *"
-              >
-                {brand.brandFranchiseLocations?.map((loc, index) => (
-                  <MenuItem key={index} value={loc.city}>
-                    {loc.address}, {loc.city}, {loc.state} {loc.zipCode}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.brandFranchiseLocation && (
-                <Typography variant="caption" color="error">
-                  {errors.brandFranchiseLocation}
-                </Typography>
-              )}
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          {hasLocations && (
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={!!errors.brandFranchiseLocation}>
+                <InputLabel>Preferred Location (Optional)</InputLabel>
+                <Select
+                  name="brandFranchiseLocation"
+                  value={formData.brandFranchiseLocation}
+                  onChange={handleChange}
+                  label="Preferred Location (Optional)"
+                >
+                  {brand.brandFranchiseLocations.map((loc, index) => (
+                    <MenuItem key={index} value={loc.city}>
+                      {loc.address}, {loc.city}, {loc.state} {loc.zipCode}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.brandFranchiseLocation && (
+                  <Typography variant="caption" color="error">
+                    {errors.brandFranchiseLocation}
+                  </Typography>
+                )}
+              </FormControl>
+            </Grid>
+          )}
+          <Grid item xs={12} sm={6} md={hasLocations ? 3 : 6}>
             <FormControl fullWidth error={!!errors.budget}>
               <InputLabel>Investment Budget *</InputLabel>
               <Select
@@ -423,7 +443,7 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={hasLocations ? 3 : 6}>
             <FormControl fullWidth>
               <InputLabel>Business Experience</InputLabel>
               <Select

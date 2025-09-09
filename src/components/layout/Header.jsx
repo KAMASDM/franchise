@@ -30,7 +30,7 @@ import {
   ContactMail as ContactIcon,
   Help as FaqIcon,
   Business as BrandIcon,
-  Restaurant as RestaurantIcon,
+  Palette as RestaurantIcon,
   ExitToApp as LogoutIcon,
   Dashboard as DashboardIcon,
   Login as LoginIcon,
@@ -114,9 +114,9 @@ const Header = () => {
       onClick={handleDrawer(false)}
     >
       <Box sx={{ px: 2, mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-        <RestaurantIcon sx={{ fontSize: 30, color: "primary.main" }} />
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          FranchiseHub
+        <RestaurantIcon sx={{ fontSize: 30, color: "primary.main", fontFamily: "sanchez" }} />
+        <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: "sanchez", fontStyle: "italic" }}>
+          iKama
         </Typography>
       </Box>
       <Divider />
@@ -220,7 +220,7 @@ const Header = () => {
               variant="h6"
               sx={{ fontWeight: 700, display: { xs: "none", sm: "block" } }}
             >
-              FranchiseHub
+              iKama
             </Typography>
           </Box>
 
