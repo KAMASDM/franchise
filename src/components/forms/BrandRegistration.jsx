@@ -588,12 +588,6 @@ const BrandRegistration = () => {
         });
       };
 
-<<<<<<< HEAD
-      const brandImageUrl = await uploadFile(
-        formData.brandImage,
-        `brands/${user.uid}/logo_${Date.now()}_${formData.brandImage.name}`
-      );
-=======
       let brandLogoUrl = null;
       if (formData.brandLogo) {
         const logoPath = `brands/${user.uid}/${
@@ -609,7 +603,6 @@ const BrandRegistration = () => {
         }/banner_${Date.now()}_${formData.brandBanner.name}`;
         brandBannerUrl = await uploadFile(formData.brandBanner, bannerPath);
       }
->>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
 
       const franchiseImageUrls = await Promise.all(
         formData.brandFranchiseImages.map((file, index) =>

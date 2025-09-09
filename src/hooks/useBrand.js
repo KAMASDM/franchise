@@ -1,19 +1,15 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 
-<<<<<<< HEAD
-const useBrand = (id) => {
-=======
-export const useBrand = (brandName, user = null) => {
->>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
+// The hook now accepts an object with either a brandName or an id
+export const useBrand = ({ brandName, id }, user = null) => {
   const [brand, setBrand] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // This function now returns the brand state and its setter
   const setBrandLocally = (newBrand) => {
-      setBrand(newBrand);
+    setBrand(newBrand);
   };
 
   useEffect(() => {
@@ -21,34 +17,43 @@ export const useBrand = (brandName, user = null) => {
       setLoading(true);
       setError(null);
 
-      if (!id) {
+      if (!id && !brandName) {
         setLoading(false);
-        setError("No brand ID provided.");
+        setError("No brand identifier provided.");
         return;
       }
 
       try {
-        const q = query(
-          collection(db, "brands"),
-          where("brandName", "==", brandName)
-        );
+        if (id) {
+          // If an ID is provided, fetch the document directly
+          const docRef = doc(db, "brands", id);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setBrand({ id: docSnap.id, ...docSnap.data() });
+          } else {
+            setError("Brand not found with the provided ID.");
+          }
+        } else if (brandName) {
+          // If a brandName is provided, query the collection
+          const q = query(
+            collection(db, "brands"),
+            where("brandName", "==", brandName)
+          );
+          const querySnapshot = await getDocs(q);
 
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          querySnapshot.forEach((doc) => {
-            setBrand({ id: doc.id, ...doc.data() });
-          });
-        } else {
-          setError("Brand not found");
+          if (!querySnapshot.empty) {
+            const brandDoc = querySnapshot.docs[0];
+            setBrand({ id: brandDoc.id, ...brandDoc.data() });
+          } else {
+            setError("Brand not found with the provided name.");
+          }
         }
       } catch (err) {
         console.error("Error fetching brand:", err);
-        // Check for permission errors which might indicate a rules issue
         if (err.code === 'permission-denied') {
-            setError("You do not have permission to view this brand. If it is pending, please log in as an admin.");
+          setError("You do not have permission to view this brand. If it is pending, please log in as an admin.");
         } else {
-            setError("Failed to load brand data");
+          setError("Failed to load brand data");
         }
       } finally {
         setLoading(false);
@@ -56,11 +61,7 @@ export const useBrand = (brandName, user = null) => {
     };
 
     fetchBrand();
-<<<<<<< HEAD
-  }, [id]);
-=======
-  }, [brandName, user]);
->>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
+  }, [brandName, id, user]);
 
   return { brand, setBrand: setBrandLocally, loading, error };
 };

@@ -22,8 +22,10 @@ import {
   ListItem,
   ListItemText,
   IconButton,
-  CircularProgress,
-  Divider,
+  ListItemIcon, // Import ListItemIcon
+  Avatar, // Import Avatar
+  useTheme,
+  Link, // Import Link
 } from "@mui/material";
 import {
   LocationOn,
@@ -42,6 +44,12 @@ import {
   Instagram,
   LinkedIn,
   CropLandscape,
+  EmojiEvents, // Import missing icons
+  CheckCircle, // Import missing icons
+  BusinessCenter, // Import missing icons
+  SupportAgent, // Import missing icons
+  Person, // Import missing icons
+  Timeline, // Import missing icons
 } from "@mui/icons-material";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -57,11 +65,12 @@ const BrandDetail = () => {
   const theme = useTheme();
   const { slug } = useParams();
   const brandName = slug
-    .split("-")
+    ?.split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
   const navigate = useNavigate();
-  const { brand, loading, error } = useBrand(brandName);
+  // Update the call to useBrand with the new object structure
+  const { brand, loading, error } = useBrand({ brandName });
   const [showInquiryForm, setShowInquiryForm] = useState(false);
 
   const sliderSettings = {
@@ -159,7 +168,7 @@ const BrandDetail = () => {
                 "linear-gradient(to top, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0) 80%)",
             }}
           />
-          <Box sx={{ position: "relative", zIndex: 1 }}>
+          <Box sx={{ position: "relative", zIndex: 1, p: { xs: 2, md: 4 } }}>
             <Typography
               variant="h2"
               component="h1"
@@ -210,7 +219,7 @@ const BrandDetail = () => {
                 About Us
               </Typography>
               <Typography paragraph>
-                <strong>Founded:</strong> {brand.brandfoundedYear} years ago
+                <strong>Founded:</strong> {brand.brandfoundedYear}
               </Typography>
               <Typography paragraph>
                 <strong>Business Model:</strong> {brand.businessModel}
@@ -270,7 +279,7 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Franchise Term"
-                    secondary={`${brand.franchiseTermLength} years`}
+                    secondary={`${brand.franchiseTermLength}`}
                   />
                 </ListItem>
                 <ListItem>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase/firebase';
-import { collection, getDocs, orderBy } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore'; // Corrected import
 
 export const useAllUsers = () => {
     const [users, setUsers] = useState([]);
@@ -10,7 +10,7 @@ export const useAllUsers = () => {
         const fetchUsers = async () => {
             try {
                 const usersRef = collection(db, 'users');
-                const q = query(usersRef, orderBy('lastLogin', 'desc'));
+                const q = query(usersRef, orderBy('lastLogin', 'desc')); // Now 'query' is defined
                 const querySnapshot = await getDocs(q);
                 const usersList = querySnapshot.docs.map(doc => ({
                     id: doc.id,

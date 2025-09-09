@@ -52,12 +52,9 @@ import Locations from "../components/dashboard/Locations";
 import BrandRegistration from "../components/forms/BrandRegistration";
 import BrandDetail from "../components/dashboard/BrandDetail";
 import Notifications from "../components/dashboard/Notification/Notification";
-<<<<<<< HEAD
-import { useAdminStatus } from "../hooks/useAdminStatus";
-=======
 import Review from "../components/dashboard/Review";
 import FAQs from "../components/dashboard/FAQs";
->>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
+import { useAdminStatus } from "../hooks/useAdminStatus";
 
 const drawerWidth = 240;
 

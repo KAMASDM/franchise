@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Added useEffect
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -55,10 +55,10 @@ import useBrand from "../../hooks/useBrand";
 import { useAdminStatus } from "../../hooks/useAdminStatus";
 import { db } from "../../firebase/firebase";
 import { doc, updateDoc } from "firebase/firestore";
+import { useAuth } from "../../context/AuthContext"; // Import useAuth
 
 const MotionCard = motion(Card);
 
-// Reusable component for displaying an item of information
 const InfoItem = ({ icon, primary, secondary, isLink = false }) => (
     <ListItem dense>
         <ListItemIcon sx={{minWidth: '40px'}}>{icon}</ListItemIcon>
@@ -70,7 +70,6 @@ const InfoItem = ({ icon, primary, secondary, isLink = false }) => (
     </ListItem>
 );
 
-// Admin Actions card remains the same
 const AdminActions = ({ brand, setBrandLocally }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -79,6 +78,7 @@ const AdminActions = ({ brand, setBrandLocally }) => {
         try {
             const brandRef = doc(db, 'brands', brand.id);
             await updateDoc(brandRef, { status: newStatus });
+            // Correctly update the brand state via the passed function
             setBrandLocally(prevBrand => ({ ...prevBrand, status: newStatus }));
         } catch (error) {
             console.error("Error updating status:", error);
@@ -117,21 +117,20 @@ const AdminActions = ({ brand, setBrandLocally }) => {
 };
 
 const BrandDetail = () => {
-<<<<<<< HEAD
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { brand, setBrand, loading, error } = useBrand(id);
-  const { isAdmin } = useAdminStatus();
-=======
-  const { slug } = useParams();
-  const brandName = slug
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+  // Get both slug (from user dashboard) and id (from admin dashboard)
+  const { slug, id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { brand, loading, error } = useBrand(brandName, user);
->>>>>>> 26922e07c3c25e255c880ae07fc5d5dcac8cb5fd
+  const { isAdmin } = useAdminStatus();
+
+  // Convert slug to brandName only if slug exists
+  const brandName = slug
+    ?.split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  // Use the updated hook with either the brandName or id
+  const { brand, setBrand: setBrandLocally, loading, error } = useBrand({ brandName, id }, user);
 
   const sliderSettings = {
     dots: true,
@@ -142,7 +141,7 @@ const BrandDetail = () => {
     autoplay: true,
     adaptiveHeight: true,
   };
-  
+
   if (loading) {
     return <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh"><CircularProgress /></Box>;
   }
@@ -167,12 +166,12 @@ const BrandDetail = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      {isAdmin && <AdminActions brand={brand} setBrandLocally={setBrand} />}
+      {isAdmin && <AdminActions brand={brand} setBrandLocally={setBrandLocally} />}
 
       {/* === HEADER CARD === */}
       <MotionCard sx={{ mb: 3 }} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <CardHeader 
-            avatar={<Avatar src={brand.brandImage} sx={{ width: 60, height: 60 }} variant="rounded" />}
+        <CardHeader
+            avatar={<Avatar src={brand.brandImage || brand.brandLogo} sx={{ width: 60, height: 60 }} variant="rounded" />}
             title={brand.brandName}
             titleTypographyProps={{variant: 'h4', fontWeight: 'bold'}}
             subheader={`Founded in ${brand.brandfoundedYear} | Owner: ${brand.brandOwnerInformation?.name}`}
@@ -184,10 +183,9 @@ const BrandDetail = () => {
           <Typography paragraph>{brand.brandVission || "Not Provided"}</Typography>
         </CardContent>
       </MotionCard>
-      
-      {/* === INFORMATION CARDS IN A SINGLE ROW === */}
-      <Grid container spacing={3}>
 
+      {/* ... rest of your component remains the same */}
+      <Grid container spacing={3}>
         <Grid item xs={12} md={6} lg={4}>
           <MotionCard sx={{ height: '100%' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{delay: 0.1}}>
              <CardHeader title="Investment & Fees" />
@@ -201,7 +199,7 @@ const BrandDetail = () => {
              </CardContent>
           </MotionCard>
         </Grid>
-        
+
         <Grid item xs={12} md={6} lg={4}>
           <MotionCard sx={{ height: '100%' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{delay: 0.2}}>
              <CardHeader title="Business Model" />
@@ -244,7 +242,6 @@ const BrandDetail = () => {
              </MotionCard>
           </Grid>
         )}
-
       </Grid>
     </Container>
   );

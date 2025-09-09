@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme } from '@mui/material';
 import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom';
-import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp } from '@mui/icons-material';
+import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart } from '@mui/icons-material';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -10,9 +10,10 @@ import AdminOverview from '../components/admin/AdminOverview';
 import AdminBrandManagement from '../components/admin/AdminBrandManagement';
 import AdminUserManagement from '../components/admin/AdminUserManagement';
 import AdminNotifications from '../components/admin/AdminNotifications';
-import BrandDetail from '../components/dashboard/BrandDetail'; // Import the detail component
+import BrandDetail from '../components/dashboard/BrandDetail';
+import AdminLeadManagement from '../components/admin/AdminLeadManagement';
+import AdminAnalytics from '../components/admin/AdminAnalytics';
 
-// Create a theme that matches the main application
 const adminTheme = createTheme({
   palette: {
     primary: {
@@ -50,6 +51,8 @@ const AdminDashboard = () => {
     const navItems = [
         { text: 'Overview', path: '/admin', icon: <Dashboard /> },
         { text: 'Brand Management', path: '/admin/brands', icon: <Store /> },
+        { text: 'Lead Management', path: '/admin/leads', icon: <Leaderboard /> },
+        { text: 'Analytics', path: '/admin/analytics', icon: <BarChart /> },
         { text: 'User Management', path: '/admin/users', icon: <People /> },
         { text: 'Send Notifications', path: '/admin/notifications', icon: <NotificationsIcon /> },
     ];
@@ -63,7 +66,7 @@ const AdminDashboard = () => {
             <List>
                 {navItems.map((item) => (
                     <ListItemButton key={item.text} component={RouterLink} to={item.path} selected={location.pathname === item.path}>
-                        <ListItemIcon>{item.icon}</ListItemIcon>
+                        <ListItemIcon sx={{color: 'white'}}>{item.icon}</ListItemIcon>
                         <ListItemText primary={item.text} />
                     </ListItemButton>
                 ))}
@@ -71,7 +74,7 @@ const AdminDashboard = () => {
             <Divider />
             <List>
                 <ListItemButton onClick={handleLogout}>
-                    <ListItemIcon><ExitToApp /></ListItemIcon>
+                    <ListItemIcon sx={{color: 'white'}}><ExitToApp /></ListItemIcon>
                     <ListItemText primary="Logout" />
                 </ListItemButton>
             </List>
@@ -94,7 +97,12 @@ const AdminDashboard = () => {
                     sx={{
                         width: drawerWidth,
                         flexShrink: 0,
-                        [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+                        [`& .MuiDrawer-paper`]: { 
+                            width: drawerWidth, 
+                            boxSizing: 'border-box',
+                            backgroundColor: 'primary.dark',
+                            color: 'white'
+                        },
                     }}
                 >
                     <Toolbar />
@@ -105,8 +113,9 @@ const AdminDashboard = () => {
                     <Routes>
                         <Route path="/" element={<AdminOverview />} />
                         <Route path="brands" element={<AdminBrandManagement />} />
-                        {/* THIS IS THE NEW, CORRECTED ROUTE */}
-                        <Route path="brands/:id" element={<BrandDetail />} /> 
+                        <Route path="brands/:id" element={<BrandDetail />} />
+                        <Route path="leads" element={<AdminLeadManagement />} />
+                        <Route path="analytics" element={<AdminAnalytics />} />
                         <Route path="users" element={<AdminUserManagement />} />
                         <Route path="notifications" element={<AdminNotifications />} />
                     </Routes>
@@ -117,3 +126,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
