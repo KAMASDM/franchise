@@ -23,9 +23,6 @@ import {
   collection,
   addDoc,
   serverTimestamp,
-  doc,
-  updateDoc,
-  increment,
 } from "firebase/firestore";
 
 const investmentRanges = [
@@ -189,8 +186,8 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
         // Brand Information
         brandId: brand.id,
         brandName: brand.brandName,
-        brandImage: brand.brandImage,
-        brandOwner: brand.userId,
+        brandImage: brand.brandImage || "",
+        brandOwnerId: brand.userId,
 
         // Metadata
         status: "new",
@@ -198,33 +195,13 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
         updatedAt: serverTimestamp(),
       };
 
-      const inquiryRef = await addDoc(
+      await addDoc(
         collection(db, "brandfranchiseInquiry"),
         inquiryData
       );
 
-      const notificationData = {
-        type: "new_inquiry",
-        title: `New Franchise Inquiry for ${brand.brandName}`,
-        message: `${formData.firstName} ${formData.lastName} is interested in your franchise.`,
-        inquiryId: inquiryRef.id,
-        brandId: brand.id,
-        read: false,
-        createdAt: serverTimestamp(),
-      };
-
-      await addDoc(
-        collection(db, "users", brand.userId, "notifications"),
-        notificationData
-      );
-
-      await updateDoc(doc(db, "users", brand.userId), {
-        unreadNotificationsCount: increment(1),
-        lastNotificationTime: serverTimestamp(),
-      });
-
       setSubmitted(true);
-      navigate("/");
+      // Removed navigation for a smoother user experience
     } catch (error) {
       console.error("Error submitting inquiry:", error);
       setErrors({ submit: "Failed to submit inquiry. Please try again." });

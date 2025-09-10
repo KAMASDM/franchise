@@ -32,31 +32,31 @@ const contactMethods = [
     icon: <Phone sx={{ color: "primary.dark" }} />,
     title: "Phone",
     description: "Speak with a franchise specialist",
-    contact: "+91 98765 43210",
+    contact: "+91 9638389455",
     action: "Call Now",
-    href: "tel:+919876543210",
+    href: "tel:+919638389455",
   },
   {
     icon: <Email sx={{ color: "primary.dark" }} />,
     title: "Email",
     description: "Send us your questions",
-    contact: "info@franchisehub.co.in",
+    contact: "info@ikamain",
     action: "Email Us",
-    href: "mailto:info@franchisehub.co.in",
+    href: "mailto:info@ikama.in",
   },
   {
     icon: <LocationOn sx={{ color: "primary.dark" }} />,
     title: "Office",
     description: "Visit our Indian headquarters",
-    contact: "123 Business Hub, Alkapuri, Vadodara, Gujarat 390007",
+    contact: "1C Satyam Appt,Vishwas Colony, Alkapuri, Vadodara, Gujarat 390007",
     action: "Get Directions",
-    href: "https://maps.google.com/?q=123+Business+Hub,+Alkapuri,+Vadodara,+Gujarat+390007",
+    href: "https://maps.app.goo.gl/a87xWVX2jwV21pmKA",
   },
   {
     icon: <Schedule sx={{ color: "primary.dark" }} />,
     title: "Hours",
     description: "Our operating hours",
-    contact: "Mon-Fri: 10:00 AM - 7:00 PM IST",
+    contact: "Mon-Fri: 09:00 AM - 06:00 PM IST",
     action: "Schedule Call",
     href: "#contact-form",
   },
@@ -357,14 +357,14 @@ const Contact = () => {
           }}
         >
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d118147.8239433439!2d73.13456044719318!3d22.322307338092837!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc8ab91a3ddab%3A0xac39d3bfe14734d3!2sVadodara%2C%20Gujarat!5e0!3m2!1sen!2sin!4v1689600000000!5m2!1sen!2sin"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5185.900481021584!2d73.16878167641413!3d22.30943974256205!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc5873e594259%3A0xda3dc91c20f4beec!2sAnant%20Soft%20Computing!5e1!3m2!1sen!2sin!4v1757492034701!5m2!1sen!2sin"
             width="100%"
             height="100%"
             style={{ border: 0 }}
             allowFullScreen=""
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            title="FranchiseHub Office Location - Vadodara"
+            title="iKama Office Location - Vadodara"
           />
         </MotionCard>
       </Container>
@@ -373,3 +373,4 @@ const Contact = () => {
 };
 
 export default Contact;
+

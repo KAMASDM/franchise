@@ -1,20 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { useAllLeads } from '../../hooks/useAllLeads';
 import { useAllBrands } from '../../hooks/useAllBrands';
+import { db } from '../../firebase/firebase';
+import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import {
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Avatar, CircularProgress, Alert, Link, TextField, InputAdornment, IconButton,
-  MenuItem, Select, FormControl, InputLabel, Chip, Button, Grid
+  Avatar, CircularProgress, Alert, Link as MuiLink, TextField, InputAdornment, IconButton,
+  MenuItem, Select, FormControl, InputLabel, Button, Grid,
 } from '@mui/material';
-import { Search, Clear, FilterList, Phone, Email } from '@mui/icons-material';
+import { Search, Clear, FilterList, Phone, Email, Delete } from '@mui/icons-material';
 import { format } from 'date-fns';
 
-/**
- * AdminLeadManagement component provides a centralized view of all franchise leads.
- * It allows admins to search and filter leads by brand, status, and keywords.
- */
+const statusOptions = ['New', 'Pending', 'Contacted', 'Converted', 'Rejected'];
+
 const AdminLeadManagement = () => {
-    const { leads, loading: leadsLoading, error: leadsError } = useAllLeads();
+    const { leads, loading: leadsLoading, error: leadsError, setLeads } = useAllLeads();
     const { brands, loading: brandsLoading, error: brandsError } = useAllBrands();
 
     const [searchTerm, setSearchTerm] = useState("");
@@ -50,10 +50,35 @@ const AdminLeadManagement = () => {
             });
     }, [leads, searchTerm, filters]);
 
+    const handleDelete = async (id) => {
+        if (window.confirm("Are you sure you want to delete this lead?")) {
+            try {
+                await deleteDoc(doc(db, "brandfranchiseInquiry", id));
+                setLeads(prev => prev.filter(lead => lead.id !== id));
+            } catch (err) {
+                console.error("Error deleting lead: ", err);
+                alert("Failed to delete lead.");
+            }
+        }
+    };
+
+    const handleStatusChange = async (id, newStatus) => {
+        try {
+            await updateDoc(doc(db, "brandfranchiseInquiry", id), { status: newStatus });
+            setLeads(prev => 
+                prev.map(lead => 
+                    lead.id === id ? { ...lead, status: newStatus } : lead
+                )
+            );
+        } catch (err) {
+            console.error("Error updating status: ", err);
+            alert("Failed to update status.");
+        }
+    };
+
+
     if (leadsLoading || brandsLoading) return <CircularProgress />;
     if (leadsError || brandsError) return <Alert severity="error">{leadsError || brandsError}</Alert>;
-
-    const statusOptions = [...new Set(leads.map(lead => lead.status))];
 
     return (
         <Box>
@@ -130,6 +155,7 @@ const AdminLeadManagement = () => {
                             <TableCell sx={{ fontWeight: 'bold' }}>Brand</TableCell>
                             <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                             <TableCell sx={{ fontWeight: 'bold' }}>Date Received</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -140,12 +166,12 @@ const AdminLeadManagement = () => {
                                     <Box>
                                         <Box display="flex" alignItems="center">
                                             <Email fontSize="small" sx={{ mr: 1 }} />
-                                            <Link href={`mailto:${lead.email}`}>{lead.email}</Link>
+                                            <MuiLink href={`mailto:${lead.email}`}>{lead.email}</MuiLink>
                                         </Box>
                                         {lead.phone &&
                                             <Box display="flex" alignItems="center">
                                                 <Phone fontSize="small" sx={{ mr: 1 }} />
-                                                <Link href={`tel:${lead.phone}`}>{lead.phone}</Link>
+                                                <MuiLink href={`tel:${lead.phone}`}>{lead.phone}</MuiLink>
                                             </Box>
                                         }
                                     </Box>
@@ -157,13 +183,23 @@ const AdminLeadManagement = () => {
                                     </Box>
                                 </TableCell>
                                 <TableCell>
-                                    <Chip
-                                        label={lead.status}
-                                        color={lead.status === 'new' ? 'success' : 'default'}
-                                        size="small"
-                                    />
+                                    <FormControl size="small" fullWidth>
+                                        <Select
+                                            value={lead.status || 'New'}
+                                            onChange={(e) => handleStatusChange(lead.id, e.target.value)}
+                                        >
+                                            {statusOptions.map(option => (
+                                                <MenuItem key={option} value={option}>{option}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
                                 </TableCell>
                                 <TableCell>{lead.createdAt ? format(lead.createdAt, 'PPp') : 'N/A'}</TableCell>
+                                <TableCell>
+                                    <IconButton color="error" onClick={() => handleDelete(lead.id)}>
+                                        <Delete />
+                                    </IconButton>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -174,4 +210,3 @@ const AdminLeadManagement = () => {
 };
 
 export default AdminLeadManagement;
-

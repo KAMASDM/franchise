@@ -19,7 +19,7 @@ import {
   Email,
   Phone,
   LocationOn,
-  Restaurant as RestaurantIcon,
+  Palette as RestaurantIcon,
   ArrowForward,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
@@ -76,7 +76,7 @@ const Footer = () => {
                   sx={{ color: "primary.main", mr: 1, fontSize: 30 }}
                 />
                 <Typography variant="h5" fontWeight="bold" color="primary.main">
-                  FranchiseHub
+                  iKama
                 </Typography>
               </Box>
               <Typography
@@ -154,16 +154,16 @@ const Footer = () => {
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 <Phone sx={{ color: "primary.main" }} />
-                <Typography variant="body2">+91 98765 43210</Typography>
+                <Typography variant="body2">+91 9638389455</Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 <Email sx={{ color: "primary.main" }} />
-                <Typography variant="body2">info@franchisehub.com</Typography>
+                <Typography variant="body2">info@ikama.in</Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
                 <LocationOn sx={{ color: "primary.main", mt: 0.5 }} />
                 <Typography variant="body2" lineHeight={1.6}>
-                  123 Business Hub, Alkapuri
+                  1C Satyam Appartment, Vishwas Colony, Alkapuri
                   <br />
                   Vadodara, Gujarat 390007
                 </Typography>
@@ -196,7 +196,7 @@ const Footer = () => {
           }}
         >
           <Typography variant="body2">
-            © {new Date().getFullYear()} FranchiseHub. All rights reserved.
+            © {new Date().getFullYear()} iKama. All rights reserved.
           </Typography>
           <Box
             sx={{ display: "flex", gap: { xs: 2, sm: 3 }, flexWrap: "wrap" }}

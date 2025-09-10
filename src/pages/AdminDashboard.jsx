@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme } from '@mui/material';
 import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom';
-import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart } from '@mui/icons-material';
+import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart, Email, Chat as ChatIcon } from '@mui/icons-material';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,8 @@ import AdminNotifications from '../components/admin/AdminNotifications';
 import BrandDetail from '../components/dashboard/BrandDetail';
 import AdminLeadManagement from '../components/admin/AdminLeadManagement';
 import AdminAnalytics from '../components/admin/AdminAnalytics';
+import AdminContactMessages from '../components/admin/AdminContactMessages';
+import AdminChatLeads from '../components/admin/AdminChatLeads';
 
 const adminTheme = createTheme({
   palette: {
@@ -51,7 +53,9 @@ const AdminDashboard = () => {
     const navItems = [
         { text: 'Overview', path: '/admin', icon: <Dashboard /> },
         { text: 'Brand Management', path: '/admin/brands', icon: <Store /> },
-        { text: 'Lead Management', path: '/admin/leads', icon: <Leaderboard /> },
+        { text: 'Franchise Leads', path: '/admin/leads', icon: <Leaderboard /> },
+        { text: 'Chat Leads', path: '/admin/chat-leads', icon: <ChatIcon /> },
+        { text: 'Contact Messages', path: '/admin/messages', icon: <Email /> },
         { text: 'Analytics', path: '/admin/analytics', icon: <BarChart /> },
         { text: 'User Management', path: '/admin/users', icon: <People /> },
         { text: 'Send Notifications', path: '/admin/notifications', icon: <NotificationsIcon /> },
@@ -115,6 +119,8 @@ const AdminDashboard = () => {
                         <Route path="brands" element={<AdminBrandManagement />} />
                         <Route path="brands/:id" element={<BrandDetail />} />
                         <Route path="leads" element={<AdminLeadManagement />} />
+                        <Route path="chat-leads" element={<AdminChatLeads />} />
+                        <Route path="messages" element={<AdminContactMessages />} />
                         <Route path="analytics" element={<AdminAnalytics />} />
                         <Route path="users" element={<AdminUserManagement />} />
                         <Route path="notifications" element={<AdminNotifications />} />
@@ -126,4 +132,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
