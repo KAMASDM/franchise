@@ -1,59 +1,61 @@
-import React, { useEffect } from "react";
+import React, { Suspense, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AuthContextProvider, useAuth } from "./context/AuthContext";
 import { Box, CircularProgress } from "@mui/material";
-import FAQ from "./pages/FAQ";
-import Home from "./pages/Home";
-import Blog from "./pages/Blogs";
-import About from "./pages/About";
-import Brands from "./pages/Brands";
-import Contact from "./pages/Contact";
-import Dashboard from "./pages/Dashborad";
-import BlogDetail from "./pages/BlogDetail";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import Chatbot from "./components/chat/Chatbot";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import BrandDetail from "./components/brand/BrandDetail";
-import TermsAndConditions from "./pages/TermsAndConditions";
 import { useAdminStatus } from "./hooks/useAdminStatus";
-import AdminDashboard from "./pages/AdminDashboard";
 
-// This component protects routes that require a user to be logged in.
+// --- Lazy Load Pages ---
+const Home = React.lazy(() => import("./pages/Home"));
+const About = React.lazy(() => import("./pages/About"));
+const Brands = React.lazy(() => import("./pages/Brands"));
+const BrandDetail = React.lazy(() => import("./components/brand/BrandDetail"));
+const Blog = React.lazy(() => import("./pages/Blogs"));
+const BlogDetail = React.lazy(() => import("./pages/BlogDetail"));
+const Contact = React.lazy(() => import("./pages/Contact"));
+const FAQ = React.lazy(() => import("./pages/FAQ"));
+const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));
+const TermsAndConditions = React.lazy(() => import("./pages/TermsAndConditions"));
+const Dashboard = React.lazy(() => import("./pages/Dashborad"));
+const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
+
+const LoadingFallback = () => (
+  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+    <CircularProgress />
+  </Box>
+);
+
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/"); // Redirect to home if not logged in
+      navigate("/");
     }
   }, [user, loading, navigate]);
 
   if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingFallback />;
   }
 
   return user ? children : null;
 };
 
-// This component protects routes that require the user to be an admin.
 const AdminRoute = ({ children }) => {
     const { isAdmin, loading } = useAdminStatus();
     const navigate = useNavigate();
 
     useEffect(() => {
         if (!loading && !isAdmin) {
-            navigate('/dashboard'); // Redirect non-admins to their standard dashboard
+            navigate('/dashboard');
         }
     }, [isAdmin, loading, navigate]);
 
     if (loading) {
-        return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
+        return <LoadingFallback />;
     }
 
     return isAdmin ? children : null;
@@ -62,7 +64,6 @@ const AdminRoute = ({ children }) => {
 
 function App() {
   const location = useLocation();
-  // Determine if the current route is part of any dashboard to hide public Header/Footer
   const isDashboardRoute = location.pathname.startsWith("/dashboard");
   const isAdminRoute = location.pathname.startsWith("/admin");
   const showPublicLayout = !isDashboardRoute && !isAdminRoute;
@@ -72,42 +73,44 @@ function App() {
       <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         {showPublicLayout && <Header />}
         <Box component="main" sx={{ flex: 1 }}>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/brands" element={<Brands />} />
-            <Route path="/brand/:slug" element={<BrandDetail />} />
-            <Route path="/blogs" element={<Blog />} />
-            <Route path="/blog/:id" element={<BlogDetail />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-            
-            {/* Protected User Dashboard Route */}
-            <Route
-              path="/dashboard/*"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* Protected Admin Dashboard Route */}
-            <Route
-                path="/admin/*"
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/brands" element={<Brands />} />
+              <Route path="/brand/:slug" element={<BrandDetail />} />
+              <Route path="/blogs" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogDetail />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+              
+              {/* Protected User Dashboard Route */}
+              <Route
+                path="/dashboard/*"
                 element={
-                    <AdminRoute>
-                        <AdminDashboard />
-                    </AdminRoute>
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
                 }
-            />
-          </Routes>
+              />
+              
+              {/* Protected Admin Dashboard Route */}
+              <Route
+                  path="/admin/*"
+                  element={
+                      <AdminRoute>
+                          <AdminDashboard />
+                      </AdminRoute>
+                  }
+              />
+            </Routes>
+          </Suspense>
         </Box>
-  {showPublicLayout && <Footer />}
-  {showPublicLayout && <Chatbot />}
+        {showPublicLayout && <Footer />}
+        {showPublicLayout && <Chatbot />}
       </Box>
     </AuthContextProvider>
   );

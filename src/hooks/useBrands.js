@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, limit as firestoreLimit } from "firebase/firestore";
 
-export const useBrands = (user = null) => {
+export const useBrands = (user = null, options = {}) => {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,19 +14,17 @@ export const useBrands = (user = null) => {
 
       try {
         const brandsCollection = collection(db, "brands");
-        let q;
+        let queryConstraints = [where("status", "==", "active")];
 
         if (user && user.uid) {
-          // Query for user-specific brands
-          q = query(
-            brandsCollection,
-            where("status", "==", "active"),
-            where("userId", "==", user.uid)
-          );
-        } else {
-          // Query for all active brands when no user is provided
-          q = query(brandsCollection, where("status", "==", "active"));
+          queryConstraints.push(where("userId", "==", user.uid));
         }
+
+        if (options.limit) {
+          queryConstraints.push(firestoreLimit(options.limit));
+        }
+        
+        const q = query(brandsCollection, ...queryConstraints);
 
         const querySnapshot = await getDocs(q);
         const brandsData = querySnapshot.docs.map((doc) => ({
@@ -44,7 +42,7 @@ export const useBrands = (user = null) => {
     };
 
     fetchBrands();
-  }, [user]);
+  }, [user, options.limit]);
 
   return { brands, loading, error };
 };
