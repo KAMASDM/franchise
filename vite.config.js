@@ -3,4 +3,34 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    // Optimize build output
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor code for better caching
+          vendor: ['react', 'react-dom'],
+          mui: ['@mui/material', '@mui/icons-material'],
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          router: ['react-router-dom'],
+        },
+      },
+    },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 600,
+    // Enable source maps for production debugging (optional)
+    sourcemap: false,
+  },
+  server: {
+    // Development server configuration
+    port: 5173,
+    host: true,
+  },
+  preview: {
+    // Preview server configuration
+    port: 4173,
+    host: true,
+  },
+  // Environment variables prefix
+  envPrefix: 'VITE_',
 });

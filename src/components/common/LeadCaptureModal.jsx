@@ -37,7 +37,7 @@ const LeadCaptureModal = ({ open, onClose }) => {
   } = useForm();
 
   const onSubmit = (data) => {
-    console.log("Lead captured:", data);
+    // Lead captured successfully
     localStorage.setItem("userCaptured", "true");
     setSubmitted(true);
     setTimeout(() => {

@@ -19,6 +19,8 @@ import { Chat as ChatIcon, Close, Send, Support } from "@mui/icons-material";
 import remarkGfm from "remark-gfm";
 import ReactMarkdown from "react-markdown";
 import UserInfoForm from "./UserInfoForm";
+import { db } from "../../firebase/firebase";
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 
 // Use environment variables for Firebase Function URLs
 const SEND_MESSAGE_URL = import.meta.env.VITE_FIREBASE_SEND_MESSAGE_URL || "https://us-central1-franchise-2d12e.cloudfunctions.net/sendMessage";
@@ -33,6 +35,7 @@ const Chatbot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuestionStep, setCurrentQuestionStep] = useState(1);
   const [userResponses, setUserResponses] = useState({});
+  const [brandsData, setBrandsData] = useState([]);
   const chatEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -42,6 +45,45 @@ const Chatbot = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Fetch approved brands when component mounts
+  // Fetch approved brands when component mounts
+  useEffect(() => {
+    const fetchApprovedBrands = async () => {
+      try {
+        const brandsCollection = collection(db, "brands");
+        const q = query(brandsCollection, where("status", "==", "active"));
+        const querySnapshot = await getDocs(q);
+        const brands = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setBrandsData(brands);
+      } catch (error) {
+        console.error("Error fetching brands:", error);
+      }
+    };
+    
+    fetchApprovedBrands();
+  }, []);
+
+  const saveChatLead = async (responses, userInfo) => {
+    try {
+      const chatLeadsCollection = collection(db, "chatLeads");
+      const leadData = {
+        userInfo: userInfo,
+        responses: responses,
+        createdAt: serverTimestamp(),
+        status: "new",
+        source: "chatbot"
+      };
+      
+      const docRef = await addDoc(chatLeadsCollection, leadData);
+      return docRef.id;
+    } catch (error) {
+      console.error("Error saving chat lead:", error);
+    }
+  };
 
   const callFirebaseFunction = async (
     message,
@@ -349,12 +391,42 @@ const Chatbot = () => {
   };
 
   const createSystemPrompt = (info) => {
+    // Format brand data for AI context
+    const brandContext = brandsData.length > 0 ? `
+
+**AVAILABLE FRANCHISE BRANDS:**
+Here are the currently active and approved franchise brands in our platform:
+
+${brandsData.map((brand, index) => `
+${index + 1}. **${brand.brandName}**
+   - **Category:** ${brand.brandCategory || 'Not specified'}
+   - **Investment Required:** ₹${brand.brandInvestmentRange || 'Contact for details'}
+   - **Franchise Fee:** ₹${brand.brandFranchiseFee || 'Contact for details'}
+   - **ROI Timeline:** ${brand.brandROITimeline || 'Not specified'}
+   - **Training Provided:** ${brand.brandTrainingProvided ? 'Yes' : 'No'}
+   - **Marketing Support:** ${brand.brandMarketingSupport ? 'Yes' : 'No'}
+   - **Locations Available:** ${brand.brandFranchiseLocations?.length || 0} cities
+   - **About:** ${brand.brandDescription?.substring(0, 150) || 'Contact for more details'}...`).join('')}
+
+**BRAND RECOMMENDATION GUIDELINES:**
+- After collecting user preferences (steps 1-4), recommend 2-3 brands that best match their:
+  * Budget range
+  * Preferred category
+  * Experience level
+  * Risk tolerance
+  * Location preferences
+- Always mention specific brand names from the above list
+- Explain WHY each brand matches their criteria
+- Include investment details and ROI expectations` : `
+
+**BRAND DATA STATUS:** No active brands are currently available in the system. Please inform the user to check back later or contact support.`;
+
     return `You are "FranchiseHub Assistant," a specialized AI expert in Indian franchise opportunities. Your goal is to provide helpful, accurate, and well-formatted information to users looking to invest in a franchise in India.
 
 **User's Profile:**
 - **Preferred Language:** ${info.language}
 - **Preferred Location:** ${info.location}, India
-- **Budget:** ₹${Number(info.budget).toLocaleString("en-IN")}
+- **Budget:** ₹${Number(info.budget).toLocaleString("en-IN")}${brandContext}
 
 **CRITICAL INSTRUCTIONS:**
 1. **RESPOND ONLY IN ${info.language.toUpperCase()}:** All your responses must be in ${
@@ -372,7 +444,7 @@ const Chatbot = () => {
    - Step 2: Ask about business experience level
    - Step 3: Ask about risk tolerance
    - Step 4: Ask about investment timeline/goals
-   - Step 5: Provide tailored franchise recommendations
+   - Step 5: Provide tailored franchise recommendations from our available brands
 
 5. **USE USER CONTEXT:** Always consider the user's location (${
       info.location
@@ -380,11 +452,13 @@ const Chatbot = () => {
       "en-IN"
     )}) in your responses.
 
-6. **FORMAT RESPONSES:** Use Markdown formatting for clarity. Use lists, bold text, and italics appropriately.
+6. **PROVIDE SPECIFIC RECOMMENDATIONS:** When making recommendations, ONLY suggest brands from the "AVAILABLE FRANCHISE BRANDS" list above. Match them based on the user's stated preferences.
+
+7. **FORMAT RESPONSES:** Use Markdown formatting for clarity. Use lists, bold text, and italics appropriately.
 
 Remember: You must respond in ${
       info.language
-    } and ask only ONE question per response.`;
+    } and ask only ONE question per response. After step 4, provide specific brand recommendations from our platform.`;
   };
 
   const getInitialQuestion = (language) => {
@@ -480,6 +554,23 @@ Remember: You must respond in ${
       if (currentQuestionStep < 4) {
         setCurrentQuestionStep((prev) => prev + 1);
       } else {
+        // Moving to recommendation phase - update system prompt with latest brand data
+        const updatedSystemPrompt = createSystemPrompt(userInfo);
+        setMessages((prev) => 
+          prev.map(msg => 
+            msg.id === "system-prompt" 
+              ? { ...msg, text: updatedSystemPrompt }
+              : msg
+          )
+        );
+        
+        // Save chat lead with collected responses
+        const finalResponses = {
+          ...userResponses,
+          [`step_${currentQuestionStep}`]: responseText,
+        };
+        await saveChatLead(finalResponses, userInfo);
+        
         setChatPhase("free-chat");
       }
 

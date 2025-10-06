@@ -1,0 +1,81 @@
+// 🔥 FIRESTORE SECURITY RULES - DEVELOPMENT VERSION
+// Copy these rules to your Firebase Console -> Firestore -> Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 🚨 TEMPORARY: Allow all authenticated users to write to brands collection
+    // This is for initial setup - you should replace with more restrictive rules later
+    match /brands/{brandId} {
+      // Allow anyone to read active brands
+      allow read: if true;
+      
+      // Allow authenticated users to create brands
+      allow create: if request.auth != null && 
+        request.auth.uid == resource.data.userId &&
+        request.auth.uid == resource.data.createdBy;
+      
+      // Allow brand owner to update their own brand
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      
+      // Only allow deletes by admins (we'll implement this later)
+      allow delete: if false;
+    }
+    
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Notifications subcollection
+      match /notifications/{notificationId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Leads collection
+    match /leads/{leadId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+    
+    // Chat leads collection (for anonymous users via chatbot)
+    match /chatLeads/{chatLeadId} {
+      allow create: if true; // Allow anonymous users to create chat leads
+      allow read, update: if request.auth != null; // Only authenticated users can read
+    }
+    
+    // Contact submissions
+    match /contact/{contactId} {
+      allow create: if true; // Allow anonymous contact submissions
+      allow read: if request.auth != null; // Only authenticated users can read
+    }
+    
+    // Reviews
+    match /reviews/{reviewId} {
+      allow read: if true; // Anyone can read reviews
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+    
+    // FAQs
+    match /faqs/{faqId} {
+      allow read: if true; // Anyone can read FAQs
+      allow create, update: if request.auth != null;
+    }
+    
+    // Admin collection (read-only, set manually)
+    match /admins/{adminId} {
+      allow read: if request.auth != null && request.auth.uid == adminId;
+      allow write: if false; // Set manually through Firebase Console
+    }
+    
+    // 🚨 FALLBACK: Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

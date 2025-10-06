@@ -1,0 +1,85 @@
+// Firestore Security Rules Template for Production
+// Copy these to your Firebase Console -> Firestore -> Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- Helper Functions ---
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // --- Collection Rules ---
+    
+    match /admins/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow list, write: if false;
+    }
+    
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId || isAdmin();
+      allow create, update: if request.auth.uid == userId;
+    }
+    
+    match /users/{userId}/notifications/{notificationId} {
+      allow read, write: if request.auth.uid == userId || isAdmin();
+      // Allow any authenticated user to create notifications for admins (for brand submissions)
+      allow create: if isSignedIn();
+    }
+    
+    match /brands/{brandId} {
+      allow get: if resource.data.status == 'active' || isAdmin();
+      allow list: if true;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow update: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
+    }
+    
+    match /brandfranchiseInquiry/{inquiryId} {
+      allow create: if true;
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.brandOwnerId || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+    
+    match /brandViews/{brandId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.brandOwnerId || isAdmin());
+      allow write: if isSignedIn();
+    }
+    
+    match /contactUs/{contactId} {
+        allow create: if true;
+        allow read, update, delete: if isAdmin();
+    }
+
+    match /chatLeads/{leadId} {
+        allow create: if true;
+        allow read, update, delete: if isAdmin();
+    }
+    
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
+    }
+    
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
+    }
+    
+    // Test collection for debugging
+    match /test/{testId} {
+      allow read, write: if isSignedIn();
+    }
+    
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

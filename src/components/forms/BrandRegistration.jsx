@@ -563,6 +563,19 @@ const BrandRegistration = () => {
     setLoading(true);
     setError("");
 
+    // Debug: Check authentication state
+    if (!user) {
+      setError("You must be logged in to register a brand. Please sign in and try again.");
+      setLoading(false);
+      return;
+    }
+
+    console.log("Debug - User authenticated:", {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName
+    });
+
     try {
       const uploadFile = async (file, path) => {
         if (!file) return null;
@@ -626,31 +639,63 @@ const BrandRegistration = () => {
       
       delete submissionData.brandImageFile; // Ensure file object isn't sent to Firestore
 
+      console.log("Debug - Submitting brand data:", {
+        brandName: submissionData.brandName,
+        userId: submissionData.userId,
+        createdBy: submissionData.createdBy,
+        status: submissionData.status,
+        dataKeys: Object.keys(submissionData)
+      });
+
       // Add brand data to Firestore
       const docRef = await addDoc(collection(db, "brands"), submissionData);
+      console.log("✅ Brand successfully created with ID:", docRef.id);
 
-      // --- ADMIN NOTIFICATION ---
-      // 1. Get your Admin's UID from Firebase Authentication
-      // 2. Replace the placeholder below with the actual UID
-      const ADMIN_UID = "REPLACE_WITH_YOUR_ADMIN_UID"; 
-      if (ADMIN_UID) {
+      // --- ADMIN NOTIFICATION (Optional) ---
+      try {
+        // Replace with your actual admin UID from Firebase Authentication
+        const ADMIN_UID = process.env.REACT_APP_ADMIN_UID || null; 
+        
+        if (ADMIN_UID && ADMIN_UID !== "REPLACE_WITH_YOUR_ADMIN_UID") {
           const notificationData = {
-              type: "new_brand_pending",
-              title: `New Brand for Review: ${formData.brandName}`,
-              message: `Submitted by ${user.email}. Please verify.`,
-              brandId: docRef.id,
-              read: false,
-              createdAt: serverTimestamp(),
+            type: "new_brand_pending",
+            title: `New Brand for Review: ${formData.brandName}`,
+            message: `Submitted by ${user.email}. Please verify.`,
+            brandId: docRef.id,
+            read: false,
+            createdAt: serverTimestamp(),
           };
+          
           await addDoc(collection(db, "users", ADMIN_UID, "notifications"), notificationData);
+          console.log("✅ Admin notification sent successfully");
+        } else {
+          console.log("ℹ️ Admin notification skipped (no admin UID configured)");
+        }
+      } catch (notificationError) {
+        // Don't fail the whole process if notification fails
+        console.warn("⚠️ Admin notification failed (brand still created):", notificationError);
       }
       // --- END ADMIN NOTIFICATION ---
 
       setLoading(false);
       navigate("/dashboard?submission=success");
     } catch (err) {
-      console.error("Error during brand registration:", err);
-      setError("Failed to submit application. Please check the console for details and try again.");
+      console.error("❌ Error during brand registration:", err);
+      
+      // Distinguish between different types of errors
+      if (err.message && err.message.includes("Brand successfully created")) {
+        // This should never happen now, but just in case
+        setError("Brand was created successfully, but there was an issue with post-processing. Please check your dashboard.");
+      } else if (err.code === 'permission-denied') {
+        setError("Permission denied. Please ensure you're signed in and try again. If the problem persists, contact support.");
+      } else if (err.code === 'unauthenticated') {
+        setError("Authentication required. Please sign in and try again.");
+      } else if (err.message && err.message.includes('Missing or insufficient permissions')) {
+        setError("Database permission error. Please ensure you're signed in with the correct account.");
+      } else {
+        setError(`Registration failed: ${err.message || err.code || 'Unknown error'}. Please try again or contact support.`);
+      }
+      
       setLoading(false);
     }
   };

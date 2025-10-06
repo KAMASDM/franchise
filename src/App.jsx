@@ -20,6 +20,7 @@ const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));
 const TermsAndConditions = React.lazy(() => import("./pages/TermsAndConditions"));
 const Dashboard = React.lazy(() => import("./pages/Dashborad"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
+const FirestoreTest = React.lazy(() => import("./components/debug/FirestoreTest"));
 
 const LoadingFallback = () => (
   <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -86,6 +87,7 @@ function App() {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+              <Route path="/test-firestore" element={<FirestoreTest />} />
               
               {/* Protected User Dashboard Route */}
               <Route

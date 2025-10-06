@@ -153,7 +153,6 @@ const BrandDetail = () => {
             display: "flex",
             alignItems: "center",
             color: "white",
-            position: "relative",
             width: "100%",
           }}
         >
