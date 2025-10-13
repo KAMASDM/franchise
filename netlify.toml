@@ -1,0 +1,73 @@
+# Netlify configuration for React SPA deployment
+
+[build]
+  # Build command - runs during deployment
+  command = "npm run build"
+  
+  # Directory to publish - where the built files are located
+  publish = "dist"
+  
+  # Functions directory (if using Netlify Functions in future)
+  # functions = "functions"
+
+[build.environment]
+  # Node.js version for build
+  NODE_VERSION = "18"
+  
+  # Enable modern build features
+  NPM_FLAGS = "--production=false"
+
+# Redirect rules (same as _redirects file, but in TOML format)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  
+  # Enable client-side routing
+  force = false
+  
+  # Headers for security and performance
+  [redirects.headers]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:;"
+
+# Performance optimizations
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Cache static assets
+    Cache-Control = "public, max-age=31536000, immutable"
+    
+[[headers]]
+  for = "*.html"
+  [headers.values]
+    # Don't cache HTML files
+    Cache-Control = "public, max-age=0, must-revalidate"
+    
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    # Cache JavaScript files
+    Cache-Control = "public, max-age=31536000, immutable"
+    
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    # Cache CSS files  
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Optional: Preview deployments configuration
+[context.deploy-preview]
+  command = "npm run build"
+  
+[context.branch-deploy]
+  command = "npm run build"
+
+# Optional: Development server settings for Netlify Dev
+[dev]
+  command = "npm run dev"
+  port = 5173
+  publish = "dist"

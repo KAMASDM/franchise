@@ -1,0 +1,16 @@
+# Netlify redirects file for React Router client-side routing
+# This ensures all routes are handled by the React app
+
+# Handle all client-side routes by serving index.html
+# The /* catches all paths and serves index.html with a 200 status
+# This allows React Router to handle the routing on the client side
+/*    /index.html   200
+
+# Optional: Handle specific API routes if you have any backend endpoints
+# /api/*  https://your-api-endpoint.com/:splat  200
+
+# Optional: Handle admin routes with authentication (if needed in future)
+# /admin/*  /index.html  200
+
+# Handle 404s - catch any unmatched routes and let React handle them
+# This is already covered by the /* rule above, but can be explicit if needed
