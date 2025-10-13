@@ -15,12 +15,18 @@ import { doc, setDoc, increment, serverTimestamp } from "firebase/firestore";
 import { TrendingUp, AccessTime, CropLandscape } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { getBrandUrl } from "../../utils/brandUtils";
 
 const MotionCard = motion(Card);
 
 const BrandCard = ({ brand, index = 0 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
+
+  const handleLearnMore = () => {
+    trackView();
+    navigate(getBrandUrl(brand));
+  };
 
   const trackView = async () => {
     try {
@@ -39,11 +45,6 @@ const BrandCard = ({ brand, index = 0 }) => {
     } catch (error) {
       console.error("Error tracking view:", error);
     }
-  };
-
-  const handleLearnMore = () => {
-    trackView();
-    navigate(`/brand/${brand.brandName.replace(/\s+/g, "-").toLowerCase()}`);
   };
 
   return (

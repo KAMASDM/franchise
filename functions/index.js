@@ -1,6 +1,10 @@
 const functions = require("firebase-functions");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const cors = require("cors")({ origin: true });
+const admin = require("firebase-admin");
+
+// Initialize Firebase Admin SDK
+admin.initializeApp();
 
 // Initialize the Gemini AI model
 // First try environment variable, then fall back to functions.config()
@@ -12,6 +16,56 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+// Helper function to validate request authentication
+const validateRequest = async (req) => {
+  // For development/testing, allow requests without auth
+  if (process.env.NODE_ENV === 'development') {
+    return { isValid: true };
+  }
+
+  // Check for API key in headers (basic protection)
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== functions.config()?.api?.key) {
+    return { isValid: false, error: 'Invalid API key' };
+  }
+
+  // For production, you might want to verify Firebase ID tokens
+  // const idToken = req.headers.authorization?.split('Bearer ')[1];
+  // if (idToken) {
+  //   try {
+  //     const decodedToken = await admin.auth().verifyIdToken(idToken);
+  //     return { isValid: true, user: decodedToken };
+  //   } catch (error) {
+  //     return { isValid: false, error: 'Invalid authentication token' };
+  //   }
+  // }
+
+  return { isValid: true };
+};
+
+// Rate limiting helper (basic implementation)
+const rateLimitMap = new Map();
+const checkRateLimit = (identifier, maxRequests = 10, windowMs = 60000) => {
+  const now = Date.now();
+  const windowStart = now - windowMs;
+  
+  if (!rateLimitMap.has(identifier)) {
+    rateLimitMap.set(identifier, []);
+  }
+  
+  const requests = rateLimitMap.get(identifier);
+  // Remove old requests outside the window
+  const recentRequests = requests.filter(time => time > windowStart);
+  
+  if (recentRequests.length >= maxRequests) {
+    return false;
+  }
+  
+  recentRequests.push(now);
+  rateLimitMap.set(identifier, recentRequests);
+  return true;
+};
 
 // Cloud Function to handle Gemini API calls
 exports.sendMessage = functions
@@ -28,11 +82,33 @@ exports.sendMessage = functions
       }
 
       try {
+        // Validate authentication
+        const authResult = await validateRequest(req);
+        if (!authResult.isValid) {
+          return res.status(401).json({ error: authResult.error || "Unauthorized" });
+        }
+
+        // Rate limiting
+        const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+        if (!checkRateLimit(clientIp, 20, 60000)) { // 20 requests per minute
+          return res.status(429).json({ error: "Rate limit exceeded. Please try again later." });
+        }
+
         const { message, chatHistory, systemPrompt } = req.body;
 
         // Validate required fields
-        if (!message) {
-          return res.status(400).json({ error: "Message is required" });
+        if (!message || typeof message !== 'string') {
+          return res.status(400).json({ error: "Valid message is required" });
+        }
+
+        // Validate message length
+        if (message.length > 1000) {
+          return res.status(400).json({ error: "Message too long. Please keep it under 1000 characters." });
+        }
+
+        // Validate chat history format
+        if (chatHistory && !Array.isArray(chatHistory)) {
+          return res.status(400).json({ error: "Chat history must be an array" });
         }
 
         if (!API_KEY) {

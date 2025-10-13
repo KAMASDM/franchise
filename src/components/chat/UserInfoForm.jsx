@@ -27,30 +27,11 @@ import {
 } from "@mui/icons-material";
 import { db } from "../../firebase/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { INVESTMENT_RANGES, INDIAN_CITIES, INDIAN_LANGUAGES } from "../../constants";
 
-const investmentRanges = [
-  "Under ₹50K",
-  "₹50K - ₹100K",
-  "₹100K - ₹250K",
-  "₹250K - ₹500K",
-  "₹500K - ₹1M",
-  "Over ₹1M",
-];
-
-const indianCities = [
-  "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad", "Chennai",
-  "Kolkata", "Surat", "Pune", "Jaipur", "Lucknow", "Kanpur", "Nagpur",
-  "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna", "Vadodara",
-];
-
-const indianLanguages = [
-  { code: "English", name: "English", native: "English" },
-  { code: "Hindi", name: "Hindi", native: "हिंदी" },
-  { code: "Gujarati", name: "Gujarati", native: "ગુજરાતી" },
-  { code: "Marathi", name: "Marathi", native: "मराठी" },
-  { code: "Tamil", name: "Tamil", native: "தமிழ்" },
-  { code: "Telugu", name: "Telugu", native: "తెలుగు" },
-];
+const investmentRanges = INVESTMENT_RANGES;
+const indianCities = INDIAN_CITIES.slice(0, 19); // Use first 19 cities for UI
+const indianLanguages = INDIAN_LANGUAGES.slice(0, 6); // Use first 6 languages for UI
 
 const steps = [
   { label: "Personal Info", icon: <Person /> },

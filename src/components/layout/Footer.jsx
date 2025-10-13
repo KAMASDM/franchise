@@ -64,7 +64,7 @@ const Footer = () => {
     >
       <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1 }}>
         <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
+          <Grid xs={12} md={4}>
             <MotionBox
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -114,7 +114,7 @@ const Footer = () => {
             </MotionBox>
           </Grid>
 
-          <Grid item xs={6} sm={4} md={2}>
+          <Grid xs={6} sm={4} md={2}>
             <Typography
               variant="h6"
               fontWeight="bold"
@@ -143,7 +143,7 @@ const Footer = () => {
             </Box>
           </Grid>
 
-          <Grid item xs={12} sm={4} md={3}>
+          <Grid xs={12} sm={4} md={3}>
             <Typography
               variant="h6"
               fontWeight="bold"

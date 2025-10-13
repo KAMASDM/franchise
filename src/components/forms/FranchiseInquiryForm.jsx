@@ -24,31 +24,12 @@ import {
   addDoc,
   serverTimestamp,
 } from "firebase/firestore";
+import NotificationService from "../../utils/NotificationService";
+import { INVESTMENT_RANGES, BUSINESS_EXPERIENCE_OPTIONS, TIMELINE_OPTIONS } from "../../constants";
 
-const investmentRanges = [
-  "Under ₹50K",
-  "₹50K - ₹100K",
-  "₹100K - ₹250K",
-  "₹250K - ₹500K",
-  "₹500K - ₹1M",
-  "Over ₹1M",
-];
-
-const businessExperience = [
-  "No Business Experience",
-  "Some business experience",
-  "Restaurant experience",
-  "Franchise experience",
-  "Corporate executive",
-];
-
-const timeline = [
-  "As soon as possible",
-  "Within 3 months",
-  "Within 6 months",
-  "Within 1 year",
-  "Just exploring",
-];
+const investmentRanges = INVESTMENT_RANGES;
+const businessExperience = BUSINESS_EXPERIENCE_OPTIONS;
+const timeline = TIMELINE_OPTIONS;
 
 const FranchiseInquiryForm = ({ brand, onClose }) => {
   const navigate = useNavigate();
@@ -68,9 +49,9 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
 
     // Franchise Information
     brandFranchiseLocation: "",
-    budget: "",
-    experience: "",
-    timeline: "",
+    budget: "Under ₹50K",
+    experience: "No Business Experience",
+    timeline: "As soon as possible",
     comments: "",
     agreement: false,
   });
@@ -190,14 +171,20 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
         brandOwnerId: brand.userId,
 
         // Metadata
-        status: "new",
+        status: "New",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
 
-      await addDoc(
+      const docRef = await addDoc(
         collection(db, "brandfranchiseInquiry"),
         inquiryData
+      );
+
+      // Send notification to brand owner
+      await NotificationService.sendLeadNotification(
+        brand.userId, 
+        { ...inquiryData, id: docRef.id }
       );
 
       setSubmitted(true);

@@ -45,6 +45,15 @@ import { useAuth } from "../../context/AuthContext";
 import { db, storage } from "../../firebase/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import NotificationService from "../../utils/NotificationService";
+import { 
+  INVESTMENT_RANGES,
+  INDUSTRIES,
+  FRANCHISE_MODELS,
+  BUSINESS_MODELS,
+  AREA_UNITS,
+  FILE_UPLOAD
+} from "../../constants";
 
 const steps = [
   {
@@ -74,45 +83,11 @@ const steps = [
   },
 ];
 
-const businessModal = [
-  "Company Owned - Company Operated",
-  "Company Owned - Franchise Operated",
-];
-
-const industries = [
-  "Food & Beverage",
-  "Hospitality",
-  "Retail",
-  "Healthcare",
-  "Education",
-  "Fitness",
-  "Beauty & Wellness",
-  "Technology",
-  "Automotive",
-  "Real Estate",
-  "Home Services",
-  "Entertainment",
-  "Travel & Hospitality",
-  "Other",
-];
-
-const investmentRanges = [
-  "Under ₹50K",
-  "₹50K - ₹100K",
-  "₹100K - ₹250K",
-  "₹250K - ₹500K",
-  "₹500K - ₹1M",
-  "Over ₹1M",
-];
-
-const franchiseModelOptions = [
-  "Unit",
-  "Multicity",
-  "Dealer/Distributor",
-  "Master Franchise",
-];
-
-const areaUnit = ["Sq.ft", "Sq.mt", "Sq.yrd", "Acre"];
+const businessModal = BUSINESS_MODELS;
+const industries = INDUSTRIES;
+const investmentRanges = INVESTMENT_RANGES;
+const franchiseModelOptions = FRANCHISE_MODELS;
+const areaUnit = AREA_UNITS;
 
 const BrandRegistration = () => {
   const { user } = useAuth();
@@ -321,30 +296,100 @@ const BrandRegistration = () => {
     return newErrors;
   };
 
+  // File validation constants from centralized config
+  const MAX_FILE_SIZE = FILE_UPLOAD.MAX_FILE_SIZE;
+  const ALLOWED_IMAGE_TYPES = FILE_UPLOAD.ALLOWED_IMAGE_TYPES;
+  const MAX_GALLERY_IMAGES = FILE_UPLOAD.MAX_GALLERY_IMAGES;
+
+  const validateFile = (file, isImage = true) => {
+    const errors = [];
+    
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      errors.push(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+    }
+    
+    // Check file type for images
+    if (isImage && !ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      errors.push('Only JPEG, PNG, and WebP images are allowed');
+    }
+    
+    return errors;
+  };
+
   const handleFileUpload = (field, event) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     if (field === "brandLogo" || field === "brandBanner") {
-      handleInputChange(field, files[0]);
+      const file = files[0];
+      const validationErrors = validateFile(file, true);
+      
+      if (validationErrors.length > 0) {
+        setErrors((prev) => ({ ...prev, [field]: validationErrors.join('. ') }));
+        return;
+      }
+      
+      handleInputChange(field, file);
       if (errors[field]) {
         setErrors((prev) => ({ ...prev, [field]: undefined }));
       }
     } else if (field === "brandFranchiseImages") {
-      // Convert FileList to array and combine with existing images
       const newFiles = Array.from(files);
+      const currentCount = formData.brandFranchiseImages.length;
+      
+      // Check total count limit
+      if (currentCount + newFiles.length > MAX_GALLERY_IMAGES) {
+        setErrors((prev) => ({ 
+          ...prev, 
+          [field]: `Maximum ${MAX_GALLERY_IMAGES} images allowed in gallery` 
+        }));
+        return;
+      }
+      
+      // Validate each file
+      const validFiles = [];
+      const fileErrors = [];
+      
+      newFiles.forEach((file, index) => {
+        const validationErrors = validateFile(file, true);
+        if (validationErrors.length > 0) {
+          fileErrors.push(`File ${index + 1}: ${validationErrors.join('. ')}`);
+        } else {
+          validFiles.push(file);
+        }
+      });
+      
+      if (fileErrors.length > 0) {
+        setErrors((prev) => ({ ...prev, [field]: fileErrors.join('\n') }));
+        return;
+      }
+      
+      // Add valid files
       setFormData((prev) => ({
         ...prev,
-        brandFranchiseImages: [...prev.brandFranchiseImages, ...newFiles],
+        brandFranchiseImages: [...prev.brandFranchiseImages, ...validFiles],
       }));
+      
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+      }
     } else {
+      const file = files[0];
+      const validationErrors = validateFile(file, false);
+      
+      if (validationErrors.length > 0) {
+        setErrors((prev) => ({ ...prev, [field]: validationErrors.join('. ') }));
+        return;
+      }
+      
       setUploadedFiles((prev) => ({
         ...prev,
         [field]: {
-          name: files[0].name,
-          size: files[0].size,
-          type: files[0].type,
-          file: files[0],
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          file: file,
         },
       }));
     }
@@ -651,31 +696,22 @@ const BrandRegistration = () => {
       const docRef = await addDoc(collection(db, "brands"), submissionData);
       console.log("✅ Brand successfully created with ID:", docRef.id);
 
-      // --- ADMIN NOTIFICATION (Optional) ---
+      // Send notification to admins about new brand submission
       try {
-        // Replace with your actual admin UID from Firebase Authentication
-        const ADMIN_UID = process.env.REACT_APP_ADMIN_UID || null; 
-        
-        if (ADMIN_UID && ADMIN_UID !== "REPLACE_WITH_YOUR_ADMIN_UID") {
-          const notificationData = {
-            type: "new_brand_pending",
-            title: `New Brand for Review: ${formData.brandName}`,
-            message: `Submitted by ${user.email}. Please verify.`,
+        await NotificationService.sendAdminNotification(
+          `New brand submission: ${formData.brandName} by ${user.email}`,
+          {
+            type: "brand_submission",
             brandId: docRef.id,
-            read: false,
-            createdAt: serverTimestamp(),
-          };
-          
-          await addDoc(collection(db, "users", ADMIN_UID, "notifications"), notificationData);
-          console.log("✅ Admin notification sent successfully");
-        } else {
-          console.log("ℹ️ Admin notification skipped (no admin UID configured)");
-        }
+            brandName: formData.brandName,
+            submitterEmail: user.email,
+            submitterId: user.uid
+          }
+        );
       } catch (notificationError) {
         // Don't fail the whole process if notification fails
         console.warn("⚠️ Admin notification failed (brand still created):", notificationError);
       }
-      // --- END ADMIN NOTIFICATION ---
 
       setLoading(false);
       navigate("/dashboard?submission=success");

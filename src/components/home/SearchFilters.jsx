@@ -63,7 +63,7 @@ const SearchFilters = ({
         Filter Brands
       </Typography>
       <Grid container spacing={2} alignItems="center">
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <TextField
             label="Search by Keyword"
             variant="outlined"
@@ -74,7 +74,7 @@ const SearchFilters = ({
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <FormControl fullWidth variant="outlined" sx={{ borderRadius: 1 }}>
             <InputLabel>Industry</InputLabel>
             <Select
@@ -94,7 +94,7 @@ const SearchFilters = ({
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <FormControl fullWidth variant="outlined" sx={{ borderRadius: 1 }}>
             <InputLabel>Investment Range</InputLabel>
             <Select
@@ -114,7 +114,7 @@ const SearchFilters = ({
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <FormControl fullWidth variant="outlined" sx={{ borderRadius: 1 }}>
             <InputLabel>Franchise Model</InputLabel>
             <Select

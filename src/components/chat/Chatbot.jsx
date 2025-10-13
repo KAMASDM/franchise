@@ -5,7 +5,6 @@ import {
   DialogTitle,
   DialogContent,
   Box,
-  TextField,
   Button,
   Typography,
   Avatar,
@@ -14,28 +13,49 @@ import {
   Divider,
   CircularProgress,
   Chip,
+  Card,
+  CardContent,
+  CardActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Badge,
+  Grid,
+  Stack,
 } from "@mui/material";
-import { Chat as ChatIcon, Close, Send, Support } from "@mui/icons-material";
-import remarkGfm from "remark-gfm";
-import ReactMarkdown from "react-markdown";
+import { 
+  Chat as ChatIcon, 
+  Close, 
+  Support,
+  Business,
+  AttachMoney,
+  LocationOn,
+  TrendingUp,
+  CheckCircle,
+  Star,
+  Launch
+} from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import UserInfoForm from "./UserInfoForm";
 import { db } from "../../firebase/firebase";
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
-
-// Use environment variables for Firebase Function URLs
-const SEND_MESSAGE_URL = import.meta.env.VITE_FIREBASE_SEND_MESSAGE_URL || "https://us-central1-franchise-2d12e.cloudfunctions.net/sendMessage";
-const START_CHAT_URL = import.meta.env.VITE_FIREBASE_START_CHAT_URL || "https://us-central1-franchise-2d12e.cloudfunctions.net/startChat";
+import NotificationService from "../../utils/NotificationService";
+import { BrandMatchingService } from "../../utils/BrandMatchingService";
+import { INVESTMENT_RANGES, INDUSTRIES } from "../../constants";
+import { generateBrandSlug } from "../../utils/brandUtils";
 
 const Chatbot = () => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [chatPhase, setChatPhase] = useState("pre-chat");
   const [userInfo, setUserInfo] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuestionStep, setCurrentQuestionStep] = useState(1);
   const [userResponses, setUserResponses] = useState({});
   const [brandsData, setBrandsData] = useState([]);
+  const [matchedBrands, setMatchedBrands] = useState([]);
   const chatEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -46,7 +66,6 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Fetch approved brands when component mounts
   // Fetch approved brands when component mounts
   useEffect(() => {
     const fetchApprovedBrands = async () => {
@@ -67,6 +86,80 @@ const Chatbot = () => {
     fetchApprovedBrands();
   }, []);
 
+  // Smart brand matching using the dedicated service
+  const findMatchingBrands = async (responses, userInfo) => {
+    if (brandsData.length === 0) return [];
+
+    // Transform responses to match BrandMatchingService format
+    const userPreferences = {
+      budget: userInfo.budget,
+      location: userInfo.location,
+      interests: [responses.industry],
+      experience: responses.experience,
+      timeline: responses.timeline,
+      riskTolerance: responses.riskTolerance
+    };
+
+    try {
+      const matches = await BrandMatchingService.matchBrands(userPreferences, brandsData);
+      
+      // Transform matches to include user-friendly reasons
+      return matches.slice(0, 5).map(match => ({
+        ...match.brand,
+        matchScore: Math.round(match.matchScore),
+        matchReasons: generateUserFriendlyReasons(match.matchFactors, responses, userInfo)
+      }));
+    } catch (error) {
+      console.error("Error in brand matching:", error);
+      // Fallback to simple matching
+      return brandsData
+        .filter(brand => 
+          brand.industries?.some(industry => 
+            industry.toLowerCase().includes(responses.industry?.toLowerCase()) ||
+            responses.industry?.toLowerCase().includes(industry.toLowerCase())
+          )
+        )
+        .slice(0, 3)
+        .map(brand => ({
+          ...brand,
+          matchScore: 75,
+          matchReasons: [`Matches your interest in ${responses.industry}`, `Available in your location`]
+        }));
+    }
+  };
+
+  const generateUserFriendlyReasons = (matchFactors, responses, userInfo) => {
+    const reasons = [];
+    
+    if (matchFactors.budgetScore > 70) {
+      reasons.push(`Perfect fit for your budget of ₹${userInfo.budget}`);
+    } else if (matchFactors.budgetScore > 50) {
+      reasons.push(`Within your budget range`);
+    }
+
+    if (matchFactors.industryScore > 80) {
+      reasons.push(`Excellent match for ${responses.industry} industry`);
+    } else if (matchFactors.industryScore > 50) {
+      reasons.push(`Related to your interest in ${responses.industry}`);
+    }
+
+    if (responses.experience === "No Business Experience") {
+      reasons.push(`Comprehensive training and support for beginners`);
+    } else if (responses.experience.includes("Experience")) {
+      reasons.push(`Great opportunity for experienced investors`);
+    }
+
+    if (responses.riskTolerance === "Low Risk") {
+      reasons.push(`Low-risk investment model`);
+    } else if (responses.riskTolerance === "High Risk") {
+      reasons.push(`High growth potential`);
+    } else {
+      reasons.push(`Balanced risk-return profile`);
+    }
+
+    return reasons.slice(0, 3); // Limit to top 3 reasons
+  };
+
   const saveChatLead = async (responses, userInfo) => {
     try {
       const chatLeadsCollection = collection(db, "chatLeads");
@@ -74,448 +167,152 @@ const Chatbot = () => {
         userInfo: userInfo,
         responses: responses,
         createdAt: serverTimestamp(),
-        status: "new",
-        source: "chatbot"
+        status: "New",
+        source: "chatbot",
+        matchedBrands: matchedBrands.map(b => ({
+          brandId: b.id,
+          brandName: b.brandName,
+          matchScore: b.matchScore,
+          matchReasons: b.matchReasons
+        }))
       };
       
       const docRef = await addDoc(chatLeadsCollection, leadData);
+      
+      // Send notification to admins about new chat lead
+      await NotificationService.sendAdminNotification(
+        `New chat lead from ${userInfo?.name || 'Anonymous'} - Interested in ${responses.industry}`,
+        {
+          type: "chat_lead",
+          leadId: docRef.id,
+          prospectName: userInfo?.name,
+          location: userInfo?.location,
+          budget: userInfo?.budget,
+          industry: responses.industry
+        }
+      );
+      
       return docRef.id;
     } catch (error) {
       console.error("Error saving chat lead:", error);
     }
   };
 
-  const callFirebaseFunction = async (
-    message,
-    chatHistory = [],
-    systemPrompt = ""
-  ) => {
-    try {
-      const response = await fetch(SEND_MESSAGE_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: message,
-          chatHistory: chatHistory,
-          systemPrompt: systemPrompt,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error);
-      }
-
-      return data.response;
-    } catch (error) {
-      console.error("Error calling Start Chat Function:", error);
-      console.error("error", error);
-      throw error;
-    }
-  };
-
-  const getResponseOptions = (step, language) => {
-    const options = {
+  // Updated question flow with franchise-specific questions
+  const getQuestionData = (step, language = "English") => {
+    const questions = {
       1: {
-        English: [
-          {
-            key: "A",
-            label: "Food & Beverage",
-            description: "Restaurants, Cafes, Food Delivery",
-          },
-          {
-            key: "B",
-            label: "Retail",
-            description: "Clothing, Electronics, General Stores",
-          },
-          {
-            key: "C",
-            label: "Education & Training",
-            description: "Coaching Centers, Skill Development",
-          },
-          {
-            key: "D",
-            label: "Healthcare & Wellness",
-            description: "Clinics, Fitness, Beauty Salons",
-          },
-          {
-            key: "E",
-            label: "Services",
-            description: "Cleaning, Repair, Consulting",
-          },
-        ],
-        Hindi: [
-          {
-            key: "A",
-            label: "खाद्य और पेय",
-            description: "रेस्टोरेंट, कैफे, खाना डिलीवरी",
-          },
-          {
-            key: "B",
-            label: "रिटेल",
-            description: "कपड़े, इलेक्ट्रॉनिक्स, जनरल स्टोर",
-          },
-          {
-            key: "C",
-            label: "शिक्षा और प्रशिक्षण",
-            description: "कोचिंग सेंटर, कौशल विकास",
-          },
-          {
-            key: "D",
-            label: "स्वास्थ्य और कल्याण",
-            description: "क्लिनिक, फिटनेस, ब्यूटी सैलून",
-          },
-          { key: "E", label: "सेवाएं", description: "सफाई, मरम्मत, परामर्श" },
-        ],
-        Gujarati: [
-          {
-            key: "A",
-            label: "ખાદ્ય અને પીણા",
-            description: "રેસ્ટોરન્ટ, કાફે, ફૂડ ડિલિવરી",
-          },
-          {
-            key: "B",
-            label: "રિટેલ",
-            description: "કપડાં, ઈલેક્ટ્રોનિક્સ, જનરલ સ્ટોર",
-          },
-          {
-            key: "C",
-            label: "શિક્ષણ અને તાલીમ",
-            description: "કોચિંગ સેન્ટર, કૌશલ્ય વિકાસ",
-          },
-          {
-            key: "D",
-            label: "આરોગ્ય અને કલ્યાણ",
-            description: "ક્લિનિક, ફિટનેસ, બ્યુટી સલૂન",
-          },
-          { key: "E", label: "સેવાઓ", description: "સફાઈ, સમારકામ, સલાહ" },
-        ],
+        English: {
+          question: "Which industry interests you most for franchise investment?",
+          options: [
+            { key: "food", label: "Food & Beverage", description: "Restaurants, Cafes, Quick Service" },
+            { key: "retail", label: "Retail", description: "Clothing, Electronics, Consumer Goods" },
+            { key: "healthcare", label: "Healthcare", description: "Clinics, Wellness Centers, Pharmacies" },
+            { key: "education", label: "Education", description: "Coaching, Training, Schools" },
+            { key: "fitness", label: "Fitness", description: "Gyms, Yoga Studios, Sports" },
+            { key: "beauty", label: "Beauty & Wellness", description: "Salons, Spas, Beauty Services" },
+            { key: "services", label: "Services", description: "Cleaning, Repair, Consulting" },
+            { key: "other", label: "Other", description: "Explore other opportunities" }
+          ]
+        },
+        Hindi: {
+          question: "फ्रैंचाइज़ी निवेश के लिए आपको कौन सा उद्योग सबसे अधिक रुचिकर लगता है?",
+          options: [
+            { key: "food", label: "खाद्य और पेय", description: "रेस्टोरेंट, कैफे, त्वरित सेवा" },
+            { key: "retail", label: "रिटेल", description: "कपड़े, इलेक्ट्रॉनिक्स, उपभोक्ता वस्तुएं" },
+            { key: "healthcare", label: "स्वास्थ्य सेवा", description: "क्लिनिक, वेलनेस सेंटर, फार्मेसी" },
+            { key: "education", label: "शिक्षा", description: "कोचिंग, प्रशिक्षण, स्कूल" },
+            { key: "fitness", label: "फिटनेस", description: "जिम, योग स्टूडियो, खेल" },
+            { key: "beauty", label: "सौंदर्य और कल्याण", description: "सैलून, स्पा, सौंदर्य सेवाएं" },
+            { key: "services", label: "सेवाएं", description: "सफाई, मरम्मत, परामर्श" },
+            { key: "other", label: "अन्य", description: "अन्य अवसरों का अन्वेषण करें" }
+          ]
+        }
       },
       2: {
-        English: [
-          {
-            key: "A",
-            label: "Beginner",
-            description: "No previous business experience",
-          },
-          {
-            key: "B",
-            label: "Some Experience",
-            description: "1-3 years business experience",
-          },
-          {
-            key: "C",
-            label: "Experienced",
-            description: "3+ years business experience",
-          },
-          {
-            key: "D",
-            label: "Expert",
-            description: "Extensive business/franchise experience",
-          },
-        ],
-        Hindi: [
-          {
-            key: "A",
-            label: "शुरुआती",
-            description: "कोई पिछला व्यावसायिक अनुभव नहीं",
-          },
-          {
-            key: "B",
-            label: "कुछ अनुभव",
-            description: "1-3 साल का व्यावसायिक अनुभव",
-          },
-          {
-            key: "C",
-            label: "अनुभवी",
-            description: "3+ साल का व्यावसायिक अनुभव",
-          },
-          {
-            key: "D",
-            label: "विशेषज्ञ",
-            description: "व्यापक व्यावसायिक/फ्रैंचाइज़ी अनुभव",
-          },
-        ],
-        Gujarati: [
-          {
-            key: "A",
-            label: "શરૂઆતી",
-            description: "કોઈ અગાઉનો બિઝનેસ અનુભવ નથી",
-          },
-          {
-            key: "B",
-            label: "થોડો અનુભવ",
-            description: "1-3 વર્ષનો બિઝનેસ અનુભવ",
-          },
-          { key: "C", label: "અનુભવી", description: "3+ વર્ષનો બિઝનેસ અનુભવ" },
-          {
-            key: "D",
-            label: "નિષ્ણાત",
-            description: "વ્યાપક બિઝનેસ/ફ્રેન્ચાઇઝ અનુભવ",
-          },
-        ],
+        English: {
+          question: "What's your business experience level?",
+          options: [
+            { key: "none", label: "No Business Experience", description: "First-time entrepreneur" },
+            { key: "some", label: "Some Business Experience", description: "1-3 years in business" },
+            { key: "experienced", label: "Experienced", description: "3+ years running a business" },
+            { key: "franchise", label: "Franchise Experience", description: "Previously owned franchises" }
+          ]
+        },
+        Hindi: {
+          question: "आपका व्यावसायिक अनुभव का स्तर क्या है?",
+          options: [
+            { key: "none", label: "कोई व्यावसायिक अनुभव नहीं", description: "पहली बार उद्यमी" },
+            { key: "some", label: "कुछ व्यावसायिक अनुभव", description: "व्यवसाय में 1-3 साल" },
+            { key: "experienced", label: "अनुभवी", description: "3+ साल व्यवसाय चलाने का अनुभव" },
+            { key: "franchise", label: "फ्रैंचाइज़ी अनुभव", description: "पहले फ्रैंचाइज़ी का मालिक रहा है" }
+          ]
+        }
       },
       3: {
-        English: [
-          {
-            key: "A",
-            label: "Low Risk",
-            description: "Prefer safe, established franchises",
-          },
-          {
-            key: "B",
-            label: "Moderate Risk",
-            description: "Balanced approach to risk and return",
-          },
-          {
-            key: "C",
-            label: "High Risk",
-            description: "Willing to take risks for higher returns",
-          },
-        ],
-        Hindi: [
-          {
-            key: "A",
-            label: "कम जोखिम",
-            description: "सुरक्षित, स्थापित फ्रैंचाइज़ी पसंद",
-          },
-          {
-            key: "B",
-            label: "मध्यम जोखिम",
-            description: "जोखिम और रिटर्न का संतुलित दृष्टिकोण",
-          },
-          {
-            key: "C",
-            label: "उच्च जोखिम",
-            description: "अधिक रिटर्न के लिए जोखिम लेने को तैयार",
-          },
-        ],
-        Gujarati: [
-          {
-            key: "A",
-            label: "ઓછું જોખમ",
-            description: "સુરક્ષિત, સ્થાપિત ફ્રેન્ચાઇઝ પસંદ",
-          },
-          {
-            key: "B",
-            label: "મધ્યમ જોખમ",
-            description: "જોખમ અને વળતરનો સંતુલિત અભિગમ",
-          },
-          {
-            key: "C",
-            label: "વધુ જોખમ",
-            description: "વધુ વળતર માટે જોખમ લેવા તૈયાર",
-          },
-        ],
+        English: {
+          question: "What's your risk tolerance for this investment?",
+          options: [
+            { key: "low", label: "Low Risk", description: "Prefer established, safe franchises" },
+            { key: "moderate", label: "Moderate Risk", description: "Balanced approach to risk and returns" },
+            { key: "high", label: "High Risk", description: "Willing to take risks for higher returns" }
+          ]
+        },
+        Hindi: {
+          question: "इस निवेश के लिए आपकी जोखिम सहनशीलता क्या है?",
+          options: [
+            { key: "low", label: "कम जोखिम", description: "स्थापित, सुरक्षित फ्रैंचाइज़ी पसंद करते हैं" },
+            { key: "moderate", label: "मध्यम जोखिम", description: "जोखिम और रिटर्न का संतुलित दृष्टिकोण" },
+            { key: "high", label: "उच्च जोखिम", description: "अधिक रिटर्न के लिए जोखिम लेने को तैयार" }
+          ]
+        }
       },
       4: {
-        English: [
-          {
-            key: "A",
-            label: "Quick Returns",
-            description: "Want to see profits within 1-2 years",
-          },
-          {
-            key: "B",
-            label: "Long-term Growth",
-            description: "Building wealth over 5+ years",
-          },
-          {
-            key: "C",
-            label: "Passive Income",
-            description: "Steady income with minimal involvement",
-          },
-          {
-            key: "D",
-            label: "Active Business",
-            description: "Want to be actively involved daily",
-          },
-        ],
-        Hindi: [
-          {
-            key: "A",
-            label: "त्वरित रिटर्न",
-            description: "1-2 साल में मुनाफा देखना चाहते हैं",
-          },
-          {
-            key: "B",
-            label: "दीर्घकालिक विकास",
-            description: "5+ साल में संपत्ति निर्माण",
-          },
-          {
-            key: "C",
-            label: "निष्क्रिय आय",
-            description: "न्यूनतम भागीदारी के साथ स्थिर आय",
-          },
-          {
-            key: "D",
-            label: "सक्रिय व्यवसाय",
-            description: "दैनिक रूप से सक्रिय रूप से शामिल होना चाहते हैं",
-          },
-        ],
-        Gujarati: [
-          {
-            key: "A",
-            label: "ઝડપી વળતર",
-            description: "1-2 વર્ષમાં નફો જોવા માંગો છો",
-          },
-          {
-            key: "B",
-            label: "લાંબા ગાળાની વૃદ્ધિ",
-            description: "5+ વર્ષમાં સંપત્તિ નિર્માણ",
-          },
-          {
-            key: "C",
-            label: "નિષ્ક્રિય આવક",
-            description: "ન્યૂનતમ સંડોવણી સાથે સ્થિર આવક",
-          },
-          {
-            key: "D",
-            label: "સક્રિય વ્યવસાય",
-            description: "દરરોજ સક્રિય રીતે સંડોવાયેલા રહેવા માંગો છો",
-          },
-        ],
-      },
+        English: {
+          question: "When are you looking to start your franchise?",
+          options: [
+            { key: "asap", label: "As soon as possible", description: "Ready to start immediately" },
+            { key: "3months", label: "Within 3 months", description: "Planning to start in 3 months" },
+            { key: "6months", label: "Within 6 months", description: "Planning to start in 6 months" },
+            { key: "exploring", label: "Just exploring", description: "Still researching options" }
+          ]
+        },
+        Hindi: {
+          question: "आप अपनी फ्रैंचाइज़ी कब शुरू करना चाहते हैं?",
+          options: [
+            { key: "asap", label: "जल्द से जल्द", description: "तुरंत शुरू करने के लिए तैयार" },
+            { key: "3months", label: "3 महीने के भीतर", description: "3 महीने में शुरू करने की योजना" },
+            { key: "6months", label: "6 महीने के भीतर", description: "6 महीने में शुरू करने की योजना" },
+            { key: "exploring", label: "सिर्फ खोज रहा हूं", description: "अभी भी विकल्पों पर शोध कर रहा हूं" }
+          ]
+        }
+      }
     };
 
-    const languageOptions =
-      options[step]?.[language] || options[step]?.["English"] || [];
-    return languageOptions;
-  };
-
-  const createSystemPrompt = (info) => {
-    // Format brand data for AI context
-    const brandContext = brandsData.length > 0 ? `
-
-**AVAILABLE FRANCHISE BRANDS:**
-Here are the currently active and approved franchise brands in our platform:
-
-${brandsData.map((brand, index) => `
-${index + 1}. **${brand.brandName}**
-   - **Category:** ${brand.brandCategory || 'Not specified'}
-   - **Investment Required:** ₹${brand.brandInvestmentRange || 'Contact for details'}
-   - **Franchise Fee:** ₹${brand.brandFranchiseFee || 'Contact for details'}
-   - **ROI Timeline:** ${brand.brandROITimeline || 'Not specified'}
-   - **Training Provided:** ${brand.brandTrainingProvided ? 'Yes' : 'No'}
-   - **Marketing Support:** ${brand.brandMarketingSupport ? 'Yes' : 'No'}
-   - **Locations Available:** ${brand.brandFranchiseLocations?.length || 0} cities
-   - **About:** ${brand.brandDescription?.substring(0, 150) || 'Contact for more details'}...`).join('')}
-
-**BRAND RECOMMENDATION GUIDELINES:**
-- After collecting user preferences (steps 1-4), recommend 2-3 brands that best match their:
-  * Budget range
-  * Preferred category
-  * Experience level
-  * Risk tolerance
-  * Location preferences
-- Always mention specific brand names from the above list
-- Explain WHY each brand matches their criteria
-- Include investment details and ROI expectations` : `
-
-**BRAND DATA STATUS:** No active brands are currently available in the system. Please inform the user to check back later or contact support.`;
-
-    return `You are "FranchiseHub Assistant," a specialized AI expert in Indian franchise opportunities. Your goal is to provide helpful, accurate, and well-formatted information to users looking to invest in a franchise in India.
-
-**User's Profile:**
-- **Preferred Language:** ${info.language}
-- **Preferred Location:** ${info.location}, India
-- **Budget:** ₹${Number(info.budget).toLocaleString("en-IN")}${brandContext}
-
-**CRITICAL INSTRUCTIONS:**
-1. **RESPOND ONLY IN ${info.language.toUpperCase()}:** All your responses must be in ${
-      info.language
-    }. If the user selected Hindi, respond in Hindi. If Gujarati, respond in Gujarati, etc.
-
-2. **ASK ONE QUESTION AT A TIME:** Never ask multiple questions in a single response. Ask only one focused question and wait for the user's answer before proceeding.
-
-3. **FRANCHISE FOCUS ONLY:** ONLY discuss topics related to buying, investing in, or managing franchises in India. If the user asks about anything else, politely redirect them back to franchise discussions in ${
-      info.language
-    }.
-
-4. **QUESTION SEQUENCE:** Follow this sequence when gathering information:
-   - Step 1: Ask about business category interest (food, retail, education, etc.)
-   - Step 2: Ask about business experience level
-   - Step 3: Ask about risk tolerance
-   - Step 4: Ask about investment timeline/goals
-   - Step 5: Provide tailored franchise recommendations from our available brands
-
-5. **USE USER CONTEXT:** Always consider the user's location (${
-      info.location
-    }) and budget (₹${Number(info.budget).toLocaleString(
-      "en-IN"
-    )}) in your responses.
-
-6. **PROVIDE SPECIFIC RECOMMENDATIONS:** When making recommendations, ONLY suggest brands from the "AVAILABLE FRANCHISE BRANDS" list above. Match them based on the user's stated preferences.
-
-7. **FORMAT RESPONSES:** Use Markdown formatting for clarity. Use lists, bold text, and italics appropriately.
-
-Remember: You must respond in ${
-      info.language
-    } and ask only ONE question per response. After step 4, provide specific brand recommendations from our platform.`;
-  };
-
-  const getInitialQuestion = (language) => {
-    const questions = {
-      English:
-        "What type of business are you most interested in? Please choose one option below:",
-      Hindi:
-        "आप किस प्रकार के व्यवसाय में सबसे अधिक रुचि रखते हैं? कृपया नीचे से एक विकल्प चुनें:",
-      Gujarati:
-        "તમને કયા પ્રકારના વ્યવસાયમાં સૌથી વધુ રસ છે? કૃપા કરીને નીચેથી એક વિકલ્પ પસંદ કરો:",
-      Marathi:
-        "तुम्हाला कोणत्या प्रकारच्या व्यवसायात सर्वाधिक रस आहे? कृपया खालीलपैकी एक पर्याय निवडा:",
-      Tamil:
-        "நீங்கள் எந்த வகையான வணிகத்தில் அதிக ஆர்வம் கொண்டுள்ளீர்கள்? கீழே உள்ள விருப்பங்களில் ஒன்றை தேர்ந்தெடுக்கவும்:",
-      Telugu:
-        "మీరు ఏ రకమైన వ్యాపారంలో ఎక్కువ ఆసక్తి కలిగి ఉన్నారు? దయచేసి క్రింది ఎంపికలలో ఒకటి ఎంచుకోండి:",
-      Kannada:
-        "ನೀವು ಯಾವ ರೀತಿಯ ವ್ಯಾಪಾರದಲ್ಲಿ ಹೆಚ್ಚು ಆಸಕ್ತಿ ಹೊಂದಿದ್ದೀರಿ? ದಯವಿಟ್ಟು ಕೆಳಗಿನ ಆಯ್ಕೆಗಳಲ್ಲಿ ಒಂದನ್ನು ಆರಿಸಿ:",
-      Bengali:
-        "আপনি কোন ধরনের ব্যবসায় সবচেয়ে বেশি আগ্রহী? দয়া করে নিচের বিকল্পগুলি থেকে একটি বেছে নিন:",
-      Malayalam:
-        "നിങ്ങൾക്ക് ഏത് തരത്തിലുള്ള ബിസിനസിൽ ഏറ്റവും കൂടുതൽ താൽപ്പര്യമുണ്ട്? ദയവായി ചുവടെയുള്ള ഓപ്ഷനുകളിൽ നിന്ന് ഒന്ന് തിരഞ്ഞെടുക്കുക:",
-      Punjabi:
-        "ਤੁਸੀਂ ਕਿਸ ਕਿਸਮ ਦੇ ਕਾਰੋਬਾਰ ਵਿੱਚ ਸਭ ਤੋਂ ਵੱਧ ਦਿਲਚਸਪੀ ਰੱਖਦੇ ਹੋ? ਕਿਰਪਾ ਕਰਕੇ ਹੇਠਾਂ ਦਿੱਤੇ ਵਿਕਲਪਾਂ ਵਿੱਚੋਂ ਇੱਕ ਚੁਣੋ:",
-    };
-
-    return questions[language] || questions.English;
+    return questions[step]?.[language] || questions[step]?.["English"];
   };
 
   const handleStartChat = (info) => {
     setUserInfo(info);
-    const systemPrompt = createSystemPrompt(info);
-    const initialQuestion = getInitialQuestion(info.language);
-
+    const questionData = getQuestionData(1, info.language);
+    
     setMessages([
-      {
-        id: "system-prompt",
-        role: "system",
-        text: systemPrompt,
-      },
       {
         id: 1,
         sender: "bot",
         timestamp: new Date(),
-        text: initialQuestion,
+        text: `Hello ${info.name}! 👋 I'm here to help you find the perfect franchise opportunity based on your preferences and budget of ₹${info.budget}.\n\n${questionData.question}`,
+        options: questionData.options
       },
     ]);
     setChatPhase("chatting");
     setCurrentQuestionStep(1);
   };
 
-  const handleChipResponse = async (option) => {
-    const responseText = `${option.key}: ${option.label}`;
-
+  const handleOptionSelect = async (option) => {
     const userMessage = {
       id: messages.length + 1,
-      text: responseText,
+      text: `${option.label} - ${option.description}`,
       sender: "user",
       timestamp: new Date(),
     };
@@ -523,155 +320,107 @@ Remember: You must respond in ${
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
+    // Store the response
+    const responseKey = {
+      1: 'industry',
+      2: 'experience', 
+      3: 'riskTolerance',
+      4: 'timeline'
+    }[currentQuestionStep];
+
+    const newResponses = {
+      ...userResponses,
+      [responseKey]: option.label
+    };
+    setUserResponses(newResponses);
+
     try {
-      const systemPrompt = messages.find(
-        (msg) => msg.id === "system-prompt"
-      )?.text;
-      const chatHistory = messages
-        .filter((msg) => msg.id !== "system-prompt" && msg.sender !== "system")
-        .slice(1)
-        .map((msg) => ({
-          role: msg.sender === "user" ? "user" : "model",
-          parts: [{ text: msg.text }],
-        }));
-
-      const responseText_ai = await callFirebaseFunction(
-        responseText,
-        chatHistory,
-        systemPrompt
-      );
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          text: responseText_ai,
-          sender: "bot",
-          timestamp: new Date(),
-        },
-      ]);
-
       if (currentQuestionStep < 4) {
-        setCurrentQuestionStep((prev) => prev + 1);
+        // Move to next question
+        const nextStep = currentQuestionStep + 1;
+        const questionData = getQuestionData(nextStep, userInfo.language);
+        
+        setTimeout(() => {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: prev.length + 1,
+              text: questionData.question,
+              sender: "bot",
+              timestamp: new Date(),
+              options: questionData.options
+            },
+          ]);
+          setCurrentQuestionStep(nextStep);
+          setIsLoading(false);
+        }, 1000);
       } else {
-        // Moving to recommendation phase - update system prompt with latest brand data
-        const updatedSystemPrompt = createSystemPrompt(userInfo);
-        setMessages((prev) => 
-          prev.map(msg => 
-            msg.id === "system-prompt" 
-              ? { ...msg, text: updatedSystemPrompt }
-              : msg
-          )
-        );
+        // Save chat lead first
+        await saveChatLead(newResponses, userInfo);
         
-        // Save chat lead with collected responses
-        const finalResponses = {
-          ...userResponses,
-          [`step_${currentQuestionStep}`]: responseText,
-        };
-        await saveChatLead(finalResponses, userInfo);
-        
-        setChatPhase("free-chat");
+        setTimeout(async () => {
+          const matches = await findMatchingBrands(newResponses, userInfo);
+          setMatchedBrands(matches);
+          
+          if (matches.length > 0) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: prev.length + 1,
+                text: `Perfect! Based on your preferences, I found ${matches.length} franchise opportunities that match your criteria. Here are my top recommendations:`,
+                sender: "bot",
+                timestamp: new Date(),
+                recommendations: matches
+              },
+            ]);
+          } else {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: prev.length + 1,
+                text: `I couldn't find exact matches for your criteria, but don't worry! Our team will review your preferences and get back to you with personalized recommendations within 24 hours.\n\nIn the meantime, you can browse all available franchises on our platform.`,
+                sender: "bot",
+                timestamp: new Date(),
+                showBrowseButton: true
+              },
+            ]);
+          }
+          setChatPhase("recommendations");
+          setIsLoading(false);
+        }, 1500);
       }
-
-      setUserResponses((prev) => ({
-        ...prev,
-        [`step_${currentQuestionStep}`]: responseText,
-      }));
     } catch (error) {
-      const errorMessage =
-        userInfo?.language === "Hindi"
-          ? "क्षमा करें, मुझे कनेक्ट करने में समस्या हो रही है। कृपया बाद में पुनः प्रयास करें।"
-          : userInfo?.language === "Gujarati"
-          ? "માફ કરશો, મને કનેક્ટ કરવામાં મુશ્કેલી આવી રહી છે. કૃપા કરીને પછીથી ફરી પ્રયાસ કરો."
-          : "I'm sorry, I'm having trouble connecting. Please try again later.";
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          text: errorMessage,
-          sender: "bot",
-          timestamp: new Date(),
-        },
-      ]);
-    } finally {
+      console.error("Error processing response:", error);
       setIsLoading(false);
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
-
-    const userMessage = {
-      id: messages.length + 1,
-      text: inputMessage,
-      sender: "user",
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputMessage("");
-    setIsLoading(true);
-
-    try {
-      const systemPrompt = messages.find(
-        (msg) => msg.id === "system-prompt"
-      )?.text;
-      const chatHistory = messages
-        .filter((msg) => msg.id !== "system-prompt" && msg.sender !== "system")
-        .slice(1)
-        .map((msg) => ({
-          role: msg.sender === "user" ? "user" : "model",
-          parts: [{ text: msg.text }],
-        }));
-
-      const responseText = await callFirebaseFunction(
-        inputMessage,
-        chatHistory,
-        systemPrompt
-      );
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          text: responseText,
-          sender: "bot",
-          timestamp: new Date(),
-        },
-      ]);
-    } catch (error) {
-      const errorMessage =
-        userInfo?.language === "Hindi"
-          ? "क्षमा करें, मुझे कनेक्ट करने में समस्या हो रही है। कृपया बाद में पुनः प्रयास करें।"
-          : userInfo?.language === "Gujarati"
-          ? "માફ કરશો, મને કનેક્ટ કરવામાં મુશ્કેલી આવી રહી છે. કૃપા કરીને પછીથી ફરી પ્રયાસ કરો."
-          : "I'm sorry, I'm having trouble connecting. Please try again later.";
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          text: errorMessage,
-          sender: "bot",
-          timestamp: new Date(),
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleBrandClick = (brand) => {
+    // Generate consistent URL-friendly slug
+    const slug = generateBrandSlug(brand.brandName);
+    
+    // Open brand page in new window/tab instead of navigating away
+    const brandUrl = `${window.location.origin}/brands/${slug || brand.id}`;
+    window.open(brandUrl, '_blank', 'noopener,noreferrer');
+    
+    // Don't close the chat - keep it open so user can see chat content
+    // setOpen(false); // Removed this line
   };
 
   const handleClose = () => {
     setOpen(false);
   };
 
-  const currentOptions = getResponseOptions(
-    currentQuestionStep,
-    userInfo?.language || "English"
-  );
-  const showChips = chatPhase === "chatting" && currentQuestionStep <= 4;
+  const formatInvestmentAmount = (amount) => {
+    if (!amount) return "Contact for details";
+    const numAmount = parseInt(amount.toString().replace(/[₹,]/g, ''));
+    if (numAmount >= 100000) {
+      return `₹${(numAmount / 100000).toFixed(1)}L`;
+    } else if (numAmount >= 1000) {
+      return `₹${(numAmount / 1000).toFixed(0)}K`;
+    }
+    return `₹${numAmount}`;
+  };
 
   return (
     <>
@@ -687,7 +436,9 @@ Remember: You must respond in ${
         }}
         onClick={() => setOpen(true)}
       >
-        <ChatIcon />
+        <Badge badgeContent="New" color="secondary" variant="dot">
+          <ChatIcon />
+        </Badge>
       </Fab>
 
       <Dialog
@@ -715,22 +466,30 @@ Remember: You must respond in ${
             alignItems: "center",
             justifyContent: "space-between",
             pb: 1,
+            background: "linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)",
+            color: "white"
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Avatar sx={{ mr: 2, backgroundColor: "primary.main" }}>
+            <Avatar sx={{ mr: 2, backgroundColor: "rgba(255,255,255,0.2)" }}>
               <Support />
             </Avatar>
             <Box>
               <Typography variant="h6" fontWeight="bold">
                 FranchiseHub Assistant
               </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Online now
+              <Typography variant="caption" sx={{ opacity: 0.9, display: "flex", alignItems: "center", gap: 0.5 }}>
+                Find your perfect franchise match
+                {chatPhase === "recommendations" && (
+                  <>
+                    <Launch fontSize="inherit" sx={{ ml: 1 }} />
+                    Links open in new tabs
+                  </>
+                )}
               </Typography>
             </Box>
           </Box>
-          <IconButton onClick={handleClose}>
+          <IconButton onClick={handleClose} sx={{ color: "white" }}>
             <Close />
           </IconButton>
         </DialogTitle>
@@ -750,11 +509,9 @@ Remember: You must respond in ${
           ) : (
             <>
               <Box sx={{ flexGrow: 1, p: 2, overflowY: "auto" }}>
-                {messages
-                  .filter((msg) => msg.id !== "system-prompt")
-                  .map((message) => (
+                {messages.map((message) => (
+                  <Box key={message.id}>
                     <Box
-                      key={message.id}
                       sx={{
                         display: "flex",
                         justifyContent:
@@ -764,7 +521,7 @@ Remember: You must respond in ${
                     >
                       <Paper
                         sx={{
-                          p: 1.5,
+                          p: 2,
                           maxWidth: "85%",
                           backgroundColor:
                             message.sender === "user"
@@ -778,17 +535,216 @@ Remember: You must respond in ${
                             message.sender === "user"
                               ? "20px 20px 4px 20px"
                               : "20px 20px 20px 4px",
-                          overflowWrap: "break-word",
                         }}
                       >
-                        <Box className="markdown-container">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {message.text}
-                          </ReactMarkdown>
-                        </Box>
+                        <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+                          {message.text}
+                        </Typography>
                       </Paper>
                     </Box>
-                  ))}
+
+                    {/* Options for bot messages - Using Chips */}
+                    {message.sender === "bot" && message.options && (
+                      <Box sx={{ mb: 2, px: 1 }}>
+                        <Typography 
+                          variant="caption" 
+                          color="text.secondary" 
+                          sx={{ mb: 1, display: "block" }}
+                        >
+                          {userInfo?.language === "Hindi" 
+                            ? "एक विकल्प चुनें:"
+                            : "Choose an option:"}
+                        </Typography>
+                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, justifyContent: "flex-start" }}>
+                          {message.options.map((option) => (
+                            <Chip
+                              key={option.key}
+                              label={option.label}
+                              onClick={() => handleOptionSelect(option)}
+                              color="primary"
+                              variant="outlined"
+                              sx={{
+                                cursor: "pointer",
+                                mb: 1,
+                                transition: "all 0.3s ease",
+                                borderRadius: "20px",
+                                border: "2px solid",
+                                borderColor: "primary.main",
+                                backgroundColor: "transparent",
+                                color: "primary.main",
+                                "&:hover": {
+                                  backgroundColor: "primary.main",
+                                  color: "white",
+                                  transform: "translateY(-2px)",
+                                  boxShadow: "0 4px 12px rgba(25, 118, 210, 0.3)",
+                                  "& .MuiChip-label": {
+                                    color: "white",
+                                  }
+                                },
+                                "&:active": {
+                                  transform: "translateY(0px)",
+                                },
+                                fontSize: "0.875rem",
+                                height: "40px",
+                                "& .MuiChip-label": {
+                                  padding: "0 16px",
+                                  fontWeight: "500",
+                                  color: "inherit"
+                                }
+                              }}
+                              title={option.description} // Tooltip for description
+                            />
+                          ))}
+                        </Box>
+                        
+                        {/* Helper text showing that descriptions are available on hover */}
+                        <Typography 
+                          variant="caption" 
+                          color="text.disabled" 
+                          sx={{ mt: 1, display: "block", fontStyle: "italic" }}
+                        >
+                          💡 Hover over options to see details
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Brand Recommendations */}
+                    {message.sender === "bot" && message.recommendations && (
+                      <Box sx={{ mb: 2 }}>
+                        <Stack spacing={2}>
+                          {message.recommendations.map((brand, index) => (
+                            <Card 
+                              key={brand.id}
+                              sx={{ 
+                                cursor: "pointer",
+                                transition: "all 0.3s",
+                                "&:hover": { 
+                                  transform: "translateY(-3px)",
+                                  boxShadow: 6 
+                                },
+                                border: index === 0 ? "2px solid #1976d2" : "1px solid #e0e0e0"
+                              }}
+                              onClick={() => handleBrandClick(brand)}
+                            >
+                              {index === 0 && (
+                                <Box sx={{ 
+                                  background: "linear-gradient(135deg, #1976d2, #42a5f5)",
+                                  color: "white",
+                                  px: 2,
+                                  py: 0.5,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: 1
+                                }}>
+                                  <Star fontSize="small" />
+                                  <Typography variant="caption" fontWeight="bold">
+                                    BEST MATCH
+                                  </Typography>
+                                </Box>
+                              )}
+                              <CardContent>
+                                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                                  <Typography variant="h6" fontWeight="bold">
+                                    {brand.brandName}
+                                  </Typography>
+                                  <Chip 
+                                    label={`${brand.matchScore}% Match`} 
+                                    color="success" 
+                                    size="small"
+                                    icon={<CheckCircle />}
+                                  />
+                                </Box>
+                                
+                                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+                                  {brand.industries?.slice(0, 2).map((industry) => (
+                                    <Chip key={industry} label={industry} size="small" color="primary" variant="outlined" />
+                                  ))}
+                                </Box>
+
+                                <Grid container spacing={1} sx={{ mb: 2 }}>
+                                  <Grid item xs={6}>
+                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                      <AttachMoney fontSize="small" color="primary" />
+                                      <Box>
+                                        <Typography variant="caption" color="text.secondary">Investment</Typography>
+                                        <Typography variant="body2" fontWeight="bold">
+                                          {brand.investmentRange}
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  </Grid>
+                                  <Grid item xs={6}>
+                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                      <TrendingUp fontSize="small" color="primary" />
+                                      <Box>
+                                        <Typography variant="caption" color="text.secondary">Royalty</Typography>
+                                        <Typography variant="body2" fontWeight="bold">
+                                          {brand.royaltyFee}%
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  </Grid>
+                                </Grid>
+
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                  {brand.brandMission?.substring(0, 100)}...
+                                </Typography>
+
+                                <Box sx={{ mb: 2 }}>
+                                  <Typography variant="caption" color="text.secondary" fontWeight="bold">
+                                    Why it's perfect for you:
+                                  </Typography>
+                                  {brand.matchReasons?.slice(0, 2).map((reason, idx) => (
+                                    <Typography key={idx} variant="caption" display="block" color="success.main">
+                                      ✓ {reason}
+                                    </Typography>
+                                  ))}
+                                </Box>
+                              </CardContent>
+                              <CardActions sx={{ justifyContent: "space-between", px: 2, pb: 2 }}>
+                                <Button 
+                                  variant="contained" 
+                                  color="primary" 
+                                  size="small"
+                                  endIcon={<Launch />}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBrandClick(brand);
+                                  }}
+                                >
+                                  View Details & Inquire
+                                </Button>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                  <Launch fontSize="inherit" />
+                                  Opens in new tab
+                                </Typography>
+                              </CardActions>
+                            </Card>
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+
+                    {/* Browse All Button */}
+                    {message.sender === "bot" && message.showBrowseButton && (
+                      <Box sx={{ mb: 2, textAlign: "center" }}>
+                        <Button 
+                          variant="contained" 
+                          color="primary"
+                          onClick={() => {
+                            const brandsUrl = `${window.location.origin}/brands`;
+                            window.open(brandsUrl, '_blank', 'noopener,noreferrer');
+                            // Keep chat open
+                          }}
+                        >
+                          Browse All Franchises
+                        </Button>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+                
                 {isLoading && (
                   <Box
                     sx={{
@@ -804,82 +760,49 @@ Remember: You must respond in ${
                         borderRadius: "20px 20px 20px 4px",
                       }}
                     >
-                      <CircularProgress size={20} />
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <CircularProgress size={16} />
+                        <Typography variant="body2">
+                          Finding perfect matches...
+                        </Typography>
+                      </Box>
                     </Paper>
                   </Box>
                 )}
                 <div ref={chatEndRef} />
               </Box>
 
-              <Box sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
-                {showChips && !isLoading ? (
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ mb: 1, display: "block" }}
-                    >
-                      {userInfo?.language === "Hindi"
-                        ? "एक विकल्प चुनें:"
-                        : userInfo?.language === "Gujarati"
-                        ? "એક વિકલ્પ પસંદ કરો:"
-                        : "Choose an option:"}
-                    </Typography>
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                      {currentOptions.map((option) => (
-                        <Chip
-                          key={option.key}
-                          label={option.label}
-                          onClick={() => handleChipResponse(option)}
-                          color="primary"
-                          variant="outlined"
-                          sx={{
-                            cursor: "pointer",
-                            mb: 1,
-                            "&:hover": {
-                              backgroundColor: "primary.light",
-                              color: "primary.main",
-                            },
-                          }}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                ) : (
-                  <Box sx={{ display: "flex", gap: 1 }}>
-                    <TextField
-                      fullWidth
+              {chatPhase === "recommendations" && (
+                <Box sx={{ p: 2, borderTop: 1, borderColor: "divider", textAlign: "center" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: "block" }}>
+                    Need more help? Our franchise experts are here to assist you!
+                  </Typography>
+                  <Stack direction="row" spacing={1} justifyContent="center">
+                    <Button 
+                      variant="outlined" 
                       size="small"
-                      placeholder={
-                        userInfo?.language === "Hindi"
-                          ? "फ्रैंचाइज़ी के बारे में पूछें..."
-                          : userInfo?.language === "Gujarati"
-                          ? "ફ્રેન્ચાઇઝી વિશે પૂછો..."
-                          : "Ask about franchises..."
-                      }
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      onKeyPress={(e) =>
-                        e.key === "Enter" && !isLoading && handleSendMessage()
-                      }
-                      disabled={isLoading}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 25,
-                        },
+                      onClick={() => {
+                        const contactUrl = `${window.location.origin}/contact`;
+                        window.open(contactUrl, '_blank', 'noopener,noreferrer');
+                        // Keep chat open
                       }}
-                    />
-                    <Button
-                      variant="contained"
-                      onClick={handleSendMessage}
-                      disabled={isLoading || !inputMessage.trim()}
-                      sx={{ minWidth: "auto", borderRadius: "50%", p: 1.5 }}
                     >
-                      <Send />
+                      Contact Expert
                     </Button>
-                  </Box>
-                )}
-              </Box>
+                    <Button 
+                      variant="contained" 
+                      size="small"
+                      onClick={() => {
+                        const brandsUrl = `${window.location.origin}/brands`;
+                        window.open(brandsUrl, '_blank', 'noopener,noreferrer');
+                        // Keep chat open
+                      }}
+                    >
+                      View All Brands
+                    </Button>
+                  </Stack>
+                </Box>
+              )}
             </>
           )}
         </DialogContent>

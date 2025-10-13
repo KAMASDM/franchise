@@ -57,6 +57,7 @@ import "slick-carousel/slick/slick-theme.css";
 import { motion } from "framer-motion";
 import { useBrand } from "../../hooks/useBrand";
 import FranchiseInquiryForm from "../forms/FranchiseInquiryForm";
+import { slugToBrandName } from "../../utils/brandUtils";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -64,10 +65,7 @@ const MotionCard = motion(Card);
 const BrandDetail = () => {
   const theme = useTheme();
   const { slug } = useParams();
-  const brandName = slug
-    ?.split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+  const brandName = slugToBrandName(slug);
   const navigate = useNavigate();
   // Update the call to useBrand with the new object structure
   const { brand, loading, error } = useBrand({ brandName });

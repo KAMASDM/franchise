@@ -158,7 +158,15 @@ const Header = () => {
       <Tooltip title="Account settings">
         <IconButton onClick={handleUserMenu} sx={{ p: 0 }}>
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Avatar alt={user?.displayName || ""} src={user?.photoURL || ""} />
+            <Avatar 
+              alt={user?.displayName || ""} 
+              src={user?.photoURL || ""} 
+              onError={(e) => {
+                e.target.src = ''; // Remove src to show initials instead
+              }}
+            >
+              {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+            </Avatar>
           </motion.div>
         </IconButton>
       </Tooltip>

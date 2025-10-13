@@ -17,6 +17,7 @@ import {
   Paper,
   IconButton,
   CircularProgress,
+  Badge,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -51,7 +52,7 @@ import Leads from "../components/dashboard/Leads";
 import Locations from "../components/dashboard/Locations";
 import BrandRegistration from "../components/forms/BrandRegistration";
 import BrandDetail from "../components/dashboard/BrandDetail";
-import Notifications from "../components/dashboard/Notification/Notification";
+import NotificationCenter from "../components/common/NotificationCenter";
 import Review from "../components/dashboard/Review";
 import FAQs from "../components/dashboard/FAQs";
 import { useAdminStatus } from "../hooks/useAdminStatus";
@@ -234,7 +235,7 @@ const Dashboard = () => {
               <RestaurantIcon sx={{ mr: 1 }} />
               <Typography variant="h6">iKama</Typography>
             </IconButton>
-            <Notifications />
+            <NotificationCenter />
           </Box>
         </Toolbar>
       </StyledAppBar>

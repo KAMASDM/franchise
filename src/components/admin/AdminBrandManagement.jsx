@@ -4,6 +4,7 @@ import { db } from '../../firebase/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, CircularProgress, Alert, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
+import NotificationService from '../../utils/NotificationService';
 
 const AdminBrandManagement = () => {
     const { brands, loading, error, setBrands } = useAllBrands();
@@ -12,6 +13,19 @@ const AdminBrandManagement = () => {
         try {
             const brandRef = doc(db, 'brands', brandId);
             await updateDoc(brandRef, { status: newStatus });
+            
+            // Find the brand data for notification
+            const brand = brands.find(b => b.id === brandId);
+            
+            // Send notification to brand owner
+            if (brand && brand.userId) {
+                await NotificationService.sendBrandApprovalNotification(
+                    brand.userId, 
+                    { ...brand, id: brandId }, 
+                    newStatus === 'active'
+                );
+            }
+            
             setBrands(prevBrands => 
                 prevBrands.map(brand => 
                     brand.id === brandId ? { ...brand, status: newStatus } : brand

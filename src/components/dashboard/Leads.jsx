@@ -68,7 +68,7 @@ const Leads = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const filterOptions = {
-    status: ["new", "pending", "contacted", "converted", "rejected"],
+    status: ["New", "Pending", "Contacted", "Converted", "Rejected"],
     budget: [
       "Under ₹50K",
       "₹50K - ₹100K",
@@ -138,20 +138,18 @@ const Leads = () => {
       return 0;
     });
 
-  const getStatusIcon = (status) => {
+      const getStatusIcon = (status) => {
     switch (status) {
-      case "new":
+      case "New":
         return <CheckCircle color="success" />;
-      case "pending":
+      case "Pending":
         return <Pending color="warning" />;
-      case "contacted":
+      case "Contacted":
         return <Schedule color="info" />;
       default:
         return null;
     }
-  };
-
-  const formatDate = (date) => {
+  };  const formatDate = (date) => {
     if (!date) return "N/A";
     return format(date, "MMM dd, yyyy hh:mm a");
   };
@@ -242,9 +240,9 @@ const Leads = () => {
                   <Typography
                     variant="caption"
                     color={
-                      lead.status === "new"
+                      lead.status === "New"
                         ? "success.main"
-                        : lead.status === "pending"
+                        : lead.status === "Pending"
                         ? "warning.main"
                         : "text.secondary"
                     }
@@ -497,9 +495,9 @@ const Leads = () => {
                     sx={{
                       ml: 1,
                       color:
-                        lead.status === "new"
+                        lead.status === "New"
                           ? "success.main"
-                          : lead.status === "pending"
+                          : lead.status === "Pending"
                           ? "warning.main"
                           : "inherit",
                     }}

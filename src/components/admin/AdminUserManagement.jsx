@@ -77,7 +77,15 @@ const AdminUserManagement = () => {
                             <TableRow key={user.id} hover>
                                 <TableCell>
                                     <Box display="flex" alignItems="center">
-                                        <Avatar src={user.photoURL} sx={{ mr: 2 }} />
+                                        <Avatar 
+                                            src={user.photoURL} 
+                                            sx={{ mr: 2 }} 
+                                            onError={(e) => {
+                                                e.target.src = '';
+                                            }}
+                                        >
+                                            {user.displayName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+                                        </Avatar>
                                         <Typography>{user.displayName}</Typography>
                                     </Box>
                                 </TableCell>

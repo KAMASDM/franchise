@@ -25,11 +25,25 @@ export default defineConfig({
     // Development server configuration
     port: 5173,
     host: true,
+    // Add security headers for development
+    headers: {
+      'X-Frame-Options': 'DENY',
+      'X-Content-Type-Options': 'nosniff',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+    },
   },
   preview: {
     // Preview server configuration
     port: 4173,
     host: true,
+    // Add security headers for preview
+    headers: {
+      'X-Frame-Options': 'DENY',
+      'X-Content-Type-Options': 'nosniff',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+    },
   },
   // Environment variables prefix
   envPrefix: 'VITE_',
