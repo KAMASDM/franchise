@@ -48,14 +48,15 @@ import {
   Storefront,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
+import { db } from "../../firebase/firebase";
+import { doc, updateDoc } from "firebase/firestore";
+import { useBrand } from "../../hooks/useBrand";
+import logger from "../../utils/logger";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import useBrand from "../../hooks/useBrand";
 import { useAdminStatus } from "../../hooks/useAdminStatus";
-import { db } from "../../firebase/firebase";
-import { doc, updateDoc } from "firebase/firestore";
-import { useAuth } from "../../context/AuthContext"; // Import useAuth
+import { useAuth } from "../../context/AuthContext";
 
 const MotionCard = motion(Card);
 
@@ -81,7 +82,7 @@ const AdminActions = ({ brand, setBrandLocally }) => {
             // Correctly update the brand state via the passed function
             setBrandLocally(prevBrand => ({ ...prevBrand, status: newStatus }));
         } catch (error) {
-            console.error("Error updating status:", error);
+            logger.error("Error updating status:", error);
         } finally {
             setIsSubmitting(false);
         }

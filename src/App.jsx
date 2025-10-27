@@ -5,6 +5,9 @@ import { Box, CircularProgress } from "@mui/material";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import Chatbot from "./components/chat/Chatbot";
+import LiveChat from "./components/chat/LiveChat";
+import InstallPrompt from "./components/common/InstallPrompt";
+import OfflineIndicator from "./components/common/OfflineIndicator";
 import { useAdminStatus } from "./hooks/useAdminStatus";
 
 // --- Lazy Load Pages ---
@@ -18,9 +21,13 @@ const Contact = React.lazy(() => import("./pages/Contact"));
 const FAQ = React.lazy(() => import("./pages/FAQ"));
 const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));
 const TermsAndConditions = React.lazy(() => import("./pages/TermsAndConditions"));
-const Dashboard = React.lazy(() => import("./pages/Dashborad"));
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
-const FirestoreTest = React.lazy(() => import("./components/debug/FirestoreTest"));
+
+// Only load debug component in development
+const FirestoreTest = import.meta.env.DEV 
+  ? React.lazy(() => import("./components/debug/FirestoreTest"))
+  : null;
 
 const LoadingFallback = () => (
   <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
@@ -87,7 +94,11 @@ function App() {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-              <Route path="/test-firestore" element={<FirestoreTest />} />
+              
+              {/* Debug route - only available in development */}
+              {import.meta.env.DEV && FirestoreTest && (
+                <Route path="/test-firestore" element={<FirestoreTest />} />
+              )}
               
               {/* Protected User Dashboard Route */}
               <Route
@@ -113,6 +124,9 @@ function App() {
         </Box>
         {showPublicLayout && <Footer />}
         {showPublicLayout && <Chatbot />}
+        <LiveChat />
+        <InstallPrompt />
+        <OfflineIndicator />
       </Box>
     </AuthContextProvider>
   );

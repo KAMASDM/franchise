@@ -3,12 +3,16 @@ import { useAllLeads } from '../../hooks/useAllLeads';
 import { useAllBrands } from '../../hooks/useAllBrands';
 import { db } from '../../firebase/firebase';
 import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import logger from '../../utils/logger';
+import { exportLeads } from '../../utils/exportUtils';
+import { useSimpleSearch } from '../../hooks/useSimpleSearch';
+import { useArrayPagination } from '../../hooks/usePagination';
 import {
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Avatar, CircularProgress, Alert, Link as MuiLink, TextField, InputAdornment, IconButton,
-  MenuItem, Select, FormControl, InputLabel, Button, Grid,
+  MenuItem, Select, FormControl, InputLabel, Button, Grid, Pagination,
 } from '@mui/material';
-import { Search, Clear, FilterList, Phone, Email, Delete } from '@mui/icons-material';
+import { Search, Clear, FilterList, Phone, Email, Delete, Download } from '@mui/icons-material';
 import { format } from 'date-fns';
 
 const statusOptions = ['New', 'Pending', 'Contacted', 'Converted', 'Rejected'];
@@ -17,7 +21,7 @@ const AdminLeadManagement = () => {
     const { leads, loading: leadsLoading, error: leadsError, setLeads } = useAllLeads();
     const { brands, loading: brandsLoading, error: brandsError } = useAllBrands();
 
-    const [searchTerm, setSearchTerm] = useState("");
+    const { searchTerm, setSearchTerm, debouncedSearchTerm } = useSimpleSearch('', 300);
     const [filters, setFilters] = useState({
         status: "",
         brandId: "",
@@ -35,8 +39,9 @@ const AdminLeadManagement = () => {
     const filteredLeads = useMemo(() => {
         return leads
             .filter(lead => {
-                const searchLower = searchTerm.toLowerCase();
+                const searchLower = debouncedSearchTerm.toLowerCase();
                 const matchesSearch =
+                    !debouncedSearchTerm ||
                     lead.firstName?.toLowerCase().includes(searchLower) ||
                     lead.lastName?.toLowerCase().includes(searchLower) ||
                     lead.email?.toLowerCase().includes(searchLower) ||
@@ -48,7 +53,11 @@ const AdminLeadManagement = () => {
 
                 return matchesSearch && matchesFilters;
             });
-    }, [leads, searchTerm, filters]);
+    }, [leads, debouncedSearchTerm, filters]);
+
+    // Pagination
+    const { paginatedData, currentPage, totalPages, goToPage, nextPage, prevPage } = useArrayPagination(filteredLeads, 10);
+    const safePaginatedData = Array.isArray(paginatedData) ? paginatedData : [];
 
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this lead?")) {
@@ -56,7 +65,7 @@ const AdminLeadManagement = () => {
                 await deleteDoc(doc(db, "brandfranchiseInquiry", id));
                 setLeads(prev => prev.filter(lead => lead.id !== id));
             } catch (err) {
-                console.error("Error deleting lead: ", err);
+                logger.error("Error deleting lead: ", err);
                 alert("Failed to delete lead.");
             }
         }
@@ -71,7 +80,7 @@ const AdminLeadManagement = () => {
                 )
             );
         } catch (err) {
-            console.error("Error updating status: ", err);
+            logger.error("Error updating status: ", err);
             alert("Failed to update status.");
         }
     };
@@ -94,7 +103,7 @@ const AdminLeadManagement = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             InputProps={{
                                 startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
-                                endAdornment: searchTerm && <IconButton onClick={() => setSearchTerm("")}><Clear /></IconButton>
+                                endAdornment: searchTerm && <IconButton onClick={() => setSearchTerm("")} aria-label="Clear search"><Clear /></IconButton>
                             }}
                         />
                     </Grid>
@@ -140,6 +149,16 @@ const AdminLeadManagement = () => {
                         </Button>
                     </Grid>
                 </Grid>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                    <Button
+                        variant="contained"
+                        startIcon={<Download />}
+                        onClick={() => exportLeads(filteredLeads)}
+                        disabled={filteredLeads.length === 0}
+                    >
+                        Export Leads ({filteredLeads.length})
+                    </Button>
+                </Box>
             </Paper>
 
             <Typography variant="subtitle1" color="text.secondary" sx={{mb: 2}}>
@@ -159,21 +178,22 @@ const AdminLeadManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredLeads.map((lead) => (
-                            <TableRow key={lead.id} hover>
-                                <TableCell>{lead.firstName} {lead.lastName}</TableCell>
-                                <TableCell>
-                                    <Box>
-                                        <Box display="flex" alignItems="center">
-                                            <Email fontSize="small" sx={{ mr: 1 }} />
-                                            <MuiLink href={`mailto:${lead.email}`}>{lead.email}</MuiLink>
-                                        </Box>
-                                        {lead.phone &&
+                        {safePaginatedData.length > 0 ? (
+                            safePaginatedData.map((lead) => (
+                                <TableRow key={lead.id} hover>
+                                    <TableCell>{lead.firstName} {lead.lastName}</TableCell>
+                                    <TableCell>
+                                        <Box>
                                             <Box display="flex" alignItems="center">
-                                                <Phone fontSize="small" sx={{ mr: 1 }} />
-                                                <MuiLink href={`tel:${lead.phone}`}>{lead.phone}</MuiLink>
+                                                <Email fontSize="small" sx={{ mr: 1 }} />
+                                                <MuiLink href={`mailto:${lead.email}`}>{lead.email}</MuiLink>
                                             </Box>
-                                        }
+                                            {lead.phone &&
+                                                <Box display="flex" alignItems="center">
+                                                    <Phone fontSize="small" sx={{ mr: 1 }} />
+                                                    <MuiLink href={`tel:${lead.phone}`}>{lead.phone}</MuiLink>
+                                                </Box>
+                                            }
                                     </Box>
                                 </TableCell>
                                 <TableCell>
@@ -196,15 +216,40 @@ const AdminLeadManagement = () => {
                                 </TableCell>
                                 <TableCell>{lead.createdAt ? format(lead.createdAt, 'PPp') : 'N/A'}</TableCell>
                                 <TableCell>
-                                    <IconButton color="error" onClick={() => handleDelete(lead.id)}>
+                                    <IconButton color="error" onClick={() => handleDelete(lead.id)} aria-label="Delete lead">
                                         <Delete />
                                     </IconButton>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                                    <Typography variant="body1" color="text.secondary">
+                                        {leadsLoading ? 'Loading leads...' : 
+                                         searchTerm || filters.status || filters.brandId ? 'No leads match your search/filter criteria.' : 
+                                         leads.length === 0 ? 'No leads available.' :
+                                         'No data to display.'}
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
+            
+            {totalPages > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Pagination 
+                        count={totalPages} 
+                        page={currentPage} 
+                        onChange={(e, page) => goToPage(page)}
+                        color="primary"
+                        showFirstButton
+                        showLastButton
+                    />
+                </Box>
+            )}
         </Box>
     );
 };

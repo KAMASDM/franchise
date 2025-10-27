@@ -302,7 +302,7 @@ const Brands = () => {
                       ),
                       endAdornment: searchTerm && (
                         <InputAdornment position="end">
-                          <IconButton onClick={() => setSearchTerm("")}>
+                          <IconButton onClick={() => setSearchTerm("")} aria-label="Clear search">
                             <Clear fontSize="small" />
                           </IconButton>
                         </InputAdornment>

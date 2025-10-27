@@ -7,11 +7,12 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 // Initialize the Gemini AI model
-// First try environment variable, then fall back to functions.config()
-const API_KEY = process.env.GEMINI_API_KEY || functions.config()?.gemini?.api_key;
+// Use environment variable from .env file (modern approach)
+const API_KEY = process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
-  console.error("GEMINI_API_KEY not found in environment or config");
+  console.error("GEMINI_API_KEY not found in environment variables");
+  console.error("Make sure to set it in functions/.env file");
 }
 
 const genAI = new GoogleGenerativeAI(API_KEY);

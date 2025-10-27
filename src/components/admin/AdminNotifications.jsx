@@ -3,6 +3,7 @@ import { Box, Typography, TextField, Button, CircularProgress, Alert } from '@mu
 import { db } from '../../firebase/firebase';
 import { collection, writeBatch, getDocs, serverTimestamp } from 'firebase/firestore';
 import { Send } from '@mui/icons-material';
+import logger from '../../utils/logger';
 
 const AdminNotifications = () => {
     const [title, setTitle] = useState('');
@@ -41,7 +42,7 @@ const AdminNotifications = () => {
             setTitle('');
             setMessage('');
         } catch (error) {
-            console.error("Error sending notifications:", error);
+            logger.error("Error sending notifications:", error);
             setFeedback({ type: 'error', message: 'Failed to send notifications.' });
         } finally {
             setLoading(false);

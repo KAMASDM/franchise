@@ -371,6 +371,7 @@ const BlogDetail = () => {
               >
                 <IconButton
                   onClick={() => sharePost("facebook")}
+                  aria-label="Share on Facebook"
                   sx={{
                     backgroundColor: "#1877F2",
                     color: "white",
@@ -381,6 +382,7 @@ const BlogDetail = () => {
                 </IconButton>
                 <IconButton
                   onClick={() => sharePost("twitter")}
+                  aria-label="Share on Twitter"
                   sx={{
                     backgroundColor: "#1DA1F2",
                     color: "white",
@@ -391,6 +393,7 @@ const BlogDetail = () => {
                 </IconButton>
                 <IconButton
                   onClick={() => sharePost("linkedin")}
+                  aria-label="Share on LinkedIn"
                   sx={{
                     backgroundColor: "#0077B5",
                     color: "white",

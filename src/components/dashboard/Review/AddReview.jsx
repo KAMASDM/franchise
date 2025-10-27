@@ -17,6 +17,7 @@ import {
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
 import { useAuth } from "../../../context/AuthContext";
+import logger from "../../../utils/logger";
 
 const AddReview = ({ open, onClose, brands }) => {
   const { user } = useAuth();
@@ -85,7 +86,7 @@ const AddReview = ({ open, onClose, brands }) => {
       });
       setErrors({});
     } catch (error) {
-      console.error("Error adding review: ", error);
+      logger.error("Error adding review: ", error);
       setErrors({ form: "Failed to submit review. Please try again." });
     } finally {
       setLoading(false);

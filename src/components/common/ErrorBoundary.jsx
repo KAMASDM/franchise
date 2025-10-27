@@ -13,18 +13,10 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    this.setState({
-      error: error,
-      errorInfo: errorInfo
-    });
-    
-    // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
+    // Log the error to console in development
+    if (import.meta.env.DEV) {
       console.error('Error Boundary Caught:', error, errorInfo);
     }
-    
-    // In production, you could send this to an error reporting service
-    // logErrorToService(error, errorInfo);
   }
 
   handleReload = () => {
@@ -54,7 +46,7 @@ class ErrorBoundary extends React.Component {
               Reload Page
             </Button>
             
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <Box sx={{ mt: 4, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                 <Typography variant="h6" color="error" gutterBottom>
                   Error Details (Development Only):

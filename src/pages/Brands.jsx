@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import BrandCard from "../components/brand/BrandCard";
 import SearchFilters from "../components/home/SearchFilters";
+import AdvancedSearchBar from "../components/search/AdvancedSearchBar";
+import FacetedFilters from "../components/search/FacetedFilters";
 import {
   Container,
   Typography,
@@ -11,6 +13,8 @@ import {
   useTheme,
 } from "@mui/material";
 import { useBrands } from "../hooks/useBrands";
+import { useSearch } from "../hooks/useSearch";
+import { SearchService } from "../utils/SearchService";
 
 const industries = [
   "Food & Beverage",
@@ -54,6 +58,53 @@ const Brands = () => {
   const { brands, loading, error } = useBrands();
   const [filteredBrands, setFilteredBrands] = useState([]);
   const [availableFranchiseModels, setAvailableFranchiseModels] = useState([]);
+  const [filters, setFilters] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Update filtered brands when brands, search, or filters change
+  useEffect(() => {
+    let results = brands || [];
+
+    // Apply search using SearchService fuzzy matching
+    if (searchQuery && searchQuery.trim()) {
+      results = SearchService.searchBrands(results, searchQuery, {
+        threshold: 0.3,
+        includePartialMatches: true,
+        fields: ['brandName', 'industries', 'businessModel', 'brandStory']
+      });
+    }
+
+    // Apply filters
+    if (filters.brandCategory && filters.brandCategory.length > 0) {
+      results = results.filter(brand => 
+        filters.brandCategory.includes(brand.brandCategory)
+      );
+    }
+
+    if (filters.businessModel && filters.businessModel.length > 0) {
+      results = results.filter(brand => 
+        filters.businessModel.includes(brand.businessModel)
+      );
+    }
+
+    if (filters.industries && filters.industries.length > 0) {
+      results = results.filter(brand => 
+        brand.industries && brand.industries.some(ind => 
+          filters.industries.includes(ind)
+        )
+      );
+    }
+
+    if (filters.locations && filters.locations.length > 0) {
+      results = results.filter(brand => 
+        brand.locations && brand.locations.some(loc => 
+          filters.locations.includes(loc.state || loc)
+        )
+      );
+    }
+
+    setFilteredBrands(results);
+  }, [brands, searchQuery, filters]);
 
   useEffect(() => {
     if (brands && brands.length > 0) {
@@ -69,45 +120,20 @@ const Brands = () => {
     }
   }, [brands]);
 
-  const handleFilterChange = (filters) => {
-    let tempBrands = [...brands];
-    if (filters.keyword) {
-      const lowercasedKeyword = filters.keyword.toLowerCase();
-      tempBrands = tempBrands.filter(
-        (brand) =>
-          brand.brandName?.toLowerCase().includes(lowercasedKeyword) ||
-          (brand.industries &&
-            brand.industries.some((industry) =>
-              industry.toLowerCase().includes(lowercasedKeyword)
-            )) ||
-          brand.businessModel?.toLowerCase().includes(lowercasedKeyword) ||
-          brand.brandStory?.toLowerCase().includes(lowercasedKeyword)
-      );
-    }
+  const handleFilterChange = (filterKey, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterKey]: value
+    }));
+  };
 
-    if (filters.industry) {
-      tempBrands = tempBrands.filter(
-        (brand) =>
-          brand.industries && brand.industries.includes(filters.industry)
-      );
-    }
+  const handleClearFilters = () => {
+    setFilters({});
+    setSearchQuery('');
+  };
 
-    if (filters.investmentRange) {
-      tempBrands = tempBrands.filter(
-        (brand) => brand.investmentRange === filters.investmentRange
-      );
-    }
-
-    if (filters.franchiseModel) {
-      tempBrands = tempBrands.filter((brand) => {
-        if (Array.isArray(brand.franchiseModels)) {
-          return brand.franchiseModels.includes(filters.franchiseModel);
-        }
-        return brand.franchiseModel === filters.franchiseModel;
-      });
-    }
-
-    setFilteredBrands(tempBrands);
+  const handleSearch = (query) => {
+    setSearchQuery(query);
   };
 
   if (loading) {
@@ -159,39 +185,60 @@ const Brands = () => {
               maxWidth: 800,
               mx: "auto",
               textAlign: "center",
-              mb: { xs: 8, md: 10 },
+              mb: 4,
             }}
           >
             Discover top-performing restaurant franchises with proven business
             models and strong support systems.
           </Typography>
+
+          {/* Advanced Search Bar */}
+          <Box sx={{ maxWidth: 800, mx: "auto", mb: 6 }}>
+            <AdvancedSearchBar 
+              brands={brands}
+              onSearch={handleSearch}
+              showSuggestions={true}
+            />
+          </Box>
         </motion.div>
 
-        <SearchFilters
-          onFilterChange={handleFilterChange}
-          industries={industries}
-          investmentRanges={investmentRanges}
-          franchiseModels={franchiseModelOptions.filter((model) =>
-            availableFranchiseModels.includes(model)
-          )}
-        />
+        <Grid container spacing={3}>
+          {/* Faceted Filters Sidebar */}
+          <Grid item xs={12} md={3}>
+            <FacetedFilters
+              brands={brands}
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onClearFilters={handleClearFilters}
+            />
+          </Grid>
 
-        <Grid container spacing={4} sx={{ mt: 4 }}>
-          {filteredBrands.length > 0 ? (
-            filteredBrands.map((brand) => (
-              <Grid item key={brand.id} xs={12} sm={6} md={4}>
-                <BrandCard brand={brand} />
-              </Grid>
-            ))
-          ) : (
-            <Grid item xs={12}>
-              <Typography variant="h6" align="center" sx={{ mt: 4 }}>
-                {brands.length === 0
-                  ? "No brands available yet."
-                  : "No brands found matching your criteria."}
+          {/* Brand Results */}
+          <Grid item xs={12} md={9}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Showing {filteredBrands.length} of {brands?.length || 0} franchises
               </Typography>
+            </Box>
+
+            <Grid container spacing={4}>
+              {filteredBrands.length > 0 ? (
+                filteredBrands.map((brand) => (
+                  <Grid item key={brand.id} xs={12} sm={6} lg={4}>
+                    <BrandCard brand={brand} />
+                  </Grid>
+                ))
+              ) : (
+                <Grid item xs={12}>
+                  <Typography variant="h6" align="center" sx={{ mt: 4 }}>
+                    {brands.length === 0
+                      ? "No brands available yet."
+                      : "No brands found matching your criteria."}
+                  </Typography>
+                </Grid>
+              )}
             </Grid>
-          )}
+          </Grid>
         </Grid>
       </Container>
     </Box>

@@ -26,6 +26,7 @@ import {
 } from "firebase/firestore";
 import NotificationService from "../../utils/NotificationService";
 import { INVESTMENT_RANGES, BUSINESS_EXPERIENCE_OPTIONS, TIMELINE_OPTIONS } from "../../constants";
+import logger from "../../utils/logger";
 
 const investmentRanges = INVESTMENT_RANGES;
 const businessExperience = BUSINESS_EXPERIENCE_OPTIONS;
@@ -190,7 +191,7 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
       setSubmitted(true);
       // Removed navigation for a smoother user experience
     } catch (error) {
-      console.error("Error submitting inquiry:", error);
+      logger.error("Error submitting inquiry:", error);
       setErrors({ submit: "Failed to submit inquiry. Please try again." });
     } finally {
       setLoading(false);
@@ -229,7 +230,7 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
           <LocationOn color="primary" sx={{ verticalAlign: "middle", mr: 1 }} />
           Request Information - {brand.brandName}
         </Typography>
-        <IconButton onClick={onClose}>
+        <IconButton onClick={onClose} aria-label="Close inquiry form">
           <Close />
         </IconButton>
       </Box>
@@ -255,6 +256,8 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
               fullWidth
               error={!!errors.firstName}
               helperText={errors.firstName}
+              aria-describedby={errors.firstName ? "firstName-error" : undefined}
+              FormHelperTextProps={{ id: "firstName-error" }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -266,6 +269,8 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
               fullWidth
               error={!!errors.lastName}
               helperText={errors.lastName}
+              aria-describedby={errors.lastName ? "lastName-error" : undefined}
+              FormHelperTextProps={{ id: "lastName-error" }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -278,6 +283,8 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
               fullWidth
               error={!!errors.email}
               helperText={errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              FormHelperTextProps={{ id: "email-error" }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -290,6 +297,8 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
               error={!!errors.phone}
               helperText={errors.phone}
               placeholder="e.g. 123-456-7890"
+              aria-describedby={errors.phone ? "phone-error" : undefined}
+              FormHelperTextProps={{ id: "phone-error" }}
             />
           </Grid>
         </Grid>
@@ -307,6 +316,8 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
               fullWidth
               error={!!errors.userAddress}
               helperText={errors.userAddress}
+              aria-describedby={errors.userAddress ? "userAddress-error" : undefined}
+              FormHelperTextProps={{ id: "userAddress-error" }}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
@@ -318,6 +329,8 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
               fullWidth
               error={!!errors.userCity}
               helperText={errors.userCity}
+              aria-describedby={errors.userCity ? "userCity-error" : undefined}
+              FormHelperTextProps={{ id: "userCity-error" }}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
@@ -329,6 +342,8 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
               fullWidth
               error={!!errors.userState}
               helperText={errors.userState}
+              aria-describedby={errors.userState ? "userState-error" : undefined}
+              FormHelperTextProps={{ id: "userState-error" }}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
@@ -341,6 +356,8 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
               error={!!errors.userZipCode}
               helperText={errors.userZipCode}
               placeholder="e.g. 12345 or 12345-6789"
+              aria-describedby={errors.userZipCode ? "userZipCode-error" : undefined}
+              FormHelperTextProps={{ id: "userZipCode-error" }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -353,6 +370,8 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
               error={!!errors.userCountry}
               helperText={errors.userCountry}
               placeholder="e.g. United States"
+              aria-describedby={errors.userCountry ? "userCountry-error" : undefined}
+              FormHelperTextProps={{ id: "userCountry-error" }}
             />
           </Grid>
         </Grid>
@@ -364,12 +383,14 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
           {hasLocations && (
             <Grid item xs={12} md={6}>
               <FormControl fullWidth error={!!errors.brandFranchiseLocation}>
-                <InputLabel>Preferred Location (Optional)</InputLabel>
+                <InputLabel id="brandFranchiseLocation-label">Preferred Location (Optional)</InputLabel>
                 <Select
                   name="brandFranchiseLocation"
                   value={formData.brandFranchiseLocation}
                   onChange={handleChange}
                   label="Preferred Location (Optional)"
+                  labelId="brandFranchiseLocation-label"
+                  aria-describedby={errors.brandFranchiseLocation ? "brandFranchiseLocation-error" : undefined}
                 >
                   {brand.brandFranchiseLocations.map((loc, index) => (
                     <MenuItem key={index} value={loc.city}>
@@ -378,7 +399,7 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
                   ))}
                 </Select>
                 {errors.brandFranchiseLocation && (
-                  <Typography variant="caption" color="error">
+                  <Typography variant="caption" color="error" id="brandFranchiseLocation-error">
                     {errors.brandFranchiseLocation}
                   </Typography>
                 )}
@@ -387,12 +408,14 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
           )}
           <Grid item xs={12} sm={6} md={hasLocations ? 3 : 6}>
             <FormControl fullWidth error={!!errors.budget}>
-              <InputLabel>Investment Budget *</InputLabel>
+              <InputLabel id="budget-label">Investment Budget *</InputLabel>
               <Select
                 name="budget"
                 value={formData.budget}
                 onChange={handleChange}
                 label="Investment Budget *"
+                labelId="budget-label"
+                aria-describedby={errors.budget ? "budget-error" : undefined}
               >
                 {investmentRanges.map((range) => (
                   <MenuItem key={range} value={range}>
@@ -401,7 +424,7 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
                 ))}
               </Select>
               {errors.budget && (
-                <Typography variant="caption" color="error">
+                <Typography variant="caption" color="error" id="budget-error">
                   {errors.budget}
                 </Typography>
               )}

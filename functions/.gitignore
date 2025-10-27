@@ -1,2 +1,23 @@
+# Dependencies
 node_modules/
-*.local
+
+# Environment variables (CRITICAL - Never commit API keys)
+.env
+.env.local
+.env.production
+.env.development
+*.local.env
+
+# Firebase Functions configuration
+.runtimeconfig.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage
+
+# Temporary files
+*.tmp
+.cache

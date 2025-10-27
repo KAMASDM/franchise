@@ -4,6 +4,7 @@ import { db } from '../../firebase/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, CircularProgress, Alert, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom'; // Import RouterLink
+import logger from '../../utils/logger';
 
 const AdminVerification = () => {
     const { brands, loading, error, setBrands } = useAllBrands();
@@ -21,7 +22,7 @@ const AdminVerification = () => {
                 )
             );
         } catch (err) {
-            console.error("Error updating brand status:", err);
+            logger.error("Error updating brand status:", err);
         }
     };
 

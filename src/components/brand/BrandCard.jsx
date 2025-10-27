@@ -9,15 +9,35 @@ import {
   Avatar,
   Divider,
   useTheme,
+  Stack,
 } from "@mui/material";
 import { db } from "../../firebase/firebase";
 import { doc, setDoc, increment, serverTimestamp } from "firebase/firestore";
-import { TrendingUp, AccessTime, CropLandscape } from "@mui/icons-material";
+import {
+  TrendingUp,
+  AccessTime,
+  CropLandscape,
+  Store as StoreIcon,
+  Business as BusinessIcon,
+  LocalShipping as LocalShippingIcon,
+  Inventory as InventoryIcon,
+  Handshake as HandshakeIcon,
+} from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getBrandUrl } from "../../utils/brandUtils";
+import logger from "../../utils/logger";
+import { BUSINESS_MODEL_CONFIG } from "../../constants/businessModels";
 
 const MotionCard = motion(Card);
+
+const iconMap = {
+  Store: StoreIcon,
+  Business: BusinessIcon,
+  LocalShipping: LocalShippingIcon,
+  Inventory: InventoryIcon,
+  Handshake: HandshakeIcon,
+};
 
 const BrandCard = ({ brand, index = 0 }) => {
   const theme = useTheme();
@@ -43,7 +63,7 @@ const BrandCard = ({ brand, index = 0 }) => {
         { merge: true }
       );
     } catch (error) {
-      console.error("Error tracking view:", error);
+      logger.error("Error tracking view:", error);
     }
   };
 
@@ -82,7 +102,7 @@ const BrandCard = ({ brand, index = 0 }) => {
             <Typography variant="h5" fontWeight="bold">
               {brand.brandName}
             </Typography>
-            <Box sx={{ mt: 0.5 }}>
+            <Box sx={{ mt: 0.5, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
               {brand.industries?.map((industry, i) => (
                 <Chip
                   key={i}
@@ -90,12 +110,40 @@ const BrandCard = ({ brand, index = 0 }) => {
                   size="small"
                   variant="outlined"
                   color="primary"
-                  sx={{ fontWeight: "medium", mr: 1 }}
+                  sx={{ fontWeight: "medium" }}
                 />
               ))}
             </Box>
           </Box>
         </Box>
+
+        {/* Business Models Section */}
+        {brand.businessModels && brand.businessModels.length > 0 && (
+          <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
+            {brand.businessModels.map((modelId) => {
+              const config = BUSINESS_MODEL_CONFIG[modelId];
+              if (!config) return null;
+              
+              const IconComponent = iconMap[config.icon] || StoreIcon;
+              
+              return (
+                <Chip
+                  key={modelId}
+                  icon={<IconComponent />}
+                  label={config.label}
+                  size="small"
+                  sx={{
+                    bgcolor: `${config.color}15`,
+                    color: config.color,
+                    fontWeight: 'bold',
+                    border: `1px solid ${config.color}`,
+                    mb: 0.5
+                  }}
+                />
+              );
+            })}
+          </Stack>
+        )}
 
         <Typography
           variant="body2"
@@ -177,6 +225,7 @@ const BrandCard = ({ brand, index = 0 }) => {
           variant="contained"
           fullWidth
           onClick={handleLearnMore}
+          aria-label={`Learn more about ${brand.brandName} franchise opportunity`}
           sx={{
             borderRadius: 25,
             fontWeight: "bold",

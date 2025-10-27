@@ -42,7 +42,7 @@ export const useBrands = (user = null, options = {}) => {
     };
 
     fetchBrands();
-  }, [user, options.limit]);
+  }, [user?.uid, options.limit]);
 
   return { brands, loading, error };
 };

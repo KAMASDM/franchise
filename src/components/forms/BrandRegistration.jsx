@@ -45,7 +45,9 @@ import { useAuth } from "../../context/AuthContext";
 import { db, storage } from "../../firebase/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { compressImage } from "../../utils/imageUtils";
 import NotificationService from "../../utils/NotificationService";
+import logger from "../../utils/logger";
 import { 
   INVESTMENT_RANGES,
   INDUSTRIES,
@@ -317,7 +319,7 @@ const BrandRegistration = () => {
     return errors;
   };
 
-  const handleFileUpload = (field, event) => {
+  const handleFileUpload = async (field, event) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
@@ -330,9 +332,20 @@ const BrandRegistration = () => {
         return;
       }
       
-      handleInputChange(field, file);
-      if (errors[field]) {
-        setErrors((prev) => ({ ...prev, [field]: undefined }));
+      try {
+        // Compress image before storing
+        const compressedFile = await compressImage(file, {
+          maxSizeMB: 0.5,
+          maxWidthOrHeight: field === "brandLogo" ? 800 : 1920,
+        });
+        
+        handleInputChange(field, compressedFile);
+        if (errors[field]) {
+          setErrors((prev) => ({ ...prev, [field]: undefined }));
+        }
+      } catch (error) {
+        logger.error(`Error compressing ${field}:`, error);
+        setErrors((prev) => ({ ...prev, [field]: "Failed to process image. Please try another file." }));
       }
     } else if (field === "brandFranchiseImages") {
       const newFiles = Array.from(files);
@@ -351,14 +364,24 @@ const BrandRegistration = () => {
       const validFiles = [];
       const fileErrors = [];
       
-      newFiles.forEach((file, index) => {
+      for (const [index, file] of newFiles.entries()) {
         const validationErrors = validateFile(file, true);
         if (validationErrors.length > 0) {
           fileErrors.push(`File ${index + 1}: ${validationErrors.join('. ')}`);
         } else {
-          validFiles.push(file);
+          try {
+            // Compress gallery images
+            const compressedFile = await compressImage(file, {
+              maxSizeMB: 0.3,
+              maxWidthOrHeight: 1200,
+            });
+            validFiles.push(compressedFile);
+          } catch (error) {
+            logger.error(`Error compressing gallery image ${index + 1}:`, error);
+            fileErrors.push(`File ${index + 1}: Failed to process image`);
+          }
         }
-      });
+      }
       
       if (fileErrors.length > 0) {
         setErrors((prev) => ({ ...prev, [field]: fileErrors.join('\n') }));
@@ -438,7 +461,7 @@ const BrandRegistration = () => {
             </Typography>
             {helpText && (
               <Tooltip title={helpText}>
-                <IconButton size="small">
+                <IconButton size="small" aria-label="Help information">
                   <HelpIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -469,7 +492,7 @@ const BrandRegistration = () => {
                   KB
                 </Typography>
               </Box>
-              <IconButton onClick={() => removeFile(field)} color="error">
+              <IconButton onClick={() => removeFile(field)} color="error" aria-label="Remove image">
                 <DeleteIcon />
               </IconButton>
             </Box>
@@ -496,6 +519,7 @@ const BrandRegistration = () => {
                     />
                     <IconButton
                       size="small"
+                      aria-label="Remove franchise image"
                       onClick={() => {
                         const updatedImages =
                           formData.brandFranchiseImages.filter(
@@ -615,7 +639,7 @@ const BrandRegistration = () => {
       return;
     }
 
-    console.log("Debug - User authenticated:", {
+    logger.debug("User authenticated:", {
       uid: user.uid,
       email: user.email,
       displayName: user.displayName
@@ -634,7 +658,7 @@ const BrandRegistration = () => {
               // Optional: handle progress
             },
             (error) => {
-              console.error("Upload failed:", error);
+              logger.error("Upload failed:", error);
               reject(error);
             },
             () => {
@@ -684,7 +708,7 @@ const BrandRegistration = () => {
       
       delete submissionData.brandImageFile; // Ensure file object isn't sent to Firestore
 
-      console.log("Debug - Submitting brand data:", {
+      logger.debug("Submitting brand data:", {
         brandName: submissionData.brandName,
         userId: submissionData.userId,
         createdBy: submissionData.createdBy,
@@ -694,7 +718,7 @@ const BrandRegistration = () => {
 
       // Add brand data to Firestore
       const docRef = await addDoc(collection(db, "brands"), submissionData);
-      console.log("✅ Brand successfully created with ID:", docRef.id);
+      logger.log("Brand successfully created with ID:", docRef.id);
 
       // Send notification to admins about new brand submission
       try {
@@ -710,13 +734,13 @@ const BrandRegistration = () => {
         );
       } catch (notificationError) {
         // Don't fail the whole process if notification fails
-        console.warn("⚠️ Admin notification failed (brand still created):", notificationError);
+        logger.warn("Admin notification failed (brand still created):", notificationError);
       }
 
       setLoading(false);
       navigate("/dashboard?submission=success");
     } catch (err) {
-      console.error("❌ Error during brand registration:", err);
+      logger.error("Error during brand registration:", err);
       
       // Distinguish between different types of errors
       if (err.message && err.message.includes("Brand successfully created")) {

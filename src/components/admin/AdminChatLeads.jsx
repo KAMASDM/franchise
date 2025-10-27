@@ -2,30 +2,39 @@ import React, { useState, useMemo } from 'react';
 import { useChatLeads } from '../../hooks/useChatLeads';
 import { db } from '../../firebase/firebase';
 import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import logger from '../../utils/logger';
+import { exportToCSV, formatDataForExport } from '../../utils/exportUtils';
+import { useSimpleSearch } from '../../hooks/useSimpleSearch';
+import { useArrayPagination } from '../../hooks/usePagination';
 import {
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   CircularProgress, Alert, Link as MuiLink, TextField, InputAdornment, IconButton,
-  Select, MenuItem, FormControl
+  Select, MenuItem, FormControl, Button, Pagination
 } from '@mui/material';
 import { format } from 'date-fns';
-import { Search, Delete } from '@mui/icons-material';
+import { Search, Delete, Download, Clear } from '@mui/icons-material';
 
 const statusOptions = ['New', 'Contacted', 'Follow-up', 'Qualified', 'Unqualified'];
 
 const AdminChatLeads = () => {
     const { leads, loading, error, setLeads } = useChatLeads();
-    const [searchTerm, setSearchTerm] = useState('');
+    const { searchTerm, setSearchTerm, debouncedSearchTerm } = useSimpleSearch('', 300);
 
     const filteredLeads = useMemo(() => {
         return leads.filter(lead => {
-            const searchLower = searchTerm.toLowerCase();
+            const searchLower = debouncedSearchTerm.toLowerCase();
             return (
+                !debouncedSearchTerm ||
                 lead.name?.toLowerCase().includes(searchLower) ||
                 lead.email?.toLowerCase().includes(searchLower) ||
                 lead.location?.toLowerCase().includes(searchLower)
             );
         });
-    }, [leads, searchTerm]);
+    }, [leads, debouncedSearchTerm]);
+
+    // Pagination
+    const { paginatedData, currentPage, totalPages, goToPage } = useArrayPagination(filteredLeads, 10);
+    const safePaginatedData = Array.isArray(paginatedData) ? paginatedData : [];
 
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this lead?")) {
@@ -33,7 +42,7 @@ const AdminChatLeads = () => {
                 await deleteDoc(doc(db, "chatLeads", id));
                 setLeads(prev => prev.filter(lead => lead.id !== id));
             } catch (err) {
-                console.error("Error deleting chat lead: ", err);
+                logger.error("Error deleting chat lead: ", err);
                 alert("Failed to delete lead.");
             }
         }
@@ -48,7 +57,7 @@ const AdminChatLeads = () => {
                 )
             );
         } catch (err) {
-            console.error("Error updating status: ", err);
+            logger.error("Error updating status: ", err);
             alert("Failed to update status.");
         }
     };
@@ -56,9 +65,24 @@ const AdminChatLeads = () => {
     if (loading) return <CircularProgress />;
     if (error) return <Alert severity="error">{error}</Alert>;
 
+    const handleExport = () => {
+        const formattedData = formatDataForExport(filteredLeads);
+        exportToCSV(formattedData, 'chat-leads');
+    };
+
     return (
         <Box>
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>Chatbot Leads</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Chat Leads</Typography>
+                <Button
+                    variant="contained"
+                    startIcon={<Download />}
+                    onClick={handleExport}
+                    disabled={filteredLeads.length === 0}
+                >
+                    Export Chat Leads ({filteredLeads.length})
+                </Button>
+            </Box>
             
             <Paper sx={{ p: 2, mb: 3 }}>
                 <TextField
@@ -69,6 +93,7 @@ const AdminChatLeads = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     InputProps={{
                         startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
+                        endAdornment: searchTerm && <InputAdornment position="end"><IconButton onClick={() => setSearchTerm("")} aria-label="Clear search"><Clear /></IconButton></InputAdornment>
                     }}
                 />
             </Paper>
@@ -86,23 +111,24 @@ const AdminChatLeads = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredLeads.map((lead) => (
-                            <TableRow key={lead.id} hover>
-                                <TableCell sx={{whiteSpace: 'nowrap'}}>{lead.createdAt ? format(lead.createdAt, 'PPp') : 'N/A'}</TableCell>
-                                <TableCell>{lead.name}</TableCell>
-                                <TableCell>
-                                    <Box>
-                                        <MuiLink href={`mailto:${lead.email}`}>{lead.email}</MuiLink>
-                                        <br/>
-                                        <MuiLink href={`tel:${lead.phone}`}>{lead.phone}</MuiLink>
-                                    </Box>
-                                </TableCell>
-                                <TableCell>
-                                    <Typography variant="body2"><strong>Budget:</strong> {lead.budget}</Typography>
-                                    <Typography variant="body2"><strong>Location:</strong> {lead.location}</Typography>
-                                    <Typography variant="body2"><strong>Language:</strong> {lead.language}</Typography>
-                                </TableCell>
-                                <TableCell>
+                        {safePaginatedData.length > 0 ? (
+                            safePaginatedData.map((lead) => (
+                                <TableRow key={lead.id} hover>
+                                    <TableCell sx={{whiteSpace: 'nowrap'}}>{lead.createdAt ? format(lead.createdAt, 'PPp') : 'N/A'}</TableCell>
+                                    <TableCell>{lead.name}</TableCell>
+                                    <TableCell>
+                                        <Box>
+                                            <MuiLink href={`mailto:${lead.email}`}>{lead.email}</MuiLink>
+                                            <br/>
+                                            <MuiLink href={`tel:${lead.phone}`}>{lead.phone}</MuiLink>
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="body2"><strong>Budget:</strong> {lead.budget}</Typography>
+                                        <Typography variant="body2"><strong>Location:</strong> {lead.location}</Typography>
+                                        <Typography variant="body2"><strong>Language:</strong> {lead.language}</Typography>
+                                    </TableCell>
+                                    <TableCell>
                                     <FormControl size="small" fullWidth>
                                         <Select
                                             value={lead.status || 'New'}
@@ -115,15 +141,40 @@ const AdminChatLeads = () => {
                                     </FormControl>
                                 </TableCell>
                                 <TableCell>
-                                    <IconButton color="error" onClick={() => handleDelete(lead.id)}>
+                                    <IconButton color="error" onClick={() => handleDelete(lead.id)} aria-label="Delete chat lead">
                                         <Delete />
                                     </IconButton>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                                    <Typography variant="body1" color="text.secondary">
+                                        {loading ? 'Loading chat leads...' : 
+                                         searchTerm ? 'No leads match your search criteria.' : 
+                                         leads.length === 0 ? 'No chat leads available.' :
+                                         'No data to display.'}
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
+            
+            {totalPages > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Pagination 
+                        count={totalPages} 
+                        page={currentPage} 
+                        onChange={(e, page) => goToPage(page)}
+                        color="primary"
+                        showFirstButton
+                        showLastButton
+                    />
+                </Box>
+            )}
         </Box>
     );
 };

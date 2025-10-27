@@ -28,6 +28,7 @@ import {
 import { db } from "../../firebase/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { INVESTMENT_RANGES, INDIAN_CITIES, INDIAN_LANGUAGES } from "../../constants";
+import logger from "../../utils/logger";
 
 const investmentRanges = INVESTMENT_RANGES;
 const indianCities = INDIAN_CITIES.slice(0, 19); // Use first 19 cities for UI
@@ -71,7 +72,7 @@ const UserInfoForm = ({ onStartChat }) => {
           });
           onStartChat(finalUserInfo);
         } catch (error) {
-          console.error("Error saving chat lead:", error);
+          logger.error("Error saving chat lead:", error);
           // Still start the chat even if saving fails
           onStartChat(finalUserInfo);
         }
@@ -254,7 +255,7 @@ const UserInfoForm = ({ onStartChat }) => {
       <Dialog open={showCustomLocationDialog} onClose={() => setShowCustomLocationDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           Specify Your Location
-          <IconButton onClick={() => setShowCustomLocationDialog(false)}><Close /></IconButton>
+          <IconButton onClick={() => setShowCustomLocationDialog(false)} aria-label="Close location dialog"><Close /></IconButton>
         </DialogTitle>
         <DialogContent>
           <TextField label="City/Location" name="customLocation" value={userInfo.customLocation} onChange={handleChange} variant="outlined" fullWidth placeholder="Enter your city or location" sx={{ mt: 1 }} />

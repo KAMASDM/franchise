@@ -84,6 +84,7 @@ const LeadCaptureModal = ({ open, onClose }) => {
       <Box sx={{ position: "relative" }}>
         <IconButton
           onClick={handleClose}
+          aria-label="Close lead capture modal"
           sx={{
             position: "absolute",
             right: 8,

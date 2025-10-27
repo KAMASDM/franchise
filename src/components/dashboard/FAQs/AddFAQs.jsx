@@ -17,6 +17,7 @@ import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
 import { useAuth } from "../../../context/AuthContext";
+import logger from "../../../utils/logger";
 
 const AddFAQs = ({ open, onClose, brands }) => {
   const { user } = useAuth();
@@ -139,7 +140,7 @@ const AddFAQs = ({ open, onClose, brands }) => {
       });
       setErrors({});
     } catch (error) {
-      console.error("Error adding FAQs: ", error);
+      logger.error("Error adding FAQs: ", error);
       setErrors({ form: "Failed to submit FAQs. Please try again." });
     } finally {
       setLoading(false);
@@ -244,6 +245,7 @@ const AddFAQs = ({ open, onClose, brands }) => {
                     color="error"
                     onClick={() => removeFAQ(index)}
                     sx={{ position: "absolute", top: 14, right: 14 }}
+                    aria-label="Remove FAQ"
                   >
                     <DeleteIcon />
                   </IconButton>

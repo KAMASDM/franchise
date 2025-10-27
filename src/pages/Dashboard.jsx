@@ -44,6 +44,7 @@ import {
 import { motion } from "framer-motion";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebase";
+import logger from "../utils/logger";
 import Help from "../components/dashboard/Help";
 import Overview from "../components/dashboard/Overview";
 import Brands from "../components/dashboard/Brands";
@@ -96,7 +97,7 @@ const Dashboard = () => {
       await signOut(auth);
       navigate("/");
     } catch (error) {
-      console.error("Logout Failed:", error);
+      logger.error("Logout Failed:", error);
     }
   };
 
@@ -155,6 +156,7 @@ const Dashboard = () => {
           component={RouterLink}
           to="/"
           sx={{ color: "inherit", mr: 2 }}
+          aria-label="Go to home page"
         >
           <RestaurantIcon />
         </IconButton>
@@ -231,7 +233,7 @@ const Dashboard = () => {
               width: "100%",
             }}
           >
-            <IconButton component={RouterLink} to="/" sx={{ color: "inherit" }}>
+            <IconButton component={RouterLink} to="/" sx={{ color: "inherit" }} aria-label="Go to home page">
               <RestaurantIcon sx={{ mr: 1 }} />
               <Typography variant="h6">iKama</Typography>
             </IconButton>

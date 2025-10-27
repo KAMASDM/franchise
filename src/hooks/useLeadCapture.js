@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import { apiService } from "../utils/api";
-import { LOCAL_STORAGE_KEYS } from "../utils/constants";
-
-const LOCAL_STORAGE_KEYS = {
-  USER_CAPTURED: "userCaptured",
-  SEARCH_HISTORY: "searchHistory",
-  VIEWED_BRANDS: "viewedBrands",
-  USER_PREFERENCES: "userPreferences",
-};
+import { LOCAL_STORAGE_KEYS } from "../constants";
 
 export const useLeadCapture = () => {
   const [isUserCaptured, setIsUserCaptured] = useState(false);

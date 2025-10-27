@@ -84,7 +84,13 @@ export class SearchService {
       threshold = 0.3,        // Minimum similarity score
       maxResults = 50,        // Maximum results to return
       includePartialMatches = true,
-      fields = ['brandName', 'industries', 'businessModel', 'brandOwnerInformation.name']
+      fields = [
+        'brandName', 
+        'industries', 
+        'businessModel', 
+        'businessModels',  // NEW: Support for new businessModels array
+        'brandOwnerInformation.name'
+      ]
     } = options;
     
     if (!query || query.trim().length === 0) {
@@ -249,12 +255,39 @@ export class SearchService {
         });
       }
       
-      // Suggest business models
+      // Suggest business models (old field)
       if (brand.businessModel) {
         const normalizedModel = this.normalizeText(brand.businessModel);
         if (normalizedModel.includes(normalizedQuery)) {
           suggestions.add(brand.businessModel);
         }
+      }
+      
+      // Suggest business models (new array field)
+      if (brand.businessModels && Array.isArray(brand.businessModels)) {
+        brand.businessModels.forEach(modelId => {
+          // Import would be needed here, but we'll use a simple label mapping
+          const modelLabels = {
+            'franchise': 'Franchise',
+            'master_franchise': 'Master Franchise',
+            'area_franchise': 'Area Franchise',
+            'dealership': 'Dealership',
+            'authorized_dealer': 'Authorized Dealer',
+            'distributorship': 'Distributorship',
+            'wholesale_distributor': 'Wholesale Distributor',
+            'stockist': 'Stockist',
+            'super_stockist': 'Super Stockist',
+            'c_and_f_agent': 'C&F Agent',
+            'channel_partner': 'Channel Partner'
+          };
+          
+          const label = modelLabels[modelId] || modelId;
+          const normalizedModel = this.normalizeText(label);
+          if (normalizedModel.includes(normalizedQuery) || 
+              this.calculateSimilarity(normalizedModel, normalizedQuery) > 0.6) {
+            suggestions.add(label);
+          }
+        });
       }
     });
     

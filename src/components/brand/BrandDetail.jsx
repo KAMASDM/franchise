@@ -26,6 +26,8 @@ import {
   Avatar, // Import Avatar
   useTheme,
   Link, // Import Link
+  Stack,
+  Tooltip,
 } from "@mui/material";
 import {
   LocationOn,
@@ -50,6 +52,10 @@ import {
   SupportAgent, // Import missing icons
   Person, // Import missing icons
   Timeline, // Import missing icons
+  Store as StoreIcon,
+  LocalShipping as LocalShippingIcon,
+  Handshake as HandshakeIcon,
+  Inventory as InventoryIcon,
 } from "@mui/icons-material";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -58,9 +64,22 @@ import { motion } from "framer-motion";
 import { useBrand } from "../../hooks/useBrand";
 import FranchiseInquiryForm from "../forms/FranchiseInquiryForm";
 import { slugToBrandName } from "../../utils/brandUtils";
+import { 
+  BUSINESS_MODEL_CONFIG, 
+  REVENUE_MODELS, 
+  SUPPORT_TYPES 
+} from "../../constants/businessModels";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
+
+const iconMap = {
+  Store: StoreIcon,
+  Business: BusinessIcon,
+  LocalShipping: LocalShippingIcon,
+  Inventory: InventoryIcon,
+  Handshake: HandshakeIcon,
+};
 
 const BrandDetail = () => {
   const theme = useTheme();
@@ -231,6 +250,142 @@ const BrandDetail = () => {
             </CardContent>
           </MotionCard>
 
+          {/* Partnership Models Card (NEW) */}
+          {brand.businessModels && brand.businessModels.length > 0 && (
+            <MotionCard
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.05 }}
+              sx={{ mb: 4, boxShadow: 3 }}
+            >
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Partnership Opportunities
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  We offer multiple partnership models to suit different investment profiles and expertise levels:
+                </Typography>
+                
+                <Stack spacing={2} sx={{ mt: 2 }}>
+                  {brand.businessModels.map((modelId) => {
+                    const config = BUSINESS_MODEL_CONFIG[modelId];
+                    if (!config) return null;
+                    
+                    const IconComponent = iconMap[config.icon] || StoreIcon;
+                    
+                    return (
+                      <Paper 
+                        key={modelId} 
+                        elevation={1}
+                        sx={{ 
+                          p: 2, 
+                          border: `2px solid ${config.color}15`,
+                          borderLeft: `4px solid ${config.color}`,
+                          transition: 'all 0.3s',
+                          '&:hover': {
+                            boxShadow: 3,
+                            transform: 'translateX(4px)'
+                          }
+                        }}
+                      >
+                        <Box display="flex" alignItems="flex-start" gap={2}>
+                          <IconComponent 
+                            sx={{ 
+                              fontSize: 40, 
+                              color: config.color,
+                              mt: 0.5
+                            }} 
+                          />
+                          <Box flex={1}>
+                            <Typography variant="h6" fontWeight="bold" color={config.color}>
+                              {config.label}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" paragraph>
+                              {config.description}
+                            </Typography>
+                            
+                            <Box sx={{ mt: 1 }}>
+                              <Typography variant="caption" fontWeight="bold" display="block" gutterBottom>
+                                Key Features:
+                              </Typography>
+                              <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
+                                {config.features.slice(0, 4).map((feature, idx) => (
+                                  <Chip 
+                                    key={idx}
+                                    label={feature}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ 
+                                      borderColor: config.color,
+                                      color: config.color,
+                                      fontSize: '0.7rem'
+                                    }}
+                                  />
+                                ))}
+                              </Stack>
+                            </Box>
+                            
+                            <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                              <Chip 
+                                label={`${config.investmentType} Investment`}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                              />
+                              <Chip 
+                                label={`${config.commitmentLevel} Term`}
+                                size="small"
+                                color="secondary"
+                                variant="outlined"
+                              />
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Paper>
+                    );
+                  })}
+                </Stack>
+
+                {/* Revenue Model */}
+                {brand.revenueModel && REVENUE_MODELS[brand.revenueModel] && (
+                  <Box sx={{ mt: 3, p: 2, bgcolor: 'primary.light', borderRadius: 2 }}>
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                      Revenue Model: {REVENUE_MODELS[brand.revenueModel].label}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {REVENUE_MODELS[brand.revenueModel].description}
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Support Types */}
+                {brand.supportTypes && brand.supportTypes.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                      Support Provided:
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                      {brand.supportTypes.map((supportId) => {
+                        const support = SUPPORT_TYPES[supportId];
+                        if (!support) return null;
+                        return (
+                          <Tooltip key={supportId} title={support.description || ''} arrow>
+                            <Chip 
+                              label={support.label}
+                              size="small"
+                              color="success"
+                              icon={<CheckCircle />}
+                            />
+                          </Tooltip>
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+                )}
+              </CardContent>
+            </MotionCard>
+          )}
+
           {/* Business Details Card */}
           <MotionCard
             initial={{ opacity: 0, x: -50 }}
@@ -338,6 +493,7 @@ const BrandDetail = () => {
                     href={brand.brandContactInformation.facebookURl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label="Visit Facebook page"
                   >
                     <Facebook color="primary" />
                   </IconButton>
@@ -347,6 +503,7 @@ const BrandDetail = () => {
                     href={brand.brandContactInformation.twitterURl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label="Visit Twitter page"
                   >
                     <Twitter color="primary" />
                   </IconButton>
@@ -356,6 +513,7 @@ const BrandDetail = () => {
                     href={brand.brandContactInformation.instagramURl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label="Visit Instagram page"
                   >
                     <Instagram color="primary" />
                   </IconButton>
@@ -365,6 +523,7 @@ const BrandDetail = () => {
                     href={brand.brandContactInformation.linkedinURl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label="Visit LinkedIn page"
                   >
                     <LinkedIn color="primary" />
                   </IconButton>

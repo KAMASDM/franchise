@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { db } from "../firebase/firebase";
 import { addDoc, collection } from "firebase/firestore";
+import logger from "../utils/logger";
 
 const MotionCard = motion(Card);
 
@@ -91,7 +92,7 @@ const Contact = () => {
       setSubmitted(true);
       reset();
     } catch (err) {
-      console.error("Error submitting form:", err);
+      logger.error("Error submitting form:", err);
       setError("Failed to submit form. Please try again later.");
     } finally {
       setLoading(false);
@@ -246,6 +247,8 @@ const Contact = () => {
                     })}
                     error={!!errors.firstName}
                     helperText={errors.firstName?.message}
+                    aria-describedby={errors.firstName ? "firstName-error" : undefined}
+                    FormHelperTextProps={{ id: "firstName-error" }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -262,6 +265,8 @@ const Contact = () => {
                     })}
                     error={!!errors.lastName}
                     helperText={errors.lastName?.message}
+                    aria-describedby={errors.lastName ? "lastName-error" : undefined}
+                    FormHelperTextProps={{ id: "lastName-error" }}
                   />
                 </Grid>
               </Grid>
@@ -280,6 +285,8 @@ const Contact = () => {
                 })}
                 error={!!errors.email}
                 helperText={errors.email?.message}
+                aria-describedby={errors.email ? "email-error" : undefined}
+                FormHelperTextProps={{ id: "email-error" }}
               />
               <TextField
                 fullWidth
@@ -297,6 +304,8 @@ const Contact = () => {
                 inputProps={{
                   inputMode: "numeric",
                 }}
+                aria-describedby={errors.phone ? "phone-error" : undefined}
+                FormHelperTextProps={{ id: "phone-error" }}
               />
               <TextField
                 fullWidth
@@ -314,6 +323,8 @@ const Contact = () => {
                 })}
                 error={!!errors.message}
                 helperText={errors.message?.message}
+                aria-describedby={errors.message ? "message-error" : undefined}
+                FormHelperTextProps={{ id: "message-error" }}
               />
               <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
                 <Button

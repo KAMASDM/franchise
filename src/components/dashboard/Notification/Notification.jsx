@@ -22,6 +22,7 @@ import {
 import { db } from "../../../firebase/firebase";
 import { useAuth } from "../../../context/AuthContext";
 import { Notifications as NotificationsIcon } from "@mui/icons-material";
+import logger from "../../../utils/logger";
 
 const Notifications = () => {
   const { user } = useAuth();
@@ -69,7 +70,7 @@ const Notifications = () => {
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
       setUnreadCount((prev) => prev - 1);
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      logger.error("Error marking notification as read:", error);
     }
   };
 
@@ -95,7 +96,7 @@ const Notifications = () => {
       setNotifications([]);
       setUnreadCount(0);
     } catch (error) {
-      console.error("Error marking all notifications as read:", error);
+      logger.error("Error marking all notifications as read:", error);
     }
     handleClose();
   };
@@ -108,6 +109,7 @@ const Notifications = () => {
         aria-controls={open ? "notifications-menu" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
+        aria-label="View notifications"
       >
         <Badge badgeContent={unreadCount} color="error">
           <NotificationsIcon />

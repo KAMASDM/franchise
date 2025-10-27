@@ -148,6 +148,14 @@ export const NOTIFICATION_TYPES = {
   BRAND_SUBMISSION: "brand_submission",
 };
 
+// Local storage keys
+export const LOCAL_STORAGE_KEYS = {
+  USER_CAPTURED: "userCaptured",
+  SEARCH_HISTORY: "searchHistory",
+  VIEWED_BRANDS: "viewedBrands",
+  USER_PREFERENCES: "userPreferences",
+};
+
 export default {
   INVESTMENT_RANGES,
   INDUSTRIES,
@@ -162,4 +170,5 @@ export default {
   INDIAN_LANGUAGES,
   FILE_UPLOAD,
   NOTIFICATION_TYPES,
+  LOCAL_STORAGE_KEYS,
 };

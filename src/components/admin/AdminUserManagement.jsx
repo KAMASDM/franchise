@@ -7,33 +7,71 @@ import { format } from 'date-fns';
 import { AdminPanelSettings, Person, AddCircle } from '@mui/icons-material';
 
 const AdminUserManagement = () => {
-    const { users, loading: usersLoading } = useAllUsers();
+    const { users, loading: usersLoading, error: usersError } = useAllUsers();
     const [userRoles, setUserRoles] = useState({});
     const [loadingRoles, setLoadingRoles] = useState(true);
+    const [roleError, setRoleError] = useState(null);
 
     useEffect(() => {
         const fetchRoles = async () => {
-            if (!usersLoading) {
-                const roles = {};
-                for (const user of users) {
-                    const adminRef = doc(db, 'admins', user.id);
-                    const adminDoc = await getDoc(adminRef);
-                    roles[user.id] = adminDoc.exists() ? 'Admin' : 'User';
+            if (!usersLoading && !usersError) {
+                try {
+                    setRoleError(null);
+                    const roles = {};
+                    for (const user of users) {
+                        try {
+                            const adminRef = doc(db, 'admins', user.id);
+                            const adminDoc = await getDoc(adminRef);
+                            roles[user.id] = adminDoc.exists() ? 'Admin' : 'User';
+                        } catch (err) {
+                            console.error(`Error fetching role for user ${user.id}:`, err);
+                            roles[user.id] = 'User'; // Default to User on error
+                        }
+                    }
+                    setUserRoles(roles);
+                } catch (error) {
+                    console.error("Error fetching user roles:", error);
+                    setRoleError(error.message || "Failed to load user roles");
+                } finally {
+                    setLoadingRoles(false);
                 }
-                setUserRoles(roles);
-                setLoadingRoles(false);
             }
         };
         fetchRoles();
-    }, [users, usersLoading]);
+    }, [users, usersLoading, usersError]);
 
     const handlePromote = async (userId) => {
-        const adminRef = doc(db, 'admins', userId);
-        await setDoc(adminRef, { isAdmin: true });
-        setUserRoles(prev => ({ ...prev, [userId]: 'Admin' }));
+        try {
+            const adminRef = doc(db, 'admins', userId);
+            await setDoc(adminRef, { isAdmin: true });
+            setUserRoles(prev => ({ ...prev, [userId]: 'Admin' }));
+        } catch (error) {
+            console.error("Error promoting user:", error);
+            alert(`Failed to promote user: ${error.message}`);
+        }
     };
 
     if (usersLoading || loadingRoles) return <CircularProgress />;
+
+    // Show error state if users failed to load
+    if (usersError) {
+        return (
+            <Box>
+                <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>User Management</Typography>
+                <Alert severity="error" sx={{ mt: 2 }}>
+                    <Typography variant="h6">Unable to load users</Typography>
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                        {usersError.includes('Missing or insufficient permissions') 
+                            ? 'You do not have permission to view the users list. This feature requires Firestore security rules to allow reading the users collection. Please contact a system administrator to configure the necessary permissions.'
+                            : `Error: ${usersError}`}
+                    </Typography>
+                    <Typography variant="caption" sx={{ mt: 2, display: 'block', color: 'text.secondary' }}>
+                        To fix this, update your Firestore security rules to allow admins to read the users collection, or manage users directly through the Firebase Console.
+                    </Typography>
+                </Alert>
+            </Box>
+        );
+    }
 
     return (
         <Box>

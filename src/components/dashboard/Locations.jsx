@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { db } from "../../firebase/firebase";
 import { useNavigate } from "react-router-dom";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
+import logger from "../../utils/logger";
 import {
   Box,
   CircularProgress,
@@ -157,7 +158,7 @@ const Locations = () => {
         );
       }
     } catch (error) {
-      console.error("Error adding location:", error);
+      logger.error("Error adding location:", error);
     }
   };
 
@@ -504,7 +505,7 @@ const Locations = () => {
                       ),
                       endAdornment: searchTerm && (
                         <InputAdornment position="end">
-                          <IconButton onClick={() => setSearchTerm("")}>
+                          <IconButton onClick={() => setSearchTerm("")} aria-label="Clear search">
                             <Clear fontSize="small" />
                           </IconButton>
                         </InputAdornment>

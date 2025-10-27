@@ -2,30 +2,39 @@ import React, { useState, useMemo } from 'react';
 import { useContactSubmissions } from '../../hooks/useContactSubmissions';
 import { db } from '../../firebase/firebase';
 import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import logger from '../../utils/logger';
+import { exportToCSV, formatDataForExport } from '../../utils/exportUtils';
+import { useSimpleSearch } from '../../hooks/useSimpleSearch';
+import { useArrayPagination } from '../../hooks/usePagination';
 import {
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   CircularProgress, Alert, Link as MuiLink, TextField, InputAdornment, IconButton,
-  Select, MenuItem, FormControl
+  Select, MenuItem, FormControl, Button, Pagination
 } from '@mui/material';
 import { format } from 'date-fns';
-import { Search, Delete } from '@mui/icons-material';
+import { Search, Delete, Download, Clear } from '@mui/icons-material';
 
 const statusOptions = ['New', 'Contacted', 'Resolved', 'Spam'];
 
 const AdminContactMessages = () => {
     const { submissions, loading, error, setSubmissions } = useContactSubmissions();
-    const [searchTerm, setSearchTerm] = useState('');
+    const { searchTerm, setSearchTerm, debouncedSearchTerm } = useSimpleSearch('', 300);
 
     const filteredSubmissions = useMemo(() => {
         return submissions.filter(submission => {
-            const searchLower = searchTerm.toLowerCase();
+            const searchLower = debouncedSearchTerm.toLowerCase();
             return (
+                !debouncedSearchTerm ||
                 submission.name?.toLowerCase().includes(searchLower) ||
                 submission.email?.toLowerCase().includes(searchLower) ||
                 submission.message?.toLowerCase().includes(searchLower)
             );
         });
-    }, [submissions, searchTerm]);
+    }, [submissions, debouncedSearchTerm]);
+
+    // Pagination
+    const { paginatedData, currentPage, totalPages, goToPage } = useArrayPagination(filteredSubmissions, 10);
+    const safePaginatedData = Array.isArray(paginatedData) ? paginatedData : [];
 
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this message?")) {
@@ -33,7 +42,7 @@ const AdminContactMessages = () => {
                 await deleteDoc(doc(db, "contactUs", id));
                 setSubmissions(prev => prev.filter(sub => sub.id !== id));
             } catch (err) {
-                console.error("Error deleting document: ", err);
+                logger.error("Error deleting document: ", err);
                 alert("Failed to delete message.");
             }
         }
@@ -48,7 +57,7 @@ const AdminContactMessages = () => {
                 )
             );
         } catch (err) {
-            console.error("Error updating status: ", err);
+            logger.error("Error updating status: ", err);
             alert("Failed to update status.");
         }
     };
@@ -56,9 +65,24 @@ const AdminContactMessages = () => {
     if (loading) return <CircularProgress />;
     if (error) return <Alert severity="error">{error}</Alert>;
 
+    const handleExport = () => {
+        const formattedData = formatDataForExport(filteredSubmissions);
+        exportToCSV(formattedData, 'contact-messages');
+    };
+
     return (
         <Box>
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>Contact Form Submissions</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Contact Form Submissions</Typography>
+                <Button
+                    variant="contained"
+                    startIcon={<Download />}
+                    onClick={handleExport}
+                    disabled={filteredSubmissions.length === 0}
+                >
+                    Export Messages ({filteredSubmissions.length})
+                </Button>
+            </Box>
             
             <Paper sx={{ p: 2, mb: 3 }}>
                 <TextField
@@ -69,6 +93,7 @@ const AdminContactMessages = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     InputProps={{
                         startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
+                        endAdornment: searchTerm && <InputAdornment position="end"><IconButton onClick={() => setSearchTerm("")} aria-label="Clear search"><Clear /></IconButton></InputAdornment>
                     }}
                 />
             </Paper>
@@ -86,23 +111,24 @@ const AdminContactMessages = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredSubmissions.map((submission) => (
-                            <TableRow key={submission.id} hover>
-                                <TableCell sx={{whiteSpace: 'nowrap'}}>{submission.timestamp ? format(submission.timestamp, 'PPp') : 'N/A'}</TableCell>
-                                <TableCell>{submission.name}</TableCell>
-                                <TableCell>
-                                    <Box>
-                                        <MuiLink href={`mailto:${submission.email}`}>{submission.email}</MuiLink>
-                                        <br/>
-                                        <MuiLink href={`tel:${submission.phone}`}>{submission.phone}</MuiLink>
-                                    </Box>
-                                </TableCell>
-                                <TableCell sx={{maxWidth: '400px'}}>{submission.message}</TableCell>
-                                <TableCell>
-                                    <FormControl size="small" fullWidth>
-                                        <Select
-                                            value={submission.status || 'New'}
-                                            onChange={(e) => handleStatusChange(submission.id, e.target.value)}
+                        {safePaginatedData.length > 0 ? (
+                            safePaginatedData.map((submission) => (
+                                <TableRow key={submission.id} hover>
+                                    <TableCell sx={{whiteSpace: 'nowrap'}}>{submission.timestamp ? format(submission.timestamp, 'PPp') : 'N/A'}</TableCell>
+                                    <TableCell>{submission.name}</TableCell>
+                                    <TableCell>
+                                        <Box>
+                                            <MuiLink href={`mailto:${submission.email}`}>{submission.email}</MuiLink>
+                                            <br/>
+                                            <MuiLink href={`tel:${submission.phone}`}>{submission.phone}</MuiLink>
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell sx={{maxWidth: '400px'}}>{submission.message}</TableCell>
+                                    <TableCell>
+                                        <FormControl size="small" fullWidth>
+                                            <Select
+                                                value={submission.status || 'New'}
+                                                onChange={(e) => handleStatusChange(submission.id, e.target.value)}
                                         >
                                             {statusOptions.map(option => (
                                                 <MenuItem key={option} value={option}>{option}</MenuItem>
@@ -111,15 +137,40 @@ const AdminContactMessages = () => {
                                     </FormControl>
                                 </TableCell>
                                 <TableCell>
-                                    <IconButton color="error" onClick={() => handleDelete(submission.id)}>
+                                    <IconButton color="error" onClick={() => handleDelete(submission.id)} aria-label="Delete contact message">
                                         <Delete />
                                     </IconButton>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                                    <Typography variant="body1" color="text.secondary">
+                                        {loading ? 'Loading messages...' : 
+                                         searchTerm ? 'No messages match your search criteria.' : 
+                                         submissions.length === 0 ? 'No contact messages available.' :
+                                         'No data to display.'}
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
+            
+            {totalPages > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Pagination 
+                        count={totalPages} 
+                        page={currentPage} 
+                        onChange={(e, page) => goToPage(page)}
+                        color="primary"
+                        showFirstButton
+                        showLastButton
+                    />
+                </Box>
+            )}
         </Box>
     );
 };

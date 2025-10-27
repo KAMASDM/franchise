@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { doc, setDoc } from "firebase/firestore";
 import { db, auth } from "../firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import logger from "../utils/logger";
 import {
   Button,
   Container,
@@ -13,9 +14,16 @@ import {
   Step,
   StepLabel,
   Box,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  Chip
 } from "@mui/material";
+import BusinessModelSelector from "../components/brand/BusinessModelSelector";
+import { REVENUE_MODELS, SUPPORT_TYPES } from "../constants/businessModels";
 
-const steps = ["Brand Basics", "Investment Details", "Brand Story"];
+const steps = ["Brand Basics", "Business Models", "Investment Details", "Brand Story"];
 
 const CreateBrandProfile = () => {
   const navigate = useNavigate();
@@ -25,6 +33,9 @@ const CreateBrandProfile = () => {
     brandName: "",
     category: "",
     logoUrl: "",
+    businessModels: [], // Array of selected business model types
+    revenueModel: "",   // How the brand generates revenue
+    supportTypes: [],   // Types of support provided
     investmentRange: "",
     minROI: "",
     story: "",
@@ -49,6 +60,18 @@ const CreateBrandProfile = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleBusinessModelsChange = (selectedModels) => {
+    setFormData((prev) => ({ ...prev, businessModels: selectedModels }));
+  };
+
+  const handleSupportTypesChange = (event) => {
+    const { value } = event.target;
+    setFormData((prev) => ({
+      ...prev,
+      supportTypes: typeof value === 'string' ? value.split(',') : value
+    }));
+  };
+
   const handleSaveAndContinue = async () => {
     if (!user) {
       alert("You must be signed in to create a profile.");
@@ -65,7 +88,7 @@ const CreateBrandProfile = () => {
         navigate("/");
       }
     } catch (error) {
-      console.error("Error saving brand data:", error);
+      logger.error("Error saving brand data:", error);
       alert("Failed to save. Please try again.");
     }
   };
@@ -83,14 +106,16 @@ const CreateBrandProfile = () => {
               onChange={handleInputChange}
               fullWidth
               margin="normal"
+              required
             />
             <TextField
-              label="Category (e.g., Fast Food, Cafe)"
+              label="Category (e.g., Fast Food, Cafe, Retail)"
               name="category"
               value={formData.category}
               onChange={handleInputChange}
               fullWidth
               margin="normal"
+              required
             />
             <TextField
               label="Logo URL"
@@ -105,6 +130,60 @@ const CreateBrandProfile = () => {
       case 1:
         return (
           <>
+            <BusinessModelSelector
+              selectedModels={formData.businessModels}
+              onChange={handleBusinessModelsChange}
+              allowMultiple={true}
+              industry={formData.category}
+              showRecommendations={true}
+              variant="cards"
+            />
+            <Box mt={3}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Revenue Model</InputLabel>
+                <Select
+                  name="revenueModel"
+                  value={formData.revenueModel}
+                  onChange={handleInputChange}
+                  label="Revenue Model"
+                >
+                  {Object.entries(REVENUE_MODELS).map(([key, model]) => (
+                    <MenuItem key={key} value={key}>
+                      {model.label} - {model.description}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Support Types</InputLabel>
+                <Select
+                  name="supportTypes"
+                  multiple
+                  value={formData.supportTypes}
+                  onChange={handleSupportTypesChange}
+                  label="Support Types"
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value) => (
+                        <Chip key={value} label={SUPPORT_TYPES[value]?.label || value} size="small" />
+                      ))}
+                    </Box>
+                  )}
+                >
+                  {Object.entries(SUPPORT_TYPES).map(([key, support]) => (
+                    <MenuItem key={key} value={key}>
+                      {support.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </>
+        );
+      case 2:
+        return (
+          <>
             <Typography variant="h6">Now, about the investment.</Typography>
             <TextField
               label="Investment Range (e.g., ₹50k - ₹100k)"
@@ -113,6 +192,7 @@ const CreateBrandProfile = () => {
               onChange={handleInputChange}
               fullWidth
               margin="normal"
+              required
             />
             <TextField
               label="Minimum Expected ROI (%)"
@@ -121,10 +201,11 @@ const CreateBrandProfile = () => {
               onChange={handleInputChange}
               fullWidth
               margin="normal"
+              required
             />
           </>
         );
-      case 2:
+      case 3:
         return (
           <>
             <Typography variant="h6">Tell us your brand's story.</Typography>

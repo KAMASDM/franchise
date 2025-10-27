@@ -17,12 +17,14 @@ service cloud.firestore {
     // --- Collection Rules ---
     
     match /admins/{userId} {
-      allow get: if isSignedIn() && request.auth.uid == userId;
-      allow list, write: if false;
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow write: if false;
     }
     
     match /users/{userId} {
-      allow read: if request.auth.uid == userId || isAdmin();
+      allow get: if request.auth.uid == userId || isAdmin();
+      allow list: if isAdmin();
       allow create, update: if request.auth.uid == userId;
     }
     

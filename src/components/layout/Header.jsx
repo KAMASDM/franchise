@@ -40,6 +40,7 @@ import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, provider, db } from "../../firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useAuth } from "../../context/AuthContext";
+import logger from "../../utils/logger";
 
 const MotionButton = (props) => (
   <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
@@ -93,7 +94,7 @@ const Header = () => {
       );
       navigate("/dashboard/register-brand");
     } catch (error) {
-      console.error("Google Sign-In Failed:", error);
+      logger.error("Google Sign-In Failed:", error);
     }
   };
 
@@ -103,7 +104,7 @@ const Header = () => {
       handleCloseUserMenu();
       navigate("/");
     } catch (error) {
-      console.error("Logout Failed:", error);
+      logger.error("Logout Failed:", error);
     }
   };
 
@@ -156,7 +157,7 @@ const Header = () => {
   const userMenu = (
     <Box>
       <Tooltip title="Account settings">
-        <IconButton onClick={handleUserMenu} sx={{ p: 0 }}>
+        <IconButton onClick={handleUserMenu} sx={{ p: 0 }} aria-label="Open user menu">
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <Avatar 
               alt={user?.displayName || ""} 
@@ -266,6 +267,7 @@ const Header = () => {
                 edge="end"
                 color="inherit"
                 onClick={handleDrawer(true)}
+                aria-label="Open navigation menu"
               >
                 <MenuIcon />
               </IconButton>

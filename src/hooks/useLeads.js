@@ -46,7 +46,7 @@ export const useLeads = (user = null) => {
     };
 
     fetchLeads();
-  }, [user]);
+  }, [user?.uid]);
 
   return { leads, loading, error };
 };

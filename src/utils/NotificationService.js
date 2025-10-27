@@ -83,7 +83,7 @@ export class NotificationService {
     try {
       // For now, we'll use a hardcoded admin list
       // In production, this should be configurable
-      const ADMIN_UIDS = process.env.REACT_APP_ADMIN_UIDS?.split(',') || [];
+      const ADMIN_UIDS = import.meta.env.VITE_ADMIN_UIDS?.split(',') || [];
       
       if (ADMIN_UIDS.length === 0) {
         console.warn("No admin UIDs configured, skipping admin notification");

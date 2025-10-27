@@ -1,13 +1,37 @@
 import React from 'react';
 import { useAllBrands } from '../../hooks/useAllBrands';
+import { useSimpleSearch } from '../../hooks/useSimpleSearch';
+import { useArrayPagination } from '../../hooks/usePagination';
 import { db } from '../../firebase/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, CircularProgress, Alert, Link } from '@mui/material';
+import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, CircularProgress, Alert, Link, TextField, InputAdornment, IconButton, Pagination } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
+import { Download, Search, Clear } from '@mui/icons-material';
 import NotificationService from '../../utils/NotificationService';
+import logger from '../../utils/logger';
+import { exportBrands } from '../../utils/exportUtils';
 
 const AdminBrandManagement = () => {
     const { brands, loading, error, setBrands } = useAllBrands();
+    const { searchTerm, setSearchTerm, debouncedSearchTerm } = useSimpleSearch('', 300);
+
+    // Filter brands based on debounced search
+    const filteredBrands = React.useMemo(() => {
+        if (!brands || !Array.isArray(brands)) return [];
+        if (!debouncedSearchTerm) return brands;
+        
+        const searchLower = debouncedSearchTerm.toLowerCase();
+        return brands.filter(brand => 
+            brand.brandName?.toLowerCase().includes(searchLower) ||
+            brand.brandOwnerInformation?.email?.toLowerCase().includes(searchLower) ||
+            brand.status?.toLowerCase().includes(searchLower)
+        );
+    }, [brands, debouncedSearchTerm]);
+
+    const { paginatedData, currentPage, totalPages, goToPage } = useArrayPagination(filteredBrands, 10);
+    
+    // Ensure paginatedData is always an array
+    const safePaginatedData = Array.isArray(paginatedData) ? paginatedData : [];
 
     const handleApproval = async (brandId, newStatus) => {
         try {
@@ -32,7 +56,7 @@ const AdminBrandManagement = () => {
                 )
             );
         } catch (err) {
-            console.error("Error updating brand status:", err);
+            logger.error("Error updating brand status:", err);
         }
     };
 
@@ -41,7 +65,33 @@ const AdminBrandManagement = () => {
 
     return (
         <Box>
-            <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>Brand Verification & Management</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Brand Verification & Management</Typography>
+                <Button
+                    variant="contained"
+                    startIcon={<Download />}
+                    onClick={() => exportBrands(brands)}
+                    disabled={brands.length === 0}
+                >
+                    Export Brands ({brands.length})
+                </Button>
+            </Box>
+            
+            {/* Search Bar */}
+            <Box sx={{ mb: 3 }}>
+                <TextField
+                    fullWidth
+                    size="small"
+                    placeholder="Search by brand name, owner email, or status..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    InputProps={{
+                        startAdornment: <InputAdornment position="start"><Search /></InputAdornment>,
+                        endAdornment: searchTerm && <InputAdornment position="end"><IconButton onClick={() => setSearchTerm("")} aria-label="Clear search"><Clear /></IconButton></InputAdornment>
+                    }}
+                />
+            </Box>
+            
             <TableContainer component={Paper} elevation={3}>
                 <Table>
                     <TableHead>
@@ -53,41 +103,67 @@ const AdminBrandManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {brands.map((brand) => (
-                            <TableRow key={brand.id} hover>
-                                <TableCell>
-                                    {/* THIS LINK IS NOW CORRECT */}
-                                    <Link component={RouterLink} to={`/admin/brands/${brand.id}`} underline="hover">
-                                        {brand.brandName}
-                                    </Link>
-                                </TableCell>
-                                <TableCell>{brand.brandOwnerInformation?.email}</TableCell>
-                                <TableCell>
-                                    <Chip
-                                        label={brand.status}
-                                        color={
-                                            brand.status === 'active' ? 'success' :
-                                            brand.status === 'pending' ? 'warning' : 'default'
-                                        }
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    {(brand.status === 'pending' || brand.status === 'inactive') && (
-                                        <Button variant="contained" size="small" color="success" onClick={() => handleApproval(brand.id, 'active')}>
-                                            Approve
-                                        </Button>
-                                    )}
-                                    {brand.status === 'active' && (
-                                        <Button variant="outlined" size="small" color="error" onClick={() => handleApproval(brand.id, 'inactive')}>
-                                            Deactivate
-                                        </Button>
-                                    )}
+                        {safePaginatedData.length > 0 ? (
+                            safePaginatedData.map((brand) => (
+                                <TableRow key={brand.id} hover>
+                                    <TableCell>
+                                        {/* THIS LINK IS NOW CORRECT */}
+                                        <Link component={RouterLink} to={`/admin/brands/${brand.id}`} underline="hover">
+                                            {brand.brandName}
+                                        </Link>
+                                    </TableCell>
+                                    <TableCell>{brand.brandOwnerInformation?.email}</TableCell>
+                                    <TableCell>
+                                        <Chip
+                                            label={brand.status}
+                                            color={
+                                                brand.status === 'active' ? 'success' :
+                                                brand.status === 'pending' ? 'warning' : 'default'
+                                            }
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        {(brand.status === 'pending' || brand.status === 'inactive') && (
+                                            <Button variant="contained" size="small" color="success" onClick={() => handleApproval(brand.id, 'active')}>
+                                                Approve
+                                            </Button>
+                                        )}
+                                        {brand.status === 'active' && (
+                                            <Button variant="outlined" size="small" color="error" onClick={() => handleApproval(brand.id, 'inactive')}>
+                                                Deactivate
+                                            </Button>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                                    <Typography variant="body1" color="text.secondary">
+                                        {loading ? 'Loading brands...' : 
+                                         searchTerm ? 'No brands match your search criteria.' : 
+                                         brands.length === 0 ? 'No brands available.' :
+                                         'No data to display.'}
+                                    </Typography>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
+            
+            {totalPages > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Pagination 
+                        count={totalPages} 
+                        page={currentPage} 
+                        onChange={(e, page) => goToPage(page)}
+                        color="primary"
+                        showFirstButton
+                        showLastButton
+                    />
+                </Box>
+            )}
         </Box>
     );
 };
