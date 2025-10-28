@@ -25,7 +25,7 @@ const PrivacyPolicy = React.lazy(() => import("./pages/PrivacyPolicy"));
 const TermsAndConditions = React.lazy(() => import("./pages/TermsAndConditions"));
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
-const CreateBrandProfile = React.lazy(() => import("./pages/CreateBrandProfileNew"));
+const CreateBrandProfile = React.lazy(() => import("./pages/CreateBrandProfile"));
 const BrandDebugger = React.lazy(() => import("./components/debug/BrandDebugger"));
 
 // Only load debug component in development
