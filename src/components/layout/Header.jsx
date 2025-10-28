@@ -179,24 +179,27 @@ const Header = () => {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <MenuItem
-          onClick={() => {
-            navigate("/dashboard");
-            handleCloseUserMenu();
-          }}
-        >
-          <ListItemIcon>
-            <DashboardIcon fontSize="small" />
-          </ListItemIcon>
-          Dashboard
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={handleLogout}>
-          <ListItemIcon>
-            <LogoutIcon fontSize="small" />
-          </ListItemIcon>
-          Logout
-        </MenuItem>
+        {[
+          <MenuItem
+            key="dashboard"
+            onClick={() => {
+              navigate("/dashboard");
+              handleCloseUserMenu();
+            }}
+          >
+            <ListItemIcon>
+              <DashboardIcon fontSize="small" />
+            </ListItemIcon>
+            Dashboard
+          </MenuItem>,
+          <Divider key="divider" />,
+          <MenuItem key="logout" onClick={handleLogout}>
+            <ListItemIcon>
+              <LogoutIcon fontSize="small" />
+            </ListItemIcon>
+            Logout
+          </MenuItem>
+        ]}
       </Menu>
     </Box>
   );

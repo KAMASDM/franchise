@@ -259,10 +259,10 @@ const NotificationCenter = () => {
           ) : (
             <List sx={{ p: 0 }}>
               {notifications.map((notification, index) => (
-                <React.Fragment key={notification.id}>
+                <div key={notification.id}>
                   {renderNotificationItem(notification)}
                   {index < notifications.length - 1 && <Divider />}
-                </React.Fragment>
+                </div>
               ))}
             </List>
           )}

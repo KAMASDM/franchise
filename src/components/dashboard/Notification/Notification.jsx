@@ -131,62 +131,64 @@ const Notifications = () => {
           },
         }}
       >
-        <Box
-          p={2}
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Typography variant="h6">Notifications</Typography>
-          {unreadCount > 0 && (
-            <Typography
-              variant="body2"
-              color="primary"
-              onClick={markAllAsRead}
-              style={{ cursor: "pointer" }}
-            >
-              Mark all as read
-            </Typography>
-          )}
-        </Box>
-        <Divider />
-
-        {notifications.length === 0 ? (
-          <Box p={2}>
-            <Typography variant="body2" color="text.secondary">
-              No new notifications
-            </Typography>
-          </Box>
-        ) : (
-          <List dense>
-            {notifications.map((notification) => (
-              <MenuItem
-                key={notification.id}
-                onClick={() => {
-                  markAsRead(notification.id);
-                }}
-                sx={{
-                  backgroundColor: notification.read
-                    ? "inherit"
-                    : "action.hover",
-                }}
+        {[
+          <Box
+            key="header"
+            p={2}
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography variant="h6">Notifications</Typography>
+            {unreadCount > 0 && (
+              <Typography
+                variant="body2"
+                color="primary"
+                onClick={markAllAsRead}
+                style={{ cursor: "pointer" }}
               >
-                <ListItemText
-                  primary={notification.title}
-                  secondary={notification.message}
-                  primaryTypographyProps={{ fontWeight: "medium" }}
-                  secondaryTypographyProps={{ color: "text.secondary" }}
-                />
-                <Typography variant="caption" color="text.secondary">
-                  {notification.createdAt?.toDate().toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Typography>
-              </MenuItem>
-            ))}
-          </List>
-        )}
+                Mark all as read
+              </Typography>
+            )}
+          </Box>,
+          <Divider key="divider" />,
+          notifications.length === 0 ? (
+            <Box key="empty" p={2}>
+              <Typography variant="body2" color="text.secondary">
+                No new notifications
+              </Typography>
+            </Box>
+          ) : (
+            <List key="list" dense>
+              {notifications.map((notification) => (
+                <MenuItem
+                  key={notification.id}
+                  onClick={() => {
+                    markAsRead(notification.id);
+                  }}
+                  sx={{
+                    backgroundColor: notification.read
+                      ? "inherit"
+                      : "action.hover",
+                  }}
+                >
+                  <ListItemText
+                    primary={notification.title}
+                    secondary={notification.message}
+                    primaryTypographyProps={{ fontWeight: "medium" }}
+                    secondaryTypographyProps={{ color: "text.secondary" }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    {notification.createdAt?.toDate().toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Typography>
+                </MenuItem>
+              ))}
+            </List>
+          )
+        ]}
       </Menu>
     </Box>
   );

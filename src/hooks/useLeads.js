@@ -20,8 +20,10 @@ export const useLeads = (user = null) => {
           // Query for user-specific leads - Fixed field name to match data structure
           q = query(leadsCollection, where("brandOwnerId", "==", user.uid));
         } else {
-          // Query for all leads when no user is provided
-          q = query(leadsCollection);
+          // No user provided, don't fetch leads
+          setLeads([]);
+          setLoading(false);
+          return;
         }
 
         const querySnapshot = await getDocs(q);

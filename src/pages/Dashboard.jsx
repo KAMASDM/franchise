@@ -51,7 +51,7 @@ import Brands from "../components/dashboard/Brands";
 import Settings from "../components/dashboard/Settings";
 import Leads from "../components/dashboard/Leads";
 import Locations from "../components/dashboard/Locations";
-import BrandRegistration from "../components/forms/BrandRegistration";
+import BrandRegistration from "../components/forms/BrandRegistrationNew";
 import BrandDetail from "../components/dashboard/BrandDetail";
 import NotificationCenter from "../components/common/NotificationCenter";
 import Review from "../components/dashboard/Review";
@@ -265,7 +265,7 @@ const Dashboard = () => {
             <Route path="/" element={<Overview />} />
             <Route path="register-brand" element={<BrandRegistration />} />
             <Route path="brands" element={<Brands />} />
-            <Route path="brand-details/:slug" element={<BrandDetail />} />
+            <Route path="brand-details/:id" element={<BrandDetail />} />
             <Route path="locations" element={<Locations />} />
             <Route path="leads" element={<Leads />} />
             <Route path="reviews" element={<Review />} />

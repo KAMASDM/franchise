@@ -1,20 +1,24 @@
-import React from 'react';
-import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme } from '@mui/material';
+import React, { Suspense, lazy } from 'react';
+import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme, CircularProgress, useMediaQuery } from '@mui/material';
 import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom';
 import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart, Email, Chat as ChatIcon } from '@mui/icons-material';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
+import { useDevice } from '../hooks/useDevice';
 
 import AdminOverview from '../components/admin/AdminOverview';
 import AdminBrandManagement from '../components/admin/AdminBrandManagement';
 import AdminUserManagement from '../components/admin/AdminUserManagement';
 import AdminNotifications from '../components/admin/AdminNotifications';
-import BrandDetail from '../components/dashboard/BrandDetail';
+import AdminBrandDetail from '../components/admin/AdminBrandDetail';
 import AdminLeadManagement from '../components/admin/AdminLeadManagement';
 import AdminAnalytics from '../components/admin/AdminAnalytics';
 import AdminContactMessages from '../components/admin/AdminContactMessages';
 import AdminChatLeads from '../components/admin/AdminChatLeads';
+
+// Lazy load mobile layout
+const AdminDashboardMobile = lazy(() => import('../components/admin/AdminDashboardMobile'));
 
 const adminTheme = createTheme({
   palette: {
@@ -44,6 +48,7 @@ const drawerWidth = 240;
 const AdminDashboard = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { isMobile } = useDevice();
 
     const handleLogout = async () => {
         await signOut(auth);
@@ -61,6 +66,36 @@ const AdminDashboard = () => {
         { text: 'Send Notifications', path: '/admin/notifications', icon: <NotificationsIcon /> },
     ];
 
+    // Render mobile version
+    if (isMobile) {
+        return (
+            <ThemeProvider theme={adminTheme}>
+                <Suspense fallback={
+                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+                        <CircularProgress />
+                    </Box>
+                }>
+                    <AdminDashboardMobile>
+                        <Box sx={{ p: 2 }}>
+                            <Routes>
+                                <Route path="/" element={<AdminOverview />} />
+                                <Route path="/brands" element={<AdminBrandManagement />} />
+                                <Route path="/brands/:id" element={<AdminBrandDetail />} />
+                                <Route path="/leads" element={<AdminLeadManagement />} />
+                                <Route path="/chat-leads" element={<AdminChatLeads />} />
+                                <Route path="/messages" element={<AdminContactMessages />} />
+                                <Route path="/analytics" element={<AdminAnalytics />} />
+                                <Route path="/users" element={<AdminUserManagement />} />
+                                <Route path="/notifications" element={<AdminNotifications />} />
+                            </Routes>
+                        </Box>
+                    </AdminDashboardMobile>
+                </Suspense>
+            </ThemeProvider>
+        );
+    }
+
+    // Desktop version
     const drawer = (
         <div>
             <Toolbar sx={{ backgroundColor: 'primary.dark', color: 'white' }}>
@@ -117,7 +152,7 @@ const AdminDashboard = () => {
                     <Routes>
                         <Route path="/" element={<AdminOverview />} />
                         <Route path="brands" element={<AdminBrandManagement />} />
-                        <Route path="brands/:id" element={<BrandDetail />} />
+                        <Route path="brands/:id" element={<AdminBrandDetail />} />
                         <Route path="leads" element={<AdminLeadManagement />} />
                         <Route path="chat-leads" element={<AdminChatLeads />} />
                         <Route path="messages" element={<AdminContactMessages />} />

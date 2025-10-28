@@ -47,7 +47,7 @@ const AdminVerification = () => {
                             <TableRow key={brand.id} hover>
                                 <TableCell>
                                     {/* Make the brand name a clickable link */}
-                                    <Link component={RouterLink} to={`/dashboard/brand-details/${brand.id}`} underline="hover">
+                                    <Link component={RouterLink} to={`/dashboard/brand-details/${brand.brandName.replace(/\s+/g, "-").toLowerCase()}`} underline="hover">
                                         {brand.brandName}
                                     </Link>
                                 </TableCell>

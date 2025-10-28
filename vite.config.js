@@ -20,19 +20,19 @@ export default defineConfig({
         orientation: 'portrait-primary',
         icons: [
           {
-            src: '/pwa-192x192.svg',
+            src: 'pwa-192x192.svg',
             sizes: '192x192',
             type: 'image/svg+xml',
             purpose: 'any'
           },
           {
-            src: '/pwa-512x512.svg',
+            src: 'pwa-512x512.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
             purpose: 'any'
           },
           {
-            src: '/pwa-512x512.svg',
+            src: 'pwa-512x512.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
             purpose: 'maskable'
@@ -85,6 +85,43 @@ export default defineConfig({
             }
           },
           {
+            // Handle Firebase Firestore API calls - use NetworkFirst for real-time data
+            urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*\/documents\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'firestore-documents-cache',
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 5 // 5 minutes
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            // Ignore Firebase Firestore WebSocket/Listen connections (these shouldn't be cached)
+            urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*\/Listen\/channel\?.*/i,
+            handler: 'NetworkOnly'
+          },
+          {
+            // Handle other Firebase API calls
+            urlPattern: /^https:\/\/identitytoolkit\.googleapis\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'firebase-auth-cache',
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 10 // 10 minutes
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
             handler: 'CacheFirst',
             options: {
@@ -95,7 +132,10 @@ export default defineConfig({
               }
             }
           }
-        ]
+        ],
+        // Add navigation fallback for SPA
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/]
       },
       devOptions: {
         enabled: true,
