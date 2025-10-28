@@ -163,19 +163,39 @@ const FacetedFilters = ({
   }, [filters]);
 
   return (
-    <Paper elevation={2} sx={{ p: 2, height: 'fit-content', position: 'sticky', top: 80 }}>
+    <Box 
+      sx={{ 
+        p: 0, 
+        height: 'fit-content',
+        width: '100%',
+        maxWidth: '100%'
+      }}
+    >
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FilterList color="primary" />
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Filters
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          mb: 3,
+          p: 2.5,
+          background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.08), rgba(156, 39, 176, 0.08))',
+          borderRadius: '12px 12px 0 0',
+          borderBottom: '1px solid',
+          borderBottomColor: 'divider'
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <FilterList color="primary" sx={{ fontSize: 24 }} />
+          <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+            Refine Search
           </Typography>
           {activeFilterCount > 0 && (
             <Chip 
               label={activeFilterCount} 
               size="small" 
-              color="primary" 
+              color="primary"
+              sx={{ fontWeight: 'bold' }}
             />
           )}
         </Box>
@@ -184,9 +204,14 @@ const FacetedFilters = ({
             size="small" 
             startIcon={<Clear />}
             onClick={onClearFilters}
+            variant="outlined"
             color="error"
+            sx={{ 
+              borderRadius: 2,
+              fontWeight: 'medium'
+            }}
           >
-            Clear All
+            Clear
           </Button>
         )}
       </Box>
@@ -225,7 +250,13 @@ const FacetedFilters = ({
         expanded={expanded.includes('category')}
         onChange={handlePanelChange('category')}
         elevation={0}
-        sx={{ '&:before': { display: 'none' } }}
+        sx={{ 
+          '&:before': { display: 'none' },
+          '&:not(:last-child)': { borderBottom: '1px solid', borderColor: 'divider' },
+          borderRadius: 2,
+          mb: 1,
+          mx: 2
+        }}
       >
         <AccordionSummary expandIcon={<ExpandMore />}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -464,7 +495,7 @@ const FacetedFilters = ({
           </FormGroup>
         </AccordionDetails>
       </Accordion>
-    </Paper>
+    </Box>
   );
 };
 

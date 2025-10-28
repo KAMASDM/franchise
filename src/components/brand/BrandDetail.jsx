@@ -189,6 +189,74 @@ const BrandDetail = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* Breadcrumbs */}
+      <Box sx={{ mb: 3 }}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: { xs: 1, sm: 1.5 },
+            py: { xs: 1.5, sm: 2 },
+            px: { xs: 2, sm: 3 },
+            background: theme.palette.background.paper,
+            borderRadius: 2,
+            boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+            border: `1px solid ${theme.palette.divider}`,
+            flexWrap: 'wrap'
+          }}
+        >
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 0.5,
+              cursor: 'pointer',
+              '&:hover': { color: theme.palette.primary.main }
+            }}
+            onClick={() => navigate('/')}
+          >
+            <Home sx={{ fontSize: 18 }} />
+            <Typography variant="body2" color="text.secondary">
+              Home
+            </Typography>
+          </Box>
+          
+          <Typography variant="body2" color="text.secondary">•</Typography>
+          
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 0.5,
+              cursor: 'pointer',
+              '&:hover': { color: theme.palette.primary.main }
+            }}
+            onClick={() => navigate('/brands')}
+          >
+            <BusinessIcon sx={{ fontSize: 18 }} />
+            <Typography variant="body2" color="text.secondary">
+              Brands
+            </Typography>
+          </Box>
+          
+          <Typography variant="body2" color="text.secondary">•</Typography>
+          
+          <Typography 
+            variant="body2" 
+            color="primary.main" 
+            fontWeight="medium"
+            sx={{ 
+              maxWidth: { xs: '200px', sm: 'none' },
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {brand?.brandName || 'Brand Details'}
+          </Typography>
+        </Box>
+      </Box>
+
       <MotionCard
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}

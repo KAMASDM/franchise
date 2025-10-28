@@ -37,5 +37,5 @@ export const getBrandUrl = (brand) => {
   if (!brand) return '/brands';
   
   const slug = generateBrandSlug(brand.brandName);
-  return `/brands/${slug || brand.id}`;
+  return `/brand/${slug || brand.id}`;
 };

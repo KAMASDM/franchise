@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useSimpleSearch } from '../../hooks/useSimpleSearch';
+import { getBrandUrl } from '../../utils/brandUtils';
 
 const AdvancedSearchBar = ({ 
   placeholder = "Search for franchise opportunities...",
@@ -67,15 +68,16 @@ const AdvancedSearchBar = ({
       .filter(brand => 
         brand.brandName?.toLowerCase().includes(searchLower) ||
         brand.brandIndustry?.toLowerCase().includes(searchLower) ||
-        brand.brandCategory?.toLowerCase().includes(searchLower)
+        brand.brandCategory?.toLowerCase().includes(searchLower) ||
+        brand.industries?.some(industry => industry.toLowerCase().includes(searchLower))
       )
       .slice(0, 5)
       .map(brand => ({
         type: 'brand',
         text: brand.brandName,
-        subtitle: brand.brandIndustry || brand.brandCategory,
-        id: brand.id,
-        slug: brand.slug
+        subtitle: brand.brandIndustry || brand.brandCategory || brand.industries?.[0] || 'Franchise',
+        // Pass the full brand object so getBrandUrl can work properly
+        ...brand
       }));
 
     // Combine with search history and suggestions
@@ -131,7 +133,9 @@ const AdvancedSearchBar = ({
 
   const handleSuggestionClick = (suggestion) => {
     if (suggestion.type === 'brand') {
-      navigate(`/brands/${suggestion.slug || suggestion.id}`);
+      // Use getBrandUrl utility to generate proper brand URL
+      const brandUrl = getBrandUrl(suggestion);
+      navigate(brandUrl);
     } else {
       setSearchTerm(suggestion.text);
       handleSearch(suggestion.text);

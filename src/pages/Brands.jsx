@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { motion } from "framer-motion";
 import BrandCard from "../components/brand/BrandCard";
 import SearchFilters from "../components/home/SearchFilters";
@@ -11,10 +11,16 @@ import {
   CircularProgress,
   Box,
   useTheme,
+  Button,
 } from "@mui/material";
+import { Store as StoreIcon } from "@mui/icons-material";
 import { useBrands } from "../hooks/useBrands";
 import { useSearch } from "../hooks/useSearch";
 import { SearchService } from "../utils/SearchService";
+import { useDevice } from "../hooks/useDevice";
+
+// Lazy load mobile version
+const BrandsMobile = lazy(() => import("./BrandsMobile"));
 
 const industries = [
   "Food & Beverage",
@@ -55,11 +61,29 @@ const itemVariants = {
 
 const Brands = () => {
   const theme = useTheme();
+  const { isMobile } = useDevice();
   const { brands, loading, error } = useBrands();
   const [filteredBrands, setFilteredBrands] = useState([]);
   const [availableFranchiseModels, setAvailableFranchiseModels] = useState([]);
   const [filters, setFilters] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Mobile version
+  if (isMobile) {
+    return (
+      <Suspense
+        fallback={
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+            <CircularProgress />
+          </Box>
+        }
+      >
+        <BrandsMobile />
+      </Suspense>
+    );
+  }
+
+  // Desktop version continues below...
 
   // Update filtered brands when brands, search, or filters change
   useEffect(() => {
@@ -162,84 +186,223 @@ const Brands = () => {
   return (
     <Box
       sx={{
-        background: `linear-gradient(to bottom, ${theme.palette.primary[50]}, ${theme.palette.background.paper} 50%, ${theme.palette.secondary[50]})`,
+        minHeight: '100vh',
+        background: `linear-gradient(135deg, ${theme.palette.primary[50]} 0%, ${theme.palette.background.paper} 40%, ${theme.palette.secondary[50]} 100%)`,
       }}
     >
-      <Container maxWidth="xl" sx={{ py: { xs: 5, md: 10 } }}>
-        <motion.div variants={itemVariants} initial="hidden" animate="visible">
-          <Typography
-            component="h1"
-            variant="h2"
-            sx={{
-              textAlign: "center",
-              mb: 2,
-              fontSize: { xs: "2.25rem", md: "3rem" },
-            }}
-          >
-            Featured Franchise Opportunities
-          </Typography>
-          <Typography
-            variant="h6"
-            color="text.secondary"
-            sx={{
-              maxWidth: 800,
-              mx: "auto",
-              textAlign: "center",
-              mb: 4,
-            }}
-          >
-            Discover top-performing restaurant franchises with proven business
-            models and strong support systems.
-          </Typography>
+      {/* Hero Section */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.secondary.main}15 100%)`,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          py: { xs: 4, md: 8 },
+          mb: 4,
+        }}
+      >
+        <Container maxWidth="xl">
+          <motion.div variants={itemVariants} initial="hidden" animate="visible">
+            <Box sx={{ textAlign: "center", mb: 4 }}>
+              <Typography
+                component="h1"
+                variant="h2"
+                sx={{
+                  fontSize: { xs: "2.5rem", md: "3.5rem" },
+                  fontWeight: 700,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mb: 2,
+                }}
+              >
+                Franchise Marketplace
+              </Typography>
+              <Typography
+                variant="h5"
+                color="text.secondary"
+                sx={{
+                  maxWidth: 700,
+                  mx: "auto",
+                  fontWeight: 300,
+                  lineHeight: 1.6,
+                  mb: 4,
+                }}
+              >
+                Discover premium franchise opportunities with proven business models and comprehensive support systems
+              </Typography>
 
-          {/* Advanced Search Bar */}
-          <Box sx={{ maxWidth: 800, mx: "auto", mb: 6 }}>
-            <AdvancedSearchBar 
-              brands={brands}
-              onSearch={handleSearch}
-              showSuggestions={true}
-            />
+              {/* Advanced Search Bar */}
+              <Box sx={{ maxWidth: 600, mx: "auto" }}>
+                <AdvancedSearchBar 
+                  brands={brands}
+                  onSearch={handleSearch}
+                  showSuggestions={true}
+                />
+              </Box>
+            </Box>
+          </motion.div>
+        </Container>
+      </Box>
+
+      {/* Main Content */}
+      <Container maxWidth="xl" sx={{ pb: 8 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 3, lg: 4 }, 
+          flexDirection: { xs: 'column', lg: 'row' },
+          alignItems: 'flex-start'
+        }}>
+          {/* Filters Sidebar */}
+          <Box 
+            sx={{ 
+              width: { xs: '100%', lg: '320px' }, 
+              flexShrink: 0,
+              position: { lg: 'sticky' },
+              top: { lg: 120 },
+              zIndex: 1,
+            }}
+          >
+            <Box
+              sx={{
+                background: theme.palette.background.paper,
+                borderRadius: 3,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                border: `1px solid ${theme.palette.divider}`,
+                overflow: 'hidden'
+              }}
+            >
+              <FacetedFilters
+                brands={brands}
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={handleClearFilters}
+              />
+            </Box>
           </Box>
-        </motion.div>
-
-        <Grid container spacing={3}>
-          {/* Faceted Filters Sidebar */}
-          <Grid item xs={12} md={3}>
-            <FacetedFilters
-              brands={brands}
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              onClearFilters={handleClearFilters}
-            />
-          </Grid>
 
           {/* Brand Results */}
-          <Grid item xs={12} md={9}>
-            <Box sx={{ mb: 2 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* Results Header */}
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3,
+                p: 3,
+                background: theme.palette.background.paper,
+                borderRadius: 2,
+                boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+                border: `1px solid ${theme.palette.divider}`
+              }}
+            >
+              <Typography 
+                variant="h6" 
+                fontWeight={600}
+                sx={{ 
+                  color: theme.palette.text.primary,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <StoreIcon color="primary" />
+                {filteredBrands.length} Franchise{filteredBrands.length !== 1 ? 's' : ''} Available
+              </Typography>
               <Typography variant="body2" color="text.secondary">
-                Showing {filteredBrands.length} of {brands?.length || 0} franchises
+                Out of {brands?.length || 0} total opportunities
               </Typography>
             </Box>
 
-            <Grid container spacing={4}>
+            {/* Brand Cards Grid */}
+            <Box sx={{ minHeight: '400px' }}>
               {filteredBrands.length > 0 ? (
-                filteredBrands.map((brand) => (
-                  <Grid item key={brand.id} xs={12} sm={6} lg={4}>
-                    <BrandCard brand={brand} />
-                  </Grid>
-                ))
-              ) : (
-                <Grid item xs={12}>
-                  <Typography variant="h6" align="center" sx={{ mt: 4 }}>
-                    {brands.length === 0
-                      ? "No brands available yet."
-                      : "No brands found matching your criteria."}
-                  </Typography>
+                <Grid 
+                  container 
+                  spacing={{ xs: 3, md: 4 }}
+                  sx={{
+                    '& .MuiGrid-item': {
+                      display: 'flex',
+                      alignItems: 'stretch'
+                    }
+                  }}
+                >
+                  {filteredBrands.map((brand, index) => (
+                    <Grid 
+                      item 
+                      key={brand.id} 
+                      xs={12} 
+                      sm={6} 
+                      xl={4}
+                      sx={{ display: 'flex' }}
+                    >
+                      <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ 
+                          duration: 0.5, 
+                          delay: Math.min(index * 0.1, 1),
+                          ease: "easeOut"
+                        }}
+                        whileHover={{ y: -8 }}
+                        style={{ 
+                          height: '100%', 
+                          width: '100%',
+                          display: 'flex'
+                        }}
+                      >
+                        <BrandCard brand={brand} index={index} />
+                      </motion.div>
+                    </Grid>
+                  ))}
                 </Grid>
+              ) : (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    py: 8,
+                    px: 4,
+                    background: theme.palette.background.paper,
+                    borderRadius: 3,
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    textAlign: 'center'
+                  }}
+                >
+                  <StoreIcon 
+                    sx={{ 
+                      fontSize: 80, 
+                      color: theme.palette.grey[400], 
+                      mb: 2 
+                    }} 
+                  />
+                  <Typography variant="h5" color="text.secondary" gutterBottom>
+                    {brands.length === 0
+                      ? "No Franchises Available"
+                      : "No Results Found"}
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 400 }}>
+                    {brands.length === 0
+                      ? "We're working on adding new franchise opportunities. Check back soon!"
+                      : "Try adjusting your filters or search terms to find more opportunities."}
+                  </Typography>
+                  {brands.length > 0 && (
+                    <Button 
+                      variant="outlined" 
+                      onClick={handleClearFilters}
+                      sx={{ mt: 1 }}
+                    >
+                      Clear All Filters
+                    </Button>
+                  )}
+                </Box>
               )}
-            </Grid>
-          </Grid>
-        </Grid>
+            </Box>
+          </Box>
+        </Box>
       </Container>
     </Box>
   );

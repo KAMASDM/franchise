@@ -43,12 +43,22 @@ import { collection, query, where, getDocs, addDoc, serverTimestamp } from "fire
 import NotificationService from "../../utils/NotificationService";
 import { BrandMatchingService } from "../../utils/BrandMatchingService";
 import { INVESTMENT_RANGES, INDUSTRIES } from "../../constants";
-import { generateBrandSlug } from "../../utils/brandUtils";
+import { getBrandUrl } from "../../utils/brandUtils";
+import { useDevice } from "../../hooks/useDevice";
 import logger from "../../utils/logger";
 
 const Chatbot = () => {
   const navigate = useNavigate();
+  const { isMobile } = useDevice();
   const [open, setOpen] = useState(false);
+
+  // Expose setOpen to window for mobile bottom nav access
+  useEffect(() => {
+    window.openChatbot = () => setOpen(true);
+    return () => {
+      delete window.openChatbot;
+    };
+  }, []);
   const [chatPhase, setChatPhase] = useState("pre-chat");
   const [userInfo, setUserInfo] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -622,11 +632,11 @@ const Chatbot = () => {
   };
 
   const handleBrandClick = (brand) => {
-    // Generate consistent URL-friendly slug
-    const slug = generateBrandSlug(brand.brandName);
+    // Generate brand URL using utility function
+    const brandPath = getBrandUrl(brand);
     
     // Open brand page in new window/tab instead of navigating away
-    const brandUrl = `${window.location.origin}/brands/${slug || brand.id}`;
+    const brandUrl = `${window.location.origin}${brandPath}`;
     window.open(brandUrl, '_blank', 'noopener,noreferrer');
     
     // Don't close the chat - keep it open so user can see chat content
@@ -650,6 +660,7 @@ const Chatbot = () => {
 
   return (
     <>
+      {/* Hide FAB on mobile - use bottom nav Chat tab instead */}
       <Fab
         color="primary"
         sx={{
@@ -659,10 +670,11 @@ const Chatbot = () => {
           zIndex: 1300,
           width: 64,
           height: 64,
+          display: { xs: 'none', md: 'flex' }, // Hide on mobile (xs, sm), show on desktop (md+)
         }}
         onClick={() => setOpen(true)}
       >
-        <Badge badgeContent="New" color="secondary" variant="dot">
+        <Badge badgeContent={0} color="error" variant="dot" invisible>
           <ChatIcon />
         </Badge>
       </Fab>
