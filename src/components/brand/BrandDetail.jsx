@@ -34,7 +34,7 @@ import {
   Star,
   Phone,
   Email,
-  Business,
+  Business as BusinessIcon,
   AttachMoney,
   TrendingUp,
   Schedule,
@@ -46,12 +46,12 @@ import {
   Instagram,
   LinkedIn,
   CropLandscape,
-  EmojiEvents, // Import missing icons
-  CheckCircle, // Import missing icons
-  BusinessCenter, // Import missing icons
-  SupportAgent, // Import missing icons
-  Person, // Import missing icons
-  Timeline, // Import missing icons
+  EmojiEvents,
+  CheckCircle,
+  BusinessCenter,
+  SupportAgent,
+  Person,
+  Timeline,
   Store as StoreIcon,
   LocalShipping as LocalShippingIcon,
   Handshake as HandshakeIcon,
@@ -84,25 +84,43 @@ const iconMap = {
 const BrandDetail = () => {
   const theme = useTheme();
   const { slug } = useParams();
-  const brandName = slugToBrandName(slug);
   const navigate = useNavigate();
-  // Update the call to useBrand with the new object structure
-  const { brand, loading, error } = useBrand({ brandName });
+  // Use slug directly instead of converting to brandName for better matching
+  const { brand, loading, error } = useBrand({ slug });
   const [showInquiryForm, setShowInquiryForm] = useState(false);
 
+  // Debug logging
+  console.log('BrandDetail Debug:', {
+    slug,
+    loading,
+    error,
+    brand: brand ? { brandName: brand.brandName, id: brand.id } : null
+  });
+
   const sliderSettings = {
-    dots: false,
+    dots: true,
     infinite: true,
     speed: 500,
     slidesToShow: 3,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 3000,
+    autoplaySpeed: 4000,
+    pauseOnHover: true,
+    adaptiveHeight: true,
     responsive: [
       {
-        breakpoint: 900,
+        breakpoint: 1200,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+        },
+      },
+      {
+        breakpoint: 768,
         settings: {
           slidesToShow: 1,
+          slidesToScroll: 1,
+          dots: true,
         },
       },
     ],
@@ -127,9 +145,17 @@ const BrandDetail = () => {
         <Typography variant="h4" color="error" sx={{ mb: 2 }}>
           {error}
         </Typography>
-        <Button variant="contained" onClick={() => window.location.reload()}>
-          Retry
-        </Button>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          Looking for slug: "{slug}"
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Button variant="contained" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+          <Button variant="outlined" onClick={() => navigate("/brands")}>
+            View All Brands
+          </Button>
+        </Box>
       </Container>
     );
   }
@@ -140,13 +166,23 @@ const BrandDetail = () => {
         <Typography variant="h4" color="text.secondary">
           Brand not found
         </Typography>
-        <Button
-          variant="contained"
-          onClick={() => navigate("/brands")}
-          sx={{ mt: 2 }}
-        >
-          Back to Brands
-        </Button>
+        <Typography variant="body1" color="text.secondary" sx={{ mt: 2, mb: 3 }}>
+          Slug: "{slug}" | Error: {error || "No error"} | Loading: {loading ? "Yes" : "No"}
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Button
+            variant="contained"
+            onClick={() => navigate("/brands")}
+          >
+            Back to Brands
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => navigate("/debug-brands")}
+          >
+            Debug Brands
+          </Button>
+        </Box>
       </Container>
     );
   }
@@ -163,7 +199,9 @@ const BrandDetail = () => {
           sx={{
             position: "relative",
             minHeight: { xs: 250, md: 350 },
-            backgroundImage: `url(${brand.brandImage})`,
+            backgroundImage: (brand?.brandImage || brand?.brandLogo)
+              ? `url(${brand.brandImage || brand.brandLogo})` 
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundAttachment: "fixed",
@@ -191,10 +229,10 @@ const BrandDetail = () => {
               fontWeight="bold"
               sx={{ fontSize: { xs: "2.5rem", md: "3.5rem" } }}
             >
-              {brand.brandName}
+              {brand?.brandName || 'Brand Name Not Available'}
             </Typography>
             <Typography variant="h6" sx={{ opacity: 0.9, maxWidth: "60ch" }}>
-              {brand.brandMission}
+              {brand?.brandMission || brand?.brandStory || 'Mission statement not available'}
             </Typography>
             <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
               {brand.industries?.map((industry, index) => (
@@ -232,21 +270,56 @@ const BrandDetail = () => {
           >
             <CardContent>
               <Typography variant="h5" gutterBottom fontWeight="bold">
-                About Us
+                About {brand?.brandName || 'This Brand'}
               </Typography>
-              <Typography paragraph>
-                <strong>Founded:</strong> {brand.brandfoundedYear}
-              </Typography>
-              <Typography paragraph>
-                <strong>Business Model:</strong> {brand.businessModel}
-              </Typography>
-              <Typography paragraph>
-                <strong>Franchise Model:</strong>{" "}
-                {brand?.franchiseModels?.join(", ")}
-              </Typography>
-              <Typography paragraph>
-                <strong>Vision:</strong> {brand.brandVission}
-              </Typography>
+              
+              {(brand.brandDescription || brand.brandStory) && (
+                <Typography variant="body1" paragraph sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+                  {brand.brandDescription || brand.brandStory}
+                </Typography>
+              )}
+
+              <Box sx={{ mt: 3 }}>
+                <Stack spacing={2}>
+                  {(brand.brandfoundedYear || brand.foundedYear) && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Schedule color="primary" />
+                      <Typography variant="body1">
+                        <strong>Founded:</strong> {brand.brandfoundedYear || brand.foundedYear}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {brand.businessModel && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <BusinessIcon color="primary" />
+                      <Typography variant="body1">
+                        <strong>Business Model:</strong> {brand.businessModel}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {brand.franchiseModels && brand.franchiseModels.length > 0 && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <HandshakeIcon color="primary" />
+                      <Typography variant="body1">
+                        <strong>Franchise Models:</strong> {brand.franchiseModels.join(", ")}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {brand.brandVission && (
+                    <Box sx={{ mt: 2, p: 2, bgcolor: 'primary.50', borderRadius: 2, borderLeft: '4px solid', borderColor: 'primary.main' }}>
+                      <Typography variant="subtitle2" fontWeight="bold" gutterBottom color="primary.main">
+                        Our Vision
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontStyle: 'italic', lineHeight: 1.6 }}>
+                        {brand.brandVission}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+              </Box>
             </CardContent>
           </MotionCard>
 
@@ -404,7 +477,7 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Investment Range"
-                    secondary={brand.investmentRange}
+                    secondary={brand.investmentRange || "Investment range not specified"}
                   />
                 </ListItem>
                 <ListItem>
@@ -413,16 +486,24 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Area Required"
-                    secondary={`${brand?.areaRequired?.min} - ${brand?.areaRequired?.max} ${brand?.areaRequired?.unit}`}
+                    secondary={
+                      brand?.areaRequired?.min && brand?.areaRequired?.max && brand?.areaRequired?.unit
+                        ? `${brand.areaRequired.min} - ${brand.areaRequired.max} ${brand.areaRequired.unit}`
+                        : "Area requirements not specified"
+                    }
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemIcon>
-                    <Business color="primary" />
+                    <BusinessIcon color="primary" />
                   </ListItemIcon>
                   <ListItemText
                     primary="Initial Franchise Fee"
-                    secondary={`₹${brand.initialFranchiseFee}`}
+                    secondary={
+                      brand.initialFranchiseFee 
+                        ? `₹${brand.initialFranchiseFee.toLocaleString()}`
+                        : "Contact for franchise fee details"
+                    }
                   />
                 </ListItem>
                 <ListItem>
@@ -431,7 +512,7 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Franchise Term"
-                    secondary={`${brand.franchiseTermLength}`}
+                    secondary={brand.franchiseTermLength || "Franchise term not specified"}
                   />
                 </ListItem>
                 <ListItem>
@@ -440,9 +521,31 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Royalty Fee"
-                    secondary={`${brand.royaltyFee}%`}
+                    secondary={brand.royaltyFee ? `${brand.royaltyFee}%` : "Royalty fee not specified"}
                   />
                 </ListItem>
+                {brand.marketingFee && (
+                  <ListItem>
+                    <ListItemIcon>
+                      <TrendingUp color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Marketing Fee"
+                      secondary={`${brand.marketingFee}%`}
+                    />
+                  </ListItem>
+                )}
+                {brand.territorySize && (
+                  <ListItem>
+                    <ListItemIcon>
+                      <LocationOn color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Territory Size"
+                      secondary={brand.territorySize}
+                    />
+                  </ListItem>
+                )}
               </List>
             </CardContent>
           </MotionCard>
@@ -465,7 +568,10 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Phone"
-                    secondary={brand.brandContactInformation.phone}
+                    secondary={
+                      (brand.brandContactInformation?.phone || brand.contactInfo?.phone) || 
+                      "Contact information not available"
+                    }
                   />
                 </ListItem>
                 <ListItem>
@@ -474,7 +580,10 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Email"
-                    secondary={brand.brandContactInformation.email}
+                    secondary={
+                      (brand.brandContactInformation?.email || brand.contactInfo?.email) || 
+                      "Email not provided"
+                    }
                   />
                 </ListItem>
                 <ListItem>
@@ -483,51 +592,72 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Address"
-                    secondary={`${brand.brandContactInformation.address}, ${brand.brandContactInformation.city}, ${brand.brandContactInformation.state} ${brand.brandContactInformation.zipCode}`}
+                    secondary={
+                      (() => {
+                        const contactInfo = brand.brandContactInformation || brand.contactInfo;
+                        if (contactInfo) {
+                          const addressParts = [
+                            contactInfo.address,
+                            contactInfo.city,
+                            contactInfo.state,
+                            contactInfo.zipCode
+                          ].filter(Boolean);
+                          return addressParts.length > 0 ? addressParts.join(', ') : "Address not provided";
+                        }
+                        return "Address not available";
+                      })()
+                    }
                   />
                 </ListItem>
               </List>
               <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-                {brand.brandContactInformation.facebookURl && (
-                  <IconButton
-                    href={brand.brandContactInformation.facebookURl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Visit Facebook page"
-                  >
-                    <Facebook color="primary" />
-                  </IconButton>
-                )}
-                {brand.brandContactInformation.twitterURl && (
-                  <IconButton
-                    href={brand.brandContactInformation.twitterURl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Visit Twitter page"
-                  >
-                    <Twitter color="primary" />
-                  </IconButton>
-                )}
-                {brand.brandContactInformation.instagramURl && (
-                  <IconButton
-                    href={brand.brandContactInformation.instagramURl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Visit Instagram page"
-                  >
-                    <Instagram color="primary" />
-                  </IconButton>
-                )}
-                {brand.brandContactInformation.linkedinURl && (
-                  <IconButton
-                    href={brand.brandContactInformation.linkedinURl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Visit LinkedIn page"
-                  >
-                    <LinkedIn color="primary" />
-                  </IconButton>
-                )}
+                {(() => {
+                  const contactInfo = brand.brandContactInformation || brand.contactInfo;
+                  return (
+                    <>
+                      {(contactInfo?.facebookURl || contactInfo?.facebook) && (
+                        <IconButton
+                          href={contactInfo.facebookURl || contactInfo.facebook}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Visit Facebook page"
+                        >
+                          <Facebook color="primary" />
+                        </IconButton>
+                      )}
+                      {(contactInfo?.twitterURl || contactInfo?.twitter) && (
+                        <IconButton
+                          href={contactInfo.twitterURl || contactInfo.twitter}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Visit Twitter page"
+                        >
+                          <Twitter color="primary" />
+                        </IconButton>
+                      )}
+                      {(contactInfo?.instagramURl || contactInfo?.instagram) && (
+                        <IconButton
+                          href={contactInfo.instagramURl || contactInfo.instagram}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Visit Instagram page"
+                        >
+                          <Instagram color="primary" />
+                        </IconButton>
+                      )}
+                      {(contactInfo?.linkedinURl || contactInfo?.linkedin) && (
+                        <IconButton
+                          href={contactInfo.linkedinURl || contactInfo.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Visit LinkedIn page"
+                        >
+                          <LinkedIn color="primary" />
+                        </IconButton>
+                      )}
+                    </>
+                  );
+                })()}
               </Box>
             </CardContent>
           </MotionCard>
@@ -543,33 +673,62 @@ const BrandDetail = () => {
               <Typography variant="h5" gutterBottom fontWeight="bold">
                 Locations
               </Typography>
-              {brand.brandFranchiseLocations.map((location, index) => (
-                <Box key={index} sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    {location.address}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    {location.city}, {location.state} {location.zipCode}
-                  </Typography>
-                  <Typography sx={{ mt: 1 }}>
-                    <Phone fontSize="small" sx={{ mr: 1 }} />
-                    {location.phone}
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    startIcon={<LocationOn />}
-                    href={location.googleMapsURl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{ mt: 1 }}
+              {(() => {
+                const locations = brand.brandFranchiseLocations || brand.locations || brand.franchiseLocations || [];
+                return locations.length > 0 ? (
+                  locations.map((location, index) => (
+                    <Box key={index} sx={{ mb: 3 }}>
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        {location.address || 'Address not provided'}
+                      </Typography>
+                      <Typography color="text.secondary">
+                        {[location.city, location.state, location.zipCode].filter(Boolean).join(', ') || 'Location details not provided'}
+                      </Typography>
+                      {location.phone && (
+                        <Typography sx={{ mt: 1 }}>
+                          <Phone fontSize="small" sx={{ mr: 1 }} />
+                          {location.phone}
+                        </Typography>
+                      )}
+                      {location.googleMapsURl && (
+                        <Button
+                          variant="outlined"
+                          startIcon={<LocationOn />}
+                          href={location.googleMapsURl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{ mt: 1 }}
+                        >
+                          View on Map
+                        </Button>
+                      )}
+                      {index < locations.length - 1 && (
+                        <Divider sx={{ my: 2 }} />
+                      )}
+                    </Box>
+                  ))
+                ) : (
+                  <Box 
+                    sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      py: 4,
+                      bgcolor: 'grey.50',
+                      borderRadius: 2,
+                      textAlign: 'center'
+                    }}
                   >
-                    View on Map
-                  </Button>
-                  {index < brand.brandFranchiseLocations.length - 1 && (
-                    <Divider sx={{ my: 2 }} />
-                  )}
-                </Box>
-              ))}
+                    <LocationOn sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
+                    <Typography variant="body1" color="text.secondary">
+                      No franchise locations available
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Location information will be displayed here once provided
+                    </Typography>
+                  </Box>
+                );
+              })()}
             </CardContent>
           </MotionCard>
         </Box>
@@ -616,7 +775,7 @@ const BrandDetail = () => {
                   },
                   {
                     condition: brand.marketingSupport,
-                    icon: <Business color="primary" />,
+                    icon: <BusinessIcon color="primary" />,
                     text: "Marketing Support",
                   },
                 ].map(
@@ -652,36 +811,78 @@ const BrandDetail = () => {
               </Box>
             </CardContent>
           </MotionCard>
-          {brand.brandFranchiseImages?.length > 0 && (
-            <MotionCard
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              sx={{ mb: 4, boxShadow: 3 }}
-            >
-              <CardContent>
-                <Typography variant="h5" gutterBottom fontWeight="bold">
-                  Gallery
-                </Typography>
-                <Slider {...sliderSettings}>
-                  {brand.brandFranchiseImages.map((image, index) => (
-                    <Box key={index} sx={{ px: 1.5 }}>
-                      <Box
-                        component="img"
-                        src={image}
-                        alt={`Franchise gallery image ${index + 1}`}
-                        sx={{
-                          width: "100%",
-                          objectFit: "cover",
-                          borderRadius: 2,
-                        }}
-                      />
-                    </Box>
-                  ))}
-                </Slider>
-              </CardContent>
-            </MotionCard>
-          )}
+          <MotionCard
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            sx={{ mb: 4, boxShadow: 3 }}
+          >
+            <CardContent>
+              <Typography variant="h5" gutterBottom fontWeight="bold">
+                Gallery
+              </Typography>
+              {(() => {
+                const images = brand.brandFranchiseImages || brand.gallery || brand.images || brand.franchiseImages || [];
+                return images.length > 0 ? (
+                  <Slider {...sliderSettings}>
+                    {images.map((image, index) => (
+                      <Box key={index} sx={{ px: 1.5 }}>
+                        <Box
+                          sx={{
+                            position: "relative",
+                            paddingBottom: "60%", // 5:3 aspect ratio
+                            overflow: "hidden",
+                            borderRadius: 2,
+                            boxShadow: 2,
+                            transition: "all 0.3s ease",
+                            "&:hover": {
+                              boxShadow: 4,
+                              transform: "scale(1.02)",
+                            },
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={image}
+                            alt={`${brand.brandName} franchise image ${index + 1}`}
+                            loading="lazy"
+                            sx={{
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    ))}
+                  </Slider>
+                ) : (
+                  <Box 
+                    sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      py: 6,
+                      bgcolor: 'grey.50',
+                      borderRadius: 2,
+                      textAlign: 'center'
+                    }}
+                  >
+                    <CropLandscape sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
+                    <Typography variant="h6" color="text.secondary">
+                      No images available
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Gallery images will be displayed here once uploaded
+                    </Typography>
+                  </Box>
+                );
+              })()}
+            </CardContent>
+          </MotionCard>
           {/* Franchise Details Card */}
           <MotionCard
             initial={{ opacity: 0, x: 50 }}
@@ -703,24 +904,50 @@ const BrandDetail = () => {
                     Financial Requirements
                   </Typography>
                   <List>
-                    <ListItem>
-                      <ListItemText
-                        primary="Working Capital"
-                        secondary={`₹${brand.workingCapital}`}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Real Estate Costs"
-                        secondary={`₹${brand.realEstateCosts}`}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Equipment Costs"
-                        secondary={`₹${brand.equipmentCosts}`}
-                      />
-                    </ListItem>
+                    {brand.workingCapital && (
+                      <ListItem>
+                        <ListItemIcon>
+                          <AttachMoney color="success" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary="Working Capital"
+                          secondary={`₹${typeof brand.workingCapital === 'number' ? brand.workingCapital.toLocaleString() : brand.workingCapital}`}
+                        />
+                      </ListItem>
+                    )}
+                    {brand.realEstateCosts && (
+                      <ListItem>
+                        <ListItemIcon>
+                          <Home color="success" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary="Real Estate Costs"
+                          secondary={`₹${typeof brand.realEstateCosts === 'number' ? brand.realEstateCosts.toLocaleString() : brand.realEstateCosts}`}
+                        />
+                      </ListItem>
+                    )}
+                    {brand.equipmentCosts && (
+                      <ListItem>
+                        <ListItemIcon>
+                          <BusinessCenter color="success" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary="Equipment Costs"
+                          secondary={`₹${typeof brand.equipmentCosts === 'number' ? brand.equipmentCosts.toLocaleString() : brand.equipmentCosts}`}
+                        />
+                      </ListItem>
+                    )}
+                    {brand.inventoryCosts && (
+                      <ListItem>
+                        <ListItemIcon>
+                          <Inventory color="success" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary="Inventory Costs"
+                          secondary={`₹${typeof brand.inventoryCosts === 'number' ? brand.inventoryCosts.toLocaleString() : brand.inventoryCosts}`}
+                        />
+                      </ListItem>
+                    )}
                   </List>
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 300 }}>
@@ -811,7 +1038,7 @@ const BrandDetail = () => {
                     </ListItem>
                     <ListItem>
                       <ListItemIcon>
-                        <Business color="primary" />
+                        <BusinessIcon color="primary" />
                       </ListItemIcon>
                       <ListItemText
                         primary="Marketing Support"
@@ -825,6 +1052,76 @@ const BrandDetail = () => {
               </Box>
             </CardContent>
           </MotionCard>
+
+          {/* Financial Performance Card */}
+          {(brand.expectedROI || brand.paybackPeriod || brand.avgMonthlyRevenue || brand.profitMargins) && (
+            <MotionCard
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              sx={{ mb: 4, boxShadow: 3 }}
+            >
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Financial Performance
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                  <Box sx={{ flex: 1, minWidth: 300 }}>
+                    <List>
+                      {brand.expectedROI && (
+                        <ListItem>
+                          <ListItemIcon>
+                            <TrendingUp color="success" />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary="Expected ROI"
+                            secondary={`${brand.expectedROI}%`}
+                          />
+                        </ListItem>
+                      )}
+                      {brand.paybackPeriod && (
+                        <ListItem>
+                          <ListItemIcon>
+                            <Schedule color="success" />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary="Payback Period"
+                            secondary={brand.paybackPeriod}
+                          />
+                        </ListItem>
+                      )}
+                    </List>
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 300 }}>
+                    <List>
+                      {brand.avgMonthlyRevenue && (
+                        <ListItem>
+                          <ListItemIcon>
+                            <AttachMoney color="success" />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary="Avg. Monthly Revenue"
+                            secondary={`₹${typeof brand.avgMonthlyRevenue === 'number' ? brand.avgMonthlyRevenue.toLocaleString() : brand.avgMonthlyRevenue}`}
+                          />
+                        </ListItem>
+                      )}
+                      {brand.profitMargins && (
+                        <ListItem>
+                          <ListItemIcon>
+                            <EmojiEvents color="success" />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary="Profit Margins"
+                            secondary={`${brand.profitMargins}%`}
+                          />
+                        </ListItem>
+                      )}
+                    </List>
+                  </Box>
+                </Box>
+              </CardContent>
+            </MotionCard>
+          )}
 
           {/* Brand Owner Card */}
           <MotionCard
@@ -846,7 +1143,10 @@ const BrandDetail = () => {
                       </ListItemIcon>
                       <ListItemText
                         primary="Name"
-                        secondary={brand.brandOwnerInformation.name}
+                        secondary={
+                          (brand.brandOwnerInformation?.name || brand.ownerInfo?.name) || 
+                          "Owner name not provided"
+                        }
                       />
                     </ListItem>
                     <ListItem>
@@ -855,7 +1155,10 @@ const BrandDetail = () => {
                       </ListItemIcon>
                       <ListItemText
                         primary="Email"
-                        secondary={brand.brandOwnerInformation.email}
+                        secondary={
+                          (brand.brandOwnerInformation?.email || brand.ownerInfo?.email) || 
+                          "Owner email not provided"
+                        }
                       />
                     </ListItem>
                   </List>
@@ -868,28 +1171,46 @@ const BrandDetail = () => {
                       </ListItemIcon>
                       <ListItemText
                         primary="Phone"
-                        secondary={brand.brandOwnerInformation.phone}
+                        secondary={
+                          (brand.brandOwnerInformation?.phone || brand.ownerInfo?.phone) || 
+                          "Owner phone not provided"
+                        }
                       />
                     </ListItem>
-                    {brand.brandOwnerInformation.linkedinURl && (
-                      <ListItem>
-                        <ListItemIcon>
-                          <LinkedIn color="primary" />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary="LinkedIn"
-                          secondary={
-                            <Link
-                              href={brand.brandOwnerInformation.linkedinURl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              View Profile
-                            </Link>
-                          }
-                        />
-                      </ListItem>
-                    )}
+                    {(() => {
+                      const ownerInfo = brand.brandOwnerInformation || brand.ownerInfo;
+                      const linkedinUrl = ownerInfo?.linkedinURl || ownerInfo?.linkedin;
+                      
+                      return linkedinUrl ? (
+                        <ListItem>
+                          <ListItemIcon>
+                            <LinkedIn color="primary" />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary="LinkedIn"
+                            secondary={
+                              <Link
+                                href={linkedinUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                View Profile
+                              </Link>
+                            }
+                          />
+                        </ListItem>
+                      ) : (
+                        <ListItem>
+                          <ListItemIcon>
+                            <LinkedIn color="primary" />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary="LinkedIn"
+                            secondary="LinkedIn profile not available"
+                          />
+                        </ListItem>
+                      );
+                    })()}
                   </List>
                 </Box>
               </Box>

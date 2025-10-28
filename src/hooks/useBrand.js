@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { generateBrandSlug } from "../utils/brandUtils";
 
-// The hook now accepts an object with either a brandName or an id
-export const useBrand = ({ brandName, id }, user = null) => {
+// The hook now accepts an object with either a brandName, slug, or an id
+export const useBrand = ({ brandName, slug, id }, user = null) => {
   const [brand, setBrand] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,7 +18,7 @@ export const useBrand = ({ brandName, id }, user = null) => {
       setLoading(true);
       setError(null);
 
-      if (!id && !brandName) {
+      if (!id && !brandName && !slug) {
         setLoading(false);
         setError("No brand identifier provided.");
         return;
@@ -32,6 +33,39 @@ export const useBrand = ({ brandName, id }, user = null) => {
             setBrand({ id: docSnap.id, ...docSnap.data() });
           } else {
             setError("Brand not found with the provided ID.");
+          }
+        } else if (slug) {
+          // If a slug is provided, fetch all brands and find matching slug
+          const brandsRef = collection(db, "brands");
+          const querySnapshot = await getDocs(brandsRef);
+          
+          console.log(`[useBrand] Searching for slug: "${slug}"`);
+          console.log(`[useBrand] Found ${querySnapshot.docs.length} total brands in database`);
+          
+          let foundBrand = null;
+          const availableSlugsMissed = [];
+          
+          querySnapshot.forEach((doc) => {
+            const brandData = doc.data();
+            const brandSlug = generateBrandSlug(brandData.brandName);
+            availableSlugsMissed.push({ 
+              brandName: brandData.brandName, 
+              generatedSlug: brandSlug,
+              docId: doc.id
+            });
+            
+            if (brandSlug === slug) {
+              foundBrand = { id: doc.id, ...brandData };
+              console.log(`[useBrand] Found matching brand: ${brandData.brandName}`);
+            }
+          });
+
+          if (foundBrand) {
+            setBrand(foundBrand);
+          } else {
+            console.log(`[useBrand] No match found for slug "${slug}"`);
+            console.log(`[useBrand] Available brands and their slugs:`, availableSlugsMissed);
+            setError(`Brand not found with the provided slug "${slug}". Available brands: ${availableSlugsMissed.length}`);
           }
         } else if (brandName) {
           // If a brandName is provided, query the collection
@@ -61,7 +95,7 @@ export const useBrand = ({ brandName, id }, user = null) => {
     };
 
     fetchBrand();
-  }, [brandName, id, user]);
+  }, [brandName, slug, id, user]);
 
   return { brand, setBrand: setBrandLocally, loading, error };
 };
