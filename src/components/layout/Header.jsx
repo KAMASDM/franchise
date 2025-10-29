@@ -34,6 +34,7 @@ import {
   ExitToApp as LogoutIcon,
   Dashboard as DashboardIcon,
   Login as LoginIcon,
+  TrendingUp as InvestorIcon,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { signInWithPopup, signOut } from "firebase/auth";
@@ -55,6 +56,7 @@ const navItems = [
   { text: "Blog", path: "/blogs", icon: <BlogIcon /> },
   { text: "Contact", path: "/contact", icon: <ContactIcon /> },
   { text: "FAQs", path: "/faq", icon: <FaqIcon /> },
+  { text: "Investors", path: "/investors", icon: <InvestorIcon /> },
 ];
 
 const Header = () => {
@@ -253,6 +255,26 @@ const Header = () => {
           )}
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {/* Investor Button - Always visible */}
+            <MotionButton
+              component={RouterLink}
+              to="/investors"
+              variant="outlined"
+              color="primary"
+              startIcon={<InvestorIcon />}
+              sx={{ 
+                display: { xs: 'none', sm: 'flex' },
+                borderColor: 'primary.main',
+                color: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'primary.main',
+                  color: 'primary.contrastText',
+                }
+              }}
+            >
+              Investors
+            </MotionButton>
+            
             {user ? (
               userMenu
             ) : (

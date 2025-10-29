@@ -27,6 +27,7 @@ const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const CreateBrandProfile = React.lazy(() => import("./pages/CreateBrandProfile"));
 const BrandDebugger = React.lazy(() => import("./components/debug/BrandDebugger"));
+const InvestorPitchDeck = React.lazy(() => import("./pages/InvestorPitchDeck"));
 
 // Only load debug component in development
 const FirestoreTest = import.meta.env.DEV 
@@ -95,6 +96,9 @@ function App() {
       <Route path="/faq" element={<FAQ />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+      
+      {/* Investor Pitch Deck */}
+      <Route path="/investors" element={<InvestorPitchDeck />} />
       
       {/* Brand Registration */}
       <Route path="/create-brand-profile" element={<CreateBrandProfile />} />
