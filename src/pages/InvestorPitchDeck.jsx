@@ -18,7 +18,28 @@ import {
   Paper,
   useTheme,
   IconButton,
+  LinearProgress,
+  CircularProgress,
 } from '@mui/material';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+  RadialBarChart,
+  RadialBar,
+} from 'recharts';
 import {
   TrendingUp,
   Rocket,
@@ -67,6 +88,64 @@ const InvestorPitchDeck = () => {
     }
   };
 
+  // Chart Colors
+  const colors = [
+    theme.palette.primary.main,
+    theme.palette.secondary.main,
+    theme.palette.success.main,
+    theme.palette.warning.main,
+    theme.palette.error.main,
+    theme.palette.info.main,
+  ];
+
+  // Market Size Data (in Billions INR)
+  const marketSizeData = [
+    { year: '2020', size: 3500, growth: 3.2 },
+    { year: '2021', size: 3750, growth: 7.1 },
+    { year: '2022', size: 4000, growth: 6.7 },
+    { year: '2023', size: 4250, growth: 6.3 },
+    { year: '2024', size: 4500, growth: 5.9 },
+    { year: '2025', size: 4850, growth: 7.4 },
+  ];
+
+  // Revenue Projection Data (in Thousands INR)
+  const revenueProjectionData = [
+    { month: 'Jan', revenue: 0, users: 0 },
+    { month: 'Mar', revenue: 0, users: 1200 }, // Free period
+    { month: 'Jun', revenue: 120, users: 3800 }, // ₹100/month starts
+    { month: 'Sep', revenue: 750, users: 7500 },
+    { month: 'Dec', revenue: 1200, users: 12000 },
+    { month: '2025 Q2', revenue: 2200, users: 22000 },
+    { month: '2025 Q4', revenue: 3800, users: 38000 },
+  ];
+
+  // Revenue Streams Pie Chart Data
+  const revenueStreamsData = [
+    { name: 'Listing Fees', value: 35, amount: 58000 }, // ₹58,000
+    { name: 'Lead Generation', value: 30, amount: 50000 }, // ₹50,000
+    { name: 'Subscriptions', value: 20, amount: 33000 }, // ₹33,000 (₹100/month model)
+    { name: 'Transaction Fees', value: 15, amount: 25000 }, // ₹25,000
+  ];
+
+  // User Acquisition Data
+  const userAcquisitionData = [
+    { channel: 'Organic Search', users: 45, cost: 12 },
+    { channel: 'Social Media', users: 25, cost: 28 },
+    { channel: 'Referrals', users: 15, cost: 8 },
+    { channel: 'Paid Ads', users: 10, cost: 45 },
+    { channel: 'Partnerships', users: 5, cost: 15 },
+  ];
+
+  // Feature Adoption Data
+  const featureAdoptionData = [
+    { feature: 'AI Chatbot', adoption: 78 },
+    { feature: 'Advanced Search', adoption: 92 },
+    { feature: 'Analytics Dashboard', adoption: 65 },
+    { feature: 'Mobile PWA', adoption: 88 },
+    { feature: 'Real-time Chat', adoption: 54 },
+    { feature: 'Multi-language', adoption: 42 },
+  ];
+
   const currentFeatures = [
     { icon: <Psychology />, title: "AI-Powered Chatbot", description: "Gemini AI integration for intelligent brand matching" },
     { icon: <Analytics />, title: "Real-Time Analytics", description: "Comprehensive dashboards with performance tracking" },
@@ -100,14 +179,14 @@ const InvestorPitchDeck = () => {
     { label: "Target MAU", value: "50K", subtitle: "By end of 2024" },
     { label: "Brand Listings", value: "2,000", subtitle: "Active opportunities" },
     { label: "Monthly Leads", value: "10K", subtitle: "Qualified prospects" },
-    { label: "Target ARR", value: "$2M", subtitle: "Multiple revenue streams" }
+    { label: "Target ARR", value: "₹1.5Cr", subtitle: "₹100/month + other streams" }
   ];
 
   const revenueStreams = [
-    { title: "Listing Fees", amount: "$500-2K/month", description: "Premium brand placement and features" },
-    { title: "Lead Generation", amount: "$50-100/lead", description: "Qualified prospect delivery" },
-    { title: "Subscriptions", amount: "$99-999/month", description: "Tiered access and analytics" },
-    { title: "Transaction Fees", amount: "3-5%", description: "Facilitated franchise agreements" }
+    { title: "Listing Fees", amount: "₹5,000-15K/month", description: "Premium brand placement and features" },
+    { title: "Lead Generation", amount: "₹500-1K/lead", description: "Qualified prospect delivery" },
+    { title: "Subscriptions", amount: "₹100/month", description: "Premium access after free period" },
+    { title: "Transaction Fees", amount: "2-3%", description: "Facilitated franchise agreements" }
   ];
 
   return (
@@ -128,66 +207,125 @@ const InvestorPitchDeck = () => {
           Franchise Portal
         </Typography>
         <Typography variant="h4" color="text.secondary" gutterBottom>
-          Revolutionizing the $50B Franchise Industry
+          Revolutionizing the ₹4.5T+ Indian Franchise Industry
         </Typography>
         <Typography variant="h6" color="text.secondary" sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
           AI-powered marketplace connecting franchise seekers with opportunities through intelligent matching, 
           comprehensive analytics, and modern user experience.
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button 
-            variant="contained" 
-            size="large" 
-            startIcon={<Launch />}
-            href="https://franchise-portal.netlify.app" 
-            target="_blank"
-            sx={{ borderRadius: 3, px: 4 }}
-          >
-            View Live Platform
-          </Button>
-          <Button 
-            variant="outlined" 
-            size="large" 
-            startIcon={<GitHub />}
-            href="https://github.com/KAMASDM/franchise" 
-            target="_blank"
-            sx={{ borderRadius: 3, px: 4 }}
-          >
-            View Code
-          </Button>
-        </Box>
       </MotionBox>
 
       {/* Market Opportunity */}
-      <MotionCard {...fadeInUp} sx={{ mb: 6, overflow: 'hidden' }}>
+      <MotionCard {...fadeInUp} sx={{ mb: 6, overflow: 'hidden', background: `linear-gradient(135deg, ${theme.palette.primary.light}15, ${theme.palette.secondary.light}15)` }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
             <TrendingUp color="primary" />
-            The Opportunity
+            Market Opportunity & Growth
           </Typography>
-          <Grid container spacing={4} alignItems="center">
+          
+          <Grid container spacing={4}>
+            {/* Market Size Visualization */}
             <Grid item xs={12} md={6}>
-              <Typography variant="h3" color="primary" fontWeight="bold">$50+ Billion</Typography>
-              <Typography variant="h6" gutterBottom>Global Franchise Industry</Typography>
-              <Typography variant="body1" paragraph>
-                The franchise industry is massive but lacks modern digital infrastructure. Most franchise 
-                discovery happens through outdated websites and manual processes.
-              </Typography>
-              <Typography variant="body1" paragraph>
-                <strong>90%+ of franchise discovery</strong> still relies on traditional methods, creating 
-                a massive opportunity for digital transformation.
-              </Typography>
+              <Paper sx={{ p: 3, height: 400 }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  Indian Franchise Market Size (Billions INR)
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={marketSizeData}>
+                    <defs>
+                      <linearGradient id="colorSize" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={theme.palette.primary.main} stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor={theme.palette.primary.main} stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="year" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`₹${value}B`, 'Market Size']} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="size" 
+                      stroke={theme.palette.primary.main}
+                      fillOpacity={1}
+                      fill="url(#colorSize)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Paper>
             </Grid>
+
+            {/* Key Statistics */}
             <Grid item xs={12} md={6}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Paper sx={{ p: 2, bgcolor: 'success.light', color: 'success.contrastText' }}>
-                  <Typography variant="h6">Market Pain Points</Typography>
-                  <Typography variant="body2">• Fragmented discovery process</Typography>
-                  <Typography variant="body2">• Limited matching capabilities</Typography>
-                  <Typography variant="body2">• Poor mobile experiences</Typography>
-                  <Typography variant="body2">• Lack of real-time analytics</Typography>
+              <Stack spacing={3} height="100%">
+                <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+                  <Typography variant="h3" fontWeight="bold">₹4.5T+</Typography>
+                  <Typography variant="h6">Current Market Size</Typography>
+                  <Typography variant="body2">Growing at 6-8% annually</Typography>
                 </Paper>
-              </Box>
+                
+                <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'success.main', color: 'success.contrastText' }}>
+                  <Typography variant="h3" fontWeight="bold">780K+</Typography>
+                  <Typography variant="h6">Franchise Units Globally</Typography>
+                  <Typography variant="body2">Across 120+ countries</Typography>
+                </Paper>
+                
+                <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'warning.main', color: 'warning.contrastText' }}>
+                  <Typography variant="h3" fontWeight="bold">90%</Typography>
+                  <Typography variant="h6">Traditional Discovery</Typography>
+                  <Typography variant="body2">Digital transformation opportunity</Typography>
+                </Paper>
+              </Stack>
+            </Grid>
+
+            {/* Pain Points Visualization */}
+            <Grid item xs={12}>
+              <Paper sx={{ p: 3, mt: 2 }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  Market Pain Points & Our Solutions
+                </Typography>
+                <Grid container spacing={3}>
+                  {[
+                    { problem: "Fragmented Discovery", solution: "Unified AI-Powered Platform", impact: 85 },
+                    { problem: "Poor Mobile Experience", solution: "PWA with Offline Support", impact: 92 },
+                    { problem: "Limited Analytics", solution: "Real-time Dashboard & Insights", impact: 78 },
+                    { problem: "Manual Matching", solution: "AI-Powered Brand Matching", impact: 88 }
+                  ].map((item, index) => (
+                    <Grid item xs={12} sm={6} md={3} key={index}>
+                      <Box sx={{ textAlign: 'center' }}>
+                        <Box sx={{ position: 'relative', display: 'inline-flex', mb: 2 }}>
+                          <CircularProgress
+                            variant="determinate"
+                            value={item.impact}
+                            size={80}
+                            thickness={4}
+                            sx={{ color: colors[index % colors.length] }}
+                          />
+                          <Box sx={{
+                            top: 0,
+                            left: 0,
+                            bottom: 0,
+                            right: 0,
+                            position: 'absolute',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                            <Typography variant="h6" component="div" color="text.secondary">
+                              {`${item.impact}%`}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Typography variant="subtitle2" color="error.main" gutterBottom>
+                          {item.problem}
+                        </Typography>
+                        <Typography variant="body2" color="success.main">
+                          {item.solution}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Paper>
             </Grid>
           </Grid>
         </CardContent>
@@ -244,56 +382,353 @@ const InvestorPitchDeck = () => {
         </CardContent>
       </MotionCard>
 
-      {/* Key Metrics */}
-      <MotionCard {...fadeInUp} sx={{ mb: 6 }}>
+      {/* Pricing Strategy */}
+      <MotionCard {...fadeInUp} sx={{ mb: 6, background: `linear-gradient(135deg, ${theme.palette.success.light}15, ${theme.palette.info.light}15)` }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Timeline color="primary" />
-            Growth Targets & Metrics
+          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+            <AttachMoney color="primary" />
+            Pricing Strategy & Model
           </Typography>
-          <Grid container spacing={4}>
-            {metrics.map((metric, index) => (
-              <Grid item xs={6} md={3} key={index}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h3" color="primary" fontWeight="bold">
-                    {metric.value}
-                  </Typography>
-                  <Typography variant="h6" gutterBottom>
-                    {metric.label}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {metric.subtitle}
-                  </Typography>
-                </Box>
+          
+          <Grid container spacing={4} alignItems="center">
+            {/* Pricing Timeline */}
+            <Grid item xs={12} md={8}>
+              <Typography variant="h6" gutterBottom color="primary">
+                Freemium to Subscription Model
+              </Typography>
+              <Typography variant="body1" paragraph>
+                Our strategic pricing approach focuses on user acquisition through a generous free period, 
+                followed by affordable subscription pricing that's accessible to the Indian market.
+              </Typography>
+              
+              <Grid container spacing={3} sx={{ mt: 2 }}>
+                <Grid item xs={12} sm={6}>
+                  <Paper sx={{ 
+                    p: 3, 
+                    textAlign: 'center',
+                    background: `linear-gradient(135deg, ${theme.palette.success.main}20, ${theme.palette.success.main}05)`,
+                    border: `2px solid ${theme.palette.success.main}30`
+                  }}>
+                    <Typography variant="h6" color="success.main" gutterBottom>
+                      Phase 1: Free Access
+                    </Typography>
+                    <Typography variant="h3" fontWeight="bold" gutterBottom>
+                      ₹0
+                    </Typography>
+                    <Typography variant="body1" gutterBottom>
+                      Complete platform access
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Build user base & gather feedback
+                    </Typography>
+                  </Paper>
+                </Grid>
+                
+                <Grid item xs={12} sm={6}>
+                  <Paper sx={{ 
+                    p: 3, 
+                    textAlign: 'center',
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main}20, ${theme.palette.primary.main}05)`,
+                    border: `2px solid ${theme.palette.primary.main}`
+                  }}>
+                    <Typography variant="h6" color="primary.main" gutterBottom>
+                      Phase 2: Premium Features
+                    </Typography>
+                    <Typography variant="h3" fontWeight="bold" gutterBottom>
+                      ₹100/mo
+                    </Typography>
+                    <Typography variant="body1" gutterBottom>
+                      Advanced analytics & priority support
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Affordable for Indian market
+                    </Typography>
+                  </Paper>
+                </Grid>
               </Grid>
-            ))}
+            </Grid>
+
+            {/* Value Proposition */}
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 3, height: '100%' }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  Why ₹100/month?
+                </Typography>
+                <List>
+                  <ListItem sx={{ px: 0 }}>
+                    <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                    <ListItemText primary="Affordable for Indian businesses" />
+                  </ListItem>
+                  <ListItem sx={{ px: 0 }}>
+                    <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                    <ListItemText primary="Lower than competition (₹500-2000)" />
+                  </ListItem>
+                  <ListItem sx={{ px: 0 }}>
+                    <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                    <ListItemText primary="High volume, low friction model" />
+                  </ListItem>
+                  <ListItem sx={{ px: 0 }}>
+                    <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                    <ListItemText primary="Strong user retention expected" />
+                  </ListItem>
+                </List>
+              </Paper>
+            </Grid>
           </Grid>
         </CardContent>
       </MotionCard>
 
-      {/* Revenue Streams */}
-      <MotionCard {...fadeInUp} sx={{ mb: 6 }}>
+      {/* Key Metrics & User Acquisition */}
+      <MotionCard {...fadeInUp} sx={{ mb: 6, background: `linear-gradient(135deg, ${theme.palette.info.light}15, ${theme.palette.warning.light}15)` }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <AttachMoney color="primary" />
-            Revenue Streams
+          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+            <Timeline color="primary" />
+            Growth Targets & User Acquisition
           </Typography>
-          <Grid container spacing={3}>
-            {revenueStreams.map((stream, index) => (
-              <Grid item xs={12} sm={6} key={index}>
-                <Paper sx={{ p: 3, height: '100%', bgcolor: 'grey.50' }}>
-                  <Typography variant="h6" gutterBottom color="primary">
-                    {stream.title}
-                  </Typography>
-                  <Typography variant="h4" gutterBottom fontWeight="bold">
-                    {stream.amount}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {stream.description}
-                  </Typography>
-                </Paper>
+          
+          <Grid container spacing={4}>
+            {/* Key Metrics Cards */}
+            <Grid item xs={12}>
+              <Grid container spacing={3}>
+                {metrics.map((metric, index) => (
+                  <Grid item xs={6} md={3} key={index}>
+                    <Paper sx={{ 
+                      p: 3, 
+                      textAlign: 'center',
+                      height: 180,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      background: `linear-gradient(135deg, ${colors[index]}, ${colors[index]}80)`,
+                      color: 'white',
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                        boxShadow: theme.shadows[12]
+                      },
+                      transition: 'all 0.3s ease'
+                    }}>
+                      <Typography variant="h3" fontWeight="bold" gutterBottom>
+                        {metric.value}
+                      </Typography>
+                      <Typography variant="h6" gutterBottom>
+                        {metric.label}
+                      </Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                        {metric.subtitle}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
+            </Grid>
+
+            {/* User Acquisition Channels */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 3, height: 400 }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  User Acquisition by Channel (%)
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={userAcquisitionData} layout="horizontal">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="channel" type="category" width={100} />
+                    <Tooltip formatter={(value, name) => [`${value}%`, 'Users']} />
+                    <Bar dataKey="users" fill={theme.palette.primary.main} radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+
+            {/* Feature Adoption */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 3, height: 400 }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  Platform Feature Adoption (%)
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  {featureAdoptionData.map((feature, index) => (
+                    <Box key={index} sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2">{feature.feature}</Typography>
+                        <Typography variant="body2" fontWeight="bold">{feature.adoption}%</Typography>
+                      </Box>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={feature.adoption} 
+                        sx={{ 
+                          height: 12, 
+                          borderRadius: 6,
+                          backgroundColor: `${colors[index % colors.length]}20`,
+                          '& .MuiLinearProgress-bar': {
+                            backgroundColor: colors[index % colors.length],
+                            borderRadius: 6
+                          }
+                        }}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              </Paper>
+            </Grid>
+
+            {/* User Growth Timeline */}
+            <Grid item xs={12}>
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  Projected User Growth & Revenue Timeline
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={revenueProjectionData}>
+                    <defs>
+                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={theme.palette.success.main} stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor={theme.palette.success.main} stopOpacity={0.1}/>
+                      </linearGradient>
+                      <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={theme.palette.info.main} stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor={theme.palette.info.main} stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis yAxisId="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip />
+                    <Legend />
+                    <Area
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="revenue"
+                      stackId="1"
+                      stroke={theme.palette.success.main}
+                      fill="url(#colorRevenue)"
+                      name="Revenue (K USD)"
+                    />
+                    <Area
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="users"
+                      stackId="2"
+                      stroke={theme.palette.info.main}
+                      fill="url(#colorUsers)"
+                      name="Active Users"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </MotionCard>
+
+      {/* Revenue Streams with Visualization */}
+      <MotionCard {...fadeInUp} sx={{ mb: 6, background: `linear-gradient(135deg, ${theme.palette.success.light}15, ${theme.palette.primary.light}15)` }}>
+        <CardContent sx={{ p: 4 }}>
+          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+            <AttachMoney color="primary" />
+            Revenue Streams & Projections
+          </Typography>
+          
+          <Grid container spacing={4}>
+            {/* Revenue Distribution Pie Chart */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 3, height: 400 }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  Revenue Distribution by Stream
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={revenueStreamsData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {revenueStreamsData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+
+            {/* Revenue Growth Projection */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 3, height: 400 }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  Monthly Revenue Projection (K INR)
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={revenueProjectionData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="revenue" 
+                      stroke={theme.palette.success.main}
+                      strokeWidth={3}
+                      dot={{ fill: theme.palette.success.main, strokeWidth: 2, r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+
+            {/* Revenue Stream Details */}
+            <Grid item xs={12}>
+              <Grid container spacing={3}>
+                {revenueStreams.map((stream, index) => (
+                  <Grid item xs={12} sm={6} md={3} key={index}>
+                    <Paper sx={{ 
+                      p: 3, 
+                      height: '100%', 
+                      textAlign: 'center',
+                      background: `linear-gradient(135deg, ${colors[index]}20, ${colors[index]}05)`,
+                      border: `2px solid ${colors[index]}`,
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: theme.shadows[8]
+                      },
+                      transition: 'all 0.3s ease'
+                    }}>
+                      <Typography variant="h6" gutterBottom color={colors[index]} fontWeight="bold">
+                        {stream.title}
+                      </Typography>
+                      <Typography variant="h4" gutterBottom fontWeight="bold">
+                        {stream.amount}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {stream.description}
+                      </Typography>
+                      <Box sx={{ mt: 2 }}>
+                        <LinearProgress 
+                          variant="determinate" 
+                          value={revenueStreamsData[index]?.value || 0} 
+                          sx={{ 
+                            height: 8, 
+                            borderRadius: 4,
+                            backgroundColor: `${colors[index]}20`,
+                            '& .MuiLinearProgress-bar': {
+                              backgroundColor: colors[index]
+                            }
+                          }}
+                        />
+                      </Box>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Grid>
           </Grid>
         </CardContent>
       </MotionCard>
@@ -339,106 +774,296 @@ const InvestorPitchDeck = () => {
         </CardContent>
       </MotionCard>
 
-      {/* Competitive Advantages */}
-      <MotionCard {...fadeInUp} sx={{ mb: 6 }}>
+      {/* Competitive Advantages with Visual Comparison */}
+      <MotionCard {...fadeInUp} sx={{ mb: 6, background: `linear-gradient(135deg, ${theme.palette.warning.light}15, ${theme.palette.error.light}15)` }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
             <EmojiEvents color="primary" />
-            Competitive Advantages
+            Competitive Advantages & Market Position
           </Typography>
+          
           <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" gutterBottom color="primary">
-                Technology Leadership
-              </Typography>
-              <List>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemIcon><Star color="warning" /></ListItemIcon>
-                  <ListItemText primary="AI-first approach with Gemini integration" />
-                </ListItem>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemIcon><Star color="warning" /></ListItemIcon>
-                  <ListItemText primary="Modern React 19 + Firebase architecture" />
-                </ListItem>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemIcon><Star color="warning" /></ListItemIcon>
-                  <ListItemText primary="PWA with offline capabilities" />
-                </ListItem>
-              </List>
+            {/* Competitive Comparison Radar Chart */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 3, height: 400 }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  Competitive Analysis Score
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="80%" barSize={10} data={[
+                    { name: 'AI Integration', us: 95, competitor: 25, fullMark: 100 },
+                    { name: 'Mobile Experience', us: 92, competitor: 45, fullMark: 100 },
+                    { name: 'Analytics', us: 88, competitor: 30, fullMark: 100 },
+                    { name: 'User Experience', us: 90, competitor: 55, fullMark: 100 },
+                    { name: 'Technology Stack', us: 94, competitor: 40, fullMark: 100 },
+                  ]}>
+                    <RadialBar dataKey="us" cornerRadius={10} fill={theme.palette.primary.main} />
+                    <RadialBar dataKey="competitor" cornerRadius={10} fill={theme.palette.grey[400]} />
+                    <Tooltip />
+                  </RadialBarChart>
+                </ResponsiveContainer>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ width: 16, height: 16, bgcolor: 'primary.main', borderRadius: 1 }} />
+                    <Typography variant="body2">Our Platform</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ width: 16, height: 16, bgcolor: 'grey.400', borderRadius: 1 }} />
+                    <Typography variant="body2">Competitors</Typography>
+                  </Box>
+                </Box>
+              </Paper>
             </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" gutterBottom color="primary">
-                User Experience Excellence
-              </Typography>
-              <List>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemIcon><Star color="warning" /></ListItemIcon>
-                  <ListItemText primary="Mobile-first design (70%+ mobile traffic)" />
-                </ListItem>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemIcon><Star color="warning" /></ListItemIcon>
-                  <ListItemText primary="Real-time analytics and insights" />
-                </ListItem>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemIcon><Star color="warning" /></ListItemIcon>
-                  <ListItemText primary="Personalized recommendations" />
-                </ListItem>
-              </List>
+
+            {/* Key Differentiators */}
+            <Grid item xs={12} md={6}>
+              <Stack spacing={2} height="100%">
+                {[
+                  { 
+                    title: "AI-First Approach", 
+                    description: "Gemini AI integration for intelligent matching", 
+                    score: 95,
+                    icon: <Psychology />
+                  },
+                  { 
+                    title: "Modern Architecture", 
+                    description: "React 19 + Firebase + PWA capabilities", 
+                    score: 92,
+                    icon: <Cloud />
+                  },
+                  { 
+                    title: "Multi-Model Platform", 
+                    description: "11+ business models beyond franchising", 
+                    score: 88,
+                    icon: <BusinessCenter />
+                  },
+                  { 
+                    title: "Real-time Analytics", 
+                    description: "Comprehensive insights and reporting", 
+                    score: 90,
+                    icon: <Analytics />
+                  }
+                ].map((advantage, index) => (
+                  <Paper key={index} sx={{ 
+                    p: 2, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    background: `linear-gradient(90deg, ${colors[index]}10, transparent)`
+                  }}>
+                    <Avatar sx={{ bgcolor: colors[index], width: 48, height: 48 }}>
+                      {advantage.icon}
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        {advantage.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        {advantage.description}
+                      </Typography>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={advantage.score} 
+                        sx={{ 
+                          height: 6, 
+                          borderRadius: 3,
+                          backgroundColor: `${colors[index]}20`,
+                          '& .MuiLinearProgress-bar': {
+                            backgroundColor: colors[index]
+                          }
+                        }}
+                      />
+                    </Box>
+                    <Typography variant="h6" fontWeight="bold" color={colors[index]}>
+                      {advantage.score}%
+                    </Typography>
+                  </Paper>
+                ))}
+              </Stack>
             </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" gutterBottom color="primary">
-                Market Positioning
-              </Typography>
-              <List>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemIcon><Star color="warning" /></ListItemIcon>
-                  <ListItemText primary="First-mover in AI-powered franchise matching" />
-                </ListItem>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemIcon><Star color="warning" /></ListItemIcon>
-                  <ListItemText primary="Multi-business model platform (11+ types)" />
-                </ListItem>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemIcon><Star color="warning" /></ListItemIcon>
-                  <ListItemText primary="Scalable for global expansion" />
-                </ListItem>
-              </List>
+
+            {/* Technology Stack Showcase */}
+            <Grid item xs={12}>
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  Technology Stack & Architecture
+                </Typography>
+                <Grid container spacing={3} justifyContent="center">
+                  {[
+                    { name: 'React 19', category: 'Frontend', color: colors[0] },
+                    { name: 'Firebase', category: 'Backend', color: colors[1] },
+                    { name: 'Material-UI', category: 'UI Framework', color: colors[2] },
+                    { name: 'Gemini AI', category: 'AI/ML', color: colors[3] },
+                    { name: 'PWA', category: 'Mobile', color: colors[4] },
+                    { name: 'Netlify', category: 'Deployment', color: colors[5] }
+                  ].map((tech, index) => (
+                    <Grid item xs={6} sm={4} md={2} key={index}>
+                      <Paper sx={{
+                        p: 2,
+                        textAlign: 'center',
+                        height: 120,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        background: `linear-gradient(135deg, ${tech.color}20, ${tech.color}05)`,
+                        border: `2px solid ${tech.color}30`,
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          boxShadow: theme.shadows[4]
+                        },
+                        transition: 'all 0.3s ease'
+                      }}>
+                        <Typography variant="h6" fontWeight="bold" sx={{ color: tech.color }}>
+                          {tech.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {tech.category}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Paper>
             </Grid>
           </Grid>
         </CardContent>
       </MotionCard>
 
       {/* Investment Opportunity */}
-      <MotionCard {...fadeInUp} sx={{ mb: 6, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+      <MotionCard {...fadeInUp} sx={{ 
+        mb: 6, 
+        background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+        color: 'primary.contrastText',
+        overflow: 'hidden'
+      }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2, color: 'white', mb: 4 }}>
             <Insights />
-            Investment Opportunity
+            Investment Opportunity & Funding
           </Typography>
-          <Grid container spacing={4} alignItems="center">
+          
+          <Grid container spacing={4}>
+            {/* Investment Highlights */}
             <Grid item xs={12} md={8}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
                 Join the Digital Transformation of Franchising
               </Typography>
-              <Typography variant="body1" paragraph>
+              <Typography variant="body1" paragraph sx={{ color: 'white', opacity: 0.9 }}>
                 We're seeking strategic investors to accelerate growth and capture market leadership 
                 in the $50B+ franchise industry. With proven technology and clear revenue streams, 
                 we're positioned for rapid scaling.
               </Typography>
-              <Stack direction="row" spacing={2} flexWrap="wrap">
-                <Chip label="Seed Round: $500K" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
-                <Chip label="Series A: $2M" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
-                <Chip label="8-12x Revenue Multiple" variant="outlined" sx={{ color: 'white', borderColor: 'white' }} />
+              
+              {/* Funding Rounds */}
+              <Stack spacing={2} sx={{ mt: 3 }}>
+                {[
+                  { round: 'Seed Round', amount: '₹4Cr', equity: '15%', milestone: 'MVP & Market Validation' },
+                  { round: 'Series A', amount: '₹17Cr', equity: '20%', milestone: 'Scale & Expansion' },
+                  { round: 'Series B', amount: '₹42Cr', equity: '15%', milestone: 'Global Platform' }
+                ].map((funding, index) => (
+                  <Paper key={index} sx={{ 
+                    p: 2, 
+                    background: 'rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.2)'
+                  }}>
+                    <Grid container alignItems="center" spacing={2}>
+                      <Grid item xs={3}>
+                        <Typography variant="h6" sx={{ color: 'white' }}>{funding.round}</Typography>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <Typography variant="h5" fontWeight="bold" sx={{ color: 'white' }}>{funding.amount}</Typography>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <Typography variant="body1" sx={{ color: 'white' }}>Equity: {funding.equity}</Typography>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <Typography variant="body2" sx={{ color: 'white', opacity: 0.8 }}>{funding.milestone}</Typography>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                ))}
               </Stack>
             </Grid>
+
+            {/* Use of Funds Visualization */}
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="h6" color="primary" gutterBottom>
-                  Use of Funds
+              <Paper sx={{ p: 3, height: '100%' }}>
+                <Typography variant="h6" color="primary" gutterBottom textAlign="center">
+                  Use of Funds Distribution
                 </Typography>
-                <Typography variant="body2" gutterBottom>60% Development</Typography>
-                <Typography variant="body2" gutterBottom>25% Marketing</Typography>
-                <Typography variant="body2" gutterBottom>15% Operations</Typography>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Development', value: 60, amount: '₹10Cr' },
+                        { name: 'Marketing', value: 25, amount: '₹4Cr' },
+                        { name: 'Operations', value: 15, amount: '₹2.5Cr' }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {[0,1,2].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={colors[index]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <Stack spacing={1} sx={{ mt: 2 }}>
+                  {[
+                    { label: 'Development', percent: 60, color: colors[0] },
+                    { label: 'Marketing', percent: 25, color: colors[1] },
+                    { label: 'Operations', percent: 15, color: colors[2] }
+                  ].map((item, index) => (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 12, height: 12, bgcolor: item.color, borderRadius: 1 }} />
+                      <Typography variant="body2" sx={{ flex: 1 }}>{item.label}</Typography>
+                      <Typography variant="body2" fontWeight="bold">{item.percent}%</Typography>
+                    </Box>
+                  ))}
+                </Stack>
+              </Paper>
+            </Grid>
+
+            {/* Investment Returns Projection */}
+            <Grid item xs={12}>
+              <Paper sx={{ p: 3, mt: 2 }}>
+                <Typography variant="h6" gutterBottom textAlign="center">
+                  Projected Returns & Valuation Timeline
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={[
+                    { year: '2024', valuation: 17, revenue: 1200, users: 12000 },
+                    { year: '2025', valuation: 67, revenue: 3800, users: 38000 },
+                    { year: '2026', valuation: 210, revenue: 10000, users: 85000 },
+                    { year: '2027', valuation: 500, revenue: 20000, users: 150000 },
+                    { year: '2028', valuation: 1000, revenue: 35000, users: 250000 }
+                  ]}>
+                    <defs>
+                      <linearGradient id="colorValuation" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={theme.palette.success.main} stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor={theme.palette.success.main} stopOpacity={0.1}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="year" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Area 
+                      type="monotone" 
+                      dataKey="valuation" 
+                      stroke={theme.palette.success.main}
+                      fill="url(#colorValuation)" 
+                      name="Valuation (₹Cr)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </Paper>
             </Grid>
           </Grid>
