@@ -34,7 +34,8 @@ import {
   TrendingUp,
   CheckCircle,
   Star,
-  Launch
+  Launch,
+  History,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import UserInfoForm from "./UserInfoForm";
@@ -46,11 +47,18 @@ import { INVESTMENT_RANGES, INDUSTRIES } from "../../constants";
 import { getBrandUrl } from "../../utils/brandUtils";
 import { useDevice } from "../../hooks/useDevice";
 import logger from "../../utils/logger";
+import { 
+  SuggestedQuestions, 
+  ContextualQuickReplies, 
+  ConversationStarters 
+} from "./ChatbotEnhancements";
+import useChatHistory from "../../hooks/useChatHistory";
 
 const Chatbot = () => {
   const navigate = useNavigate();
   const { isMobile } = useDevice();
   const [open, setOpen] = useState(false);
+  const { saveConversation } = useChatHistory();
 
   // Expose setOpen to window for mobile bottom nav access
   useEffect(() => {
@@ -67,6 +75,7 @@ const Chatbot = () => {
   const [userResponses, setUserResponses] = useState({});
   const [brandsData, setBrandsData] = useState([]);
   const [matchedBrands, setMatchedBrands] = useState([]);
+  const [conversationContext, setConversationContext] = useState('greeting');
   const chatEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -644,6 +653,10 @@ const Chatbot = () => {
   };
 
   const handleClose = () => {
+    // Save conversation history before closing
+    if (messages.length > 0) {
+      saveConversation(messages, userInfo);
+    }
     setOpen(false);
   };
 

@@ -13,11 +13,15 @@ dist-ssr
 .env.production
 .env.development
 .env.*.local
-.md
+
+# Documentation (exclude all except README)
+*.md
+!README.md
 
 # Backup files
 backup
 backup/
+backup*
 
 # Logs
 logs
@@ -54,5 +58,25 @@ coverage
 *.tmp
 *.temp
 .cache
+
+# Sensitive and development files
+*.key
+*.pem
+*.p12
+*.cert
+*.crt
+secrets/
+.secrets
+
+# Database dumps
+*.sql
+*.sqlite
+*.db
+
+# IDE and system files
+.vscode/settings.json
+.history/
+*.swp
+*~
 
 

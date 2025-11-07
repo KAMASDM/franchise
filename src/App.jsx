@@ -1,7 +1,9 @@
 import React, { Suspense, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AuthContextProvider, useAuth } from "./context/AuthContext";
+import { DarkModeProvider } from "./context/DarkModeContext";
 import { Box, CircularProgress } from "@mui/material";
+import { Toaster } from 'react-hot-toast';
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import MobileAppLayout from "./components/layout/MobileAppLayout";
@@ -9,8 +11,11 @@ import Chatbot from "./components/chat/Chatbot";
 import LiveChat from "./components/chat/LiveChat";
 import InstallPrompt from "./components/common/InstallPrompt";
 import OfflineIndicator from "./components/common/OfflineIndicator";
+import ComparisonBar from "./components/brand/ComparisonBar";
 import { useAdminStatus } from "./hooks/useAdminStatus";
 import { useDevice } from "./hooks/useDevice";
+import { usePageProgress } from "./hooks/usePageProgress";
+import '../src/styles/nprogress-custom.css';
 
 // --- Lazy Load Pages ---
 const Home = React.lazy(() => import("./pages/Home"));
@@ -28,6 +33,8 @@ const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const CreateBrandProfile = React.lazy(() => import("./pages/CreateBrandProfile"));
 const BrandDebugger = React.lazy(() => import("./components/debug/BrandDebugger"));
 const InvestorPitchDeck = React.lazy(() => import("./pages/InvestorPitchDeck"));
+const FavoritesPage = React.lazy(() => import("./components/favorites/FavoritesPage"));
+const ChatHistoryPage = React.lazy(() => import("./components/chat/ChatHistoryViewer"));
 
 // Only load debug component in development
 const FirestoreTest = import.meta.env.DEV 
@@ -78,6 +85,7 @@ const AdminRoute = ({ children }) => {
 function App() {
   const location = useLocation();
   const { isMobile } = useDevice();
+  usePageProgress(); // Add page transition loading bar
   const isDashboardRoute = location.pathname.startsWith("/dashboard");
   const isAdminRoute = location.pathname.startsWith("/admin");
   const showPublicLayout = !isDashboardRoute && !isAdminRoute;
@@ -97,6 +105,10 @@ function App() {
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
       
+      {/* Favorites and Chat History */}
+      <Route path="/favorites" element={<FavoritesPage />} />
+      <Route path="/chat-history" element={<ChatHistoryPage standalone={true} />} />
+      
       {/* Investor Pitch Deck */}
       <Route path="/investors" element={<InvestorPitchDeck />} />
       
@@ -114,53 +126,79 @@ function App() {
   );
 
   return (
-    <AuthContextProvider>
-      <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        {showPublicLayout && !isMobile && <Header />}
-        <Box component="main" sx={{ flex: 1 }}>
-          <Suspense fallback={<LoadingFallback />}>
-            {showPublicLayout ? (
-              // Wrap public routes in MobileAppLayout for mobile, use regular layout for desktop
-              isMobile ? (
-                <MobileAppLayout>
+    <DarkModeProvider>
+      <AuthContextProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              borderRadius: '12px',
+              padding: '16px',
+              fontSize: '14px',
+            },
+            success: {
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
+        <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+          {showPublicLayout && !isMobile && <Header />}
+          <Box component="main" sx={{ flex: 1 }}>
+            <Suspense fallback={<LoadingFallback />}>
+              {showPublicLayout ? (
+                // Wrap public routes in MobileAppLayout for mobile, use regular layout for desktop
+                isMobile ? (
+                  <MobileAppLayout>
+                    <PublicRoutes />
+                  </MobileAppLayout>
+                ) : (
                   <PublicRoutes />
-                </MobileAppLayout>
+                )
               ) : (
-                <PublicRoutes />
-              )
-            ) : (
-              // Dashboard and Admin routes (no mobile layout wrapper)
-              <Routes>
-                {/* Protected User Dashboard Route */}
-                <Route
-                  path="/dashboard/*"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                
-                {/* Protected Admin Dashboard Route */}
-                <Route
-                    path="/admin/*"
+                // Dashboard and Admin routes (no mobile layout wrapper)
+                <Routes>
+                  {/* Protected User Dashboard Route */}
+                  <Route
+                    path="/dashboard/*"
                     element={
-                        <AdminRoute>
-                            <AdminDashboard />
-                        </AdminRoute>
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
                     }
-                />
-              </Routes>
-            )}
-          </Suspense>
+                  />
+                  
+                  {/* Protected Admin Dashboard Route */}
+                  <Route
+                      path="/admin/*"
+                      element={
+                          <AdminRoute>
+                              <AdminDashboard />
+                          </AdminRoute>
+                      }
+                  />
+                </Routes>
+              )}
+            </Suspense>
+          </Box>
+          {showPublicLayout && !isMobile && <Footer />}
+          {showPublicLayout && <Chatbot />}
+          <LiveChat />
+          <InstallPrompt />
+          <OfflineIndicator />
+          <ComparisonBar />
         </Box>
-        {showPublicLayout && !isMobile && <Footer />}
-        {showPublicLayout && <Chatbot />}
-        <LiveChat />
-        <InstallPrompt />
-        <OfflineIndicator />
-      </Box>
-    </AuthContextProvider>
+      </AuthContextProvider>
+    </DarkModeProvider>
   );
 }
 

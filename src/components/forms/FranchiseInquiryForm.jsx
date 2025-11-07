@@ -32,7 +32,7 @@ const investmentRanges = INVESTMENT_RANGES;
 const businessExperience = BUSINESS_EXPERIENCE_OPTIONS;
 const timeline = TIMELINE_OPTIONS;
 
-const FranchiseInquiryForm = ({ brand, onClose }) => {
+const FranchiseInquiryForm = ({ brand, onClose, onSuccess }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     // Personal Information
@@ -189,6 +189,12 @@ const FranchiseInquiryForm = ({ brand, onClose }) => {
       );
 
       setSubmitted(true);
+      
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
+      
       // Removed navigation for a smoother user experience
     } catch (error) {
       logger.error("Error submitting inquiry:", error);

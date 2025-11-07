@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -46,6 +46,7 @@ import {
   Instagram,
   LinkedIn,
   CropLandscape,
+  QrCode2,
   EmojiEvents,
   CheckCircle,
   BusinessCenter,
@@ -62,6 +63,8 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { motion } from "framer-motion";
 import { useBrand } from "../../hooks/useBrand";
+import { useRecentlyViewed } from "../../hooks/useRecentlyViewed";
+import { useGamification } from "../../hooks/useGamification";
 import FranchiseInquiryForm from "../forms/FranchiseInquiryForm";
 import { slugToBrandName } from "../../utils/brandUtils";
 import { 
@@ -69,6 +72,15 @@ import {
   REVENUE_MODELS, 
   SUPPORT_TYPES 
 } from "../../constants/businessModels";
+import Breadcrumbs from "../common/Breadcrumbs";
+import ShareButton from "../common/ShareButton";
+import QRCodeGenerator from "../common/QRCodeGenerator";
+import { StickyInquiryCTA, ScrollToTop } from "../common/StickyCTA";
+import RelatedBrands from "./RelatedBrands";
+import ROICalculator from "./ROICalculator";
+import FAQAccordion from "../common/FAQAccordion";
+import LazyImage from "../common/LazyImage";
+import { FavoriteButton } from "../favorites/FavoritesPage";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -87,7 +99,40 @@ const BrandDetail = () => {
   const navigate = useNavigate();
   // Use slug directly instead of converting to brandName for better matching
   const { brand, loading, error } = useBrand({ slug });
+  const { addRecentBrand } = useRecentlyViewed();
+  const { trackBrandView, trackInquiry } = useGamification();
   const [showInquiryForm, setShowInquiryForm] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [hasSubmittedInquiry, setHasSubmittedInquiry] = useState(() => {
+    // Check localStorage for this specific brand
+    if (brand?.id) {
+      const inquiryKey = `inquiry_submitted_${brand.id}`;
+      return localStorage.getItem(inquiryKey) === 'true';
+    }
+    return false;
+  });
+
+  // Track recently viewed brand and gamification
+  useEffect(() => {
+    if (brand && !loading) {
+      addRecentBrand(brand);
+      trackBrandView(brand.id);
+      
+      // Check if inquiry was submitted for this brand
+      const inquiryKey = `inquiry_submitted_${brand.id}`;
+      const hasSubmitted = localStorage.getItem(inquiryKey) === 'true';
+      setHasSubmittedInquiry(hasSubmitted);
+    }
+  }, [brand, loading, addRecentBrand, trackBrandView]);
+  
+  // Save inquiry submission to localStorage
+  const handleInquirySuccess = () => {
+    if (brand?.id) {
+      const inquiryKey = `inquiry_submitted_${brand.id}`;
+      localStorage.setItem(inquiryKey, 'true');
+      setHasSubmittedInquiry(true);
+    }
+  };
 
   // Debug logging
   console.log('BrandDetail Debug:', {
@@ -190,7 +235,34 @@ const BrandDetail = () => {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Breadcrumbs */}
-      <Box sx={{ mb: 3 }}>
+      <Breadcrumbs />
+
+      {/* Header with Share and QR Code */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h3" component="h1" gutterBottom>
+            {brand.brandName}
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={1}>
+          <FavoriteButton brand={brand} />
+          <ShareButton 
+            url={window.location.href}
+            title={`Check out ${brand.brandName} franchise opportunity`}
+            description={brand.description}
+          />
+          <Button
+            variant="outlined"
+            onClick={() => setShowQRCode(true)}
+            startIcon={<QrCode2 />}
+          >
+            QR Code
+          </Button>
+        </Stack>
+      </Box>
+
+      {/* Original breadcrumb kept for compatibility - can be removed later */}
+      <Box sx={{ mb: 3, display: 'none' }}>
         <Box 
           sx={{ 
             display: 'flex', 
@@ -629,104 +701,158 @@ const BrandDetail = () => {
               <Typography variant="h5" gutterBottom fontWeight="bold">
                 Contact Information
               </Typography>
-              <List>
-                <ListItem>
-                  <ListItemIcon>
-                    <Phone color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Phone"
-                    secondary={
-                      (brand.brandContactInformation?.phone || brand.contactInfo?.phone) || 
-                      "Contact information not available"
-                    }
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Email color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Email"
-                    secondary={
-                      (brand.brandContactInformation?.email || brand.contactInfo?.email) || 
-                      "Email not provided"
-                    }
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <LocationOn color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Address"
-                    secondary={
-                      (() => {
-                        const contactInfo = brand.brandContactInformation || brand.contactInfo;
-                        if (contactInfo) {
-                          const addressParts = [
-                            contactInfo.address,
-                            contactInfo.city,
-                            contactInfo.state,
-                            contactInfo.zipCode
-                          ].filter(Boolean);
-                          return addressParts.length > 0 ? addressParts.join(', ') : "Address not provided";
+              
+              {!hasSubmittedInquiry ? (
+                <Box
+                  sx={{
+                    textAlign: 'center',
+                    py: 6,
+                    px: 3,
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main}08, ${theme.palette.secondary.main}08)`,
+                    borderRadius: 2,
+                    border: `2px dashed ${theme.palette.primary.main}40`,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mx: 'auto',
+                      mb: 3,
+                    }}
+                  >
+                    <Phone sx={{ fontSize: 40, color: 'white' }} />
+                  </Box>
+                  <Typography variant="h6" gutterBottom fontWeight="600">
+                    Contact Details Protected
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
+                    To protect our franchise partners and ensure quality leads, contact information is revealed only after submitting an inquiry form.
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={() => setShowInquiryForm(true)}
+                    sx={{
+                      px: 4,
+                      py: 1.5,
+                      background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                      boxShadow: `0 4px 12px ${theme.palette.primary.main}40`,
+                      '&:hover': {
+                        boxShadow: `0 6px 16px ${theme.palette.primary.main}60`,
+                      }
+                    }}
+                  >
+                    Fill Inquiry Form to Unlock
+                  </Button>
+                </Box>
+              ) : (
+                <>
+                  <List>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Phone color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Phone"
+                        secondary={
+                          (brand.brandContactInformation?.phone || brand.contactInfo?.phone) || 
+                          "Contact information not available"
                         }
-                        return "Address not available";
-                      })()
-                    }
-                  />
-                </ListItem>
-              </List>
-              <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-                {(() => {
-                  const contactInfo = brand.brandContactInformation || brand.contactInfo;
-                  return (
-                    <>
-                      {(contactInfo?.facebookURl || contactInfo?.facebook) && (
-                        <IconButton
-                          href={contactInfo.facebookURl || contactInfo.facebook}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label="Visit Facebook page"
-                        >
-                          <Facebook color="primary" />
-                        </IconButton>
-                      )}
-                      {(contactInfo?.twitterURl || contactInfo?.twitter) && (
-                        <IconButton
-                          href={contactInfo.twitterURl || contactInfo.twitter}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label="Visit Twitter page"
-                        >
-                          <Twitter color="primary" />
-                        </IconButton>
-                      )}
-                      {(contactInfo?.instagramURl || contactInfo?.instagram) && (
-                        <IconButton
-                          href={contactInfo.instagramURl || contactInfo.instagram}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label="Visit Instagram page"
-                        >
-                          <Instagram color="primary" />
-                        </IconButton>
-                      )}
-                      {(contactInfo?.linkedinURl || contactInfo?.linkedin) && (
-                        <IconButton
-                          href={contactInfo.linkedinURl || contactInfo.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label="Visit LinkedIn page"
-                        >
-                          <LinkedIn color="primary" />
-                        </IconButton>
-                      )}
-                    </>
-                  );
-                })()}
-              </Box>
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Email color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Email"
+                        secondary={
+                          (brand.brandContactInformation?.email || brand.contactInfo?.email) || 
+                          "Email not provided"
+                        }
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        <LocationOn color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Address"
+                        secondary={
+                          (() => {
+                            const contactInfo = brand.brandContactInformation || brand.contactInfo;
+                            if (contactInfo) {
+                              const addressParts = [
+                                contactInfo.address,
+                                contactInfo.city,
+                                contactInfo.state,
+                                contactInfo.zipCode
+                              ].filter(Boolean);
+                              return addressParts.length > 0 ? addressParts.join(', ') : "Address not provided";
+                            }
+                            return "Address not available";
+                          })()
+                        }
+                      />
+                    </ListItem>
+                  </List>
+                  <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+                    {(() => {
+                      const contactInfo = brand.brandContactInformation || brand.contactInfo;
+                      return (
+                        <>
+                          {(contactInfo?.facebookURl || contactInfo?.facebook) && (
+                            <IconButton
+                              href={contactInfo.facebookURl || contactInfo.facebook}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Visit Facebook page"
+                            >
+                              <Facebook color="primary" />
+                            </IconButton>
+                          )}
+                          {(contactInfo?.twitterURl || contactInfo?.twitter) && (
+                            <IconButton
+                              href={contactInfo.twitterURl || contactInfo.twitter}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Visit Twitter page"
+                            >
+                              <Twitter color="primary" />
+                            </IconButton>
+                          )}
+                          {(contactInfo?.instagramURl || contactInfo?.instagram) && (
+                            <IconButton
+                              href={contactInfo.instagramURl || contactInfo.instagram}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Visit Instagram page"
+                            >
+                              <Instagram color="primary" />
+                            </IconButton>
+                          )}
+                          {(contactInfo?.linkedinURl || contactInfo?.linkedin) && (
+                            <IconButton
+                              href={contactInfo.linkedinURl || contactInfo.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Visit LinkedIn page"
+                            >
+                              <LinkedIn color="primary" />
+                            </IconButton>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </Box>
+                </>
+              )}
             </CardContent>
           </MotionCard>
 
@@ -1190,100 +1316,6 @@ const BrandDetail = () => {
               </CardContent>
             </MotionCard>
           )}
-
-          {/* Brand Owner Card */}
-          <MotionCard
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            sx={{ boxShadow: 3 }}
-          >
-            <CardContent>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                Brand Owner
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                <Box sx={{ flex: 1, minWidth: 300 }}>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Person color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="Name"
-                        secondary={
-                          (brand.brandOwnerInformation?.name || brand.ownerInfo?.name) || 
-                          "Owner name not provided"
-                        }
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Email color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="Email"
-                        secondary={
-                          (brand.brandOwnerInformation?.email || brand.ownerInfo?.email) || 
-                          "Owner email not provided"
-                        }
-                      />
-                    </ListItem>
-                  </List>
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 300 }}>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Phone color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary="Phone"
-                        secondary={
-                          (brand.brandOwnerInformation?.phone || brand.ownerInfo?.phone) || 
-                          "Owner phone not provided"
-                        }
-                      />
-                    </ListItem>
-                    {(() => {
-                      const ownerInfo = brand.brandOwnerInformation || brand.ownerInfo;
-                      const linkedinUrl = ownerInfo?.linkedinURl || ownerInfo?.linkedin;
-                      
-                      return linkedinUrl ? (
-                        <ListItem>
-                          <ListItemIcon>
-                            <LinkedIn color="primary" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary="LinkedIn"
-                            secondary={
-                              <Link
-                                href={linkedinUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                View Profile
-                              </Link>
-                            }
-                          />
-                        </ListItem>
-                      ) : (
-                        <ListItem>
-                          <ListItemIcon>
-                            <LinkedIn color="primary" />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary="LinkedIn"
-                            secondary="LinkedIn profile not available"
-                          />
-                        </ListItem>
-                      );
-                    })()}
-                  </List>
-                </Box>
-              </Box>
-            </CardContent>
-          </MotionCard>
         </Box>
       </MotionBox>
 
@@ -1322,6 +1354,36 @@ const BrandDetail = () => {
         </Button>
       </MotionBox>
 
+      {/* ROI Calculator */}
+      <Box sx={{ mt: 4 }}>
+        <ROICalculator 
+          brandName={brand.brandName}
+          initialInvestment={brand.initialInvestment}
+          estimatedROI={brand.estimatedROI}
+        />
+      </Box>
+
+      {/* FAQ Accordion */}
+      <Box sx={{ mt: 4 }}>
+        <FAQAccordion brandName={brand.brandName} />
+      </Box>
+
+      {/* Related Brands */}
+      <Box sx={{ mt: 4 }}>
+        <RelatedBrands 
+          currentBrand={brand}
+          category={brand.category}
+        />
+      </Box>
+
+      {/* Sticky CTA and Scroll to Top */}
+      <StickyInquiryCTA 
+        onInquiryClick={() => setShowInquiryForm(true)}
+        brandName={brand.brandName}
+      />
+      <ScrollToTop />
+
+      {/* Dialogs */}
       <Dialog
         open={showInquiryForm}
         onClose={() => setShowInquiryForm(false)}
@@ -1330,9 +1392,22 @@ const BrandDetail = () => {
       >
         <FranchiseInquiryForm
           brand={brand}
-          onClose={() => setShowInquiryForm(false)}
+          onClose={() => {
+            setShowInquiryForm(false);
+            trackInquiry();
+          }}
+          onSuccess={handleInquirySuccess}
         />
       </Dialog>
+
+      <QRCodeGenerator 
+        open={showQRCode}
+        onClose={() => setShowQRCode(false)}
+        url={window.location.href}
+        brandName={brand.brandName}
+        brandLogo={brand.brandImage || brand.logo}
+        showButton={false}
+      />
     </Container>
   );
 };

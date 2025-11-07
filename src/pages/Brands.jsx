@@ -4,6 +4,15 @@ import BrandCard from "../components/brand/BrandCard";
 import SearchFilters from "../components/home/SearchFilters";
 import AdvancedSearchBar from "../components/search/AdvancedSearchBar";
 import FacetedFilters from "../components/search/FacetedFilters";
+import { BrandGridSkeleton } from "../components/common/SkeletonLoader";
+import { NoBrandsEmpty, NoSearchResultsEmpty } from "../components/common/EmptyState";
+import RecentlyViewedBrands from "../components/brand/RecentlyViewedBrands";
+import PersonalizedRecommendations from "../components/recommendations/PersonalizedRecommendations";
+import TagFilter, { InlineTagFilter, extractTagsFromBrands } from "../components/common/TagFilter";
+import { SearchSuggestions, DidYouMean } from "../components/common/SearchSuggestions";
+import VirtualizedBrandList from "../components/common/VirtualizedList";
+import Breadcrumbs from "../components/common/Breadcrumbs";
+import { FavoriteButton } from "../components/favorites/FavoritesPage";
 import {
   Container,
   Typography,
@@ -12,12 +21,17 @@ import {
   Box,
   useTheme,
   Button,
+  Tabs,
+  Tab,
 } from "@mui/material";
-import { Store as StoreIcon } from "@mui/icons-material";
+import { Store as StoreIcon, TrendingUp } from "@mui/icons-material";
 import { useBrands } from "../hooks/useBrands";
 import { useSearch } from "../hooks/useSearch";
 import { SearchService } from "../utils/SearchService";
 import { useDevice } from "../hooks/useDevice";
+import { useSearchWithURL } from "../hooks/useSearchWithURL";
+import { enhancedSearch, getDidYouMean } from "../utils/fuzzySearch";
+import { useGamification } from "../hooks/useGamification";
 
 // Lazy load mobile version
 const BrandsMobile = lazy(() => import("./BrandsMobile"));
@@ -66,7 +80,15 @@ const Brands = () => {
   const [filteredBrands, setFilteredBrands] = useState([]);
   const [availableFranchiseModels, setAvailableFranchiseModels] = useState([]);
   const [filters, setFilters] = useState({});
-  const [searchQuery, setSearchQuery] = useState('');
+  const { searchQuery, updateSearchQuery } = useSearchWithURL();
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const { trackVisit } = useGamification();
+
+  // Track visit for gamification
+  useEffect(() => {
+    trackVisit();
+  }, [trackVisit]);
 
   // Mobile version
   if (isMobile) {
@@ -89,12 +111,28 @@ const Brands = () => {
   useEffect(() => {
     let results = brands || [];
 
-    // Apply search using SearchService fuzzy matching
+    // Apply enhanced fuzzy search
     if (searchQuery && searchQuery.trim()) {
-      results = SearchService.searchBrands(results, searchQuery, {
+      results = enhancedSearch(results, searchQuery, {
+        keys: ['brandName', 'industries', 'businessModel', 'brandStory', 'description'],
         threshold: 0.3,
-        includePartialMatches: true,
-        fields: ['brandName', 'industries', 'businessModel', 'brandStory']
+      });
+    }
+
+    // Apply tag filters
+    if (selectedTags.length > 0) {
+      results = results.filter(brand => {
+        const brandTags = [
+          brand.category,
+          brand.businessModel,
+          ...(brand.industries || []),
+          brand.initialInvestment < 50000 ? 'Low Investment' : null,
+          brand.estimatedROI > 20 ? 'High ROI' : null,
+        ].filter(Boolean);
+        
+        return selectedTags.some(tag => 
+          brandTags.some(bt => bt && bt.toLowerCase().includes(tag.toLowerCase()))
+        );
       });
     }
 
@@ -128,7 +166,7 @@ const Brands = () => {
     }
 
     setFilteredBrands(results);
-  }, [brands, searchQuery, filters]);
+  }, [brands, searchQuery, filters, selectedTags]);
 
   useEffect(() => {
     if (brands && brands.length > 0) {
@@ -153,22 +191,53 @@ const Brands = () => {
 
   const handleClearFilters = () => {
     setFilters({});
-    setSearchQuery('');
+    updateSearchQuery('');
+    setSelectedTags([]);
   };
 
   const handleSearch = (query) => {
-    setSearchQuery(query);
+    updateSearchQuery(query);
   };
 
   if (loading) {
     return (
       <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="80vh"
+        sx={{
+          minHeight: '100vh',
+          background: `linear-gradient(135deg, ${theme.palette.primary[50]} 0%, ${theme.palette.background.paper} 40%, ${theme.palette.secondary[50]} 100%)`,
+        }}
       >
-        <CircularProgress />
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.secondary.main}15 100%)`,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            py: { xs: 4, md: 8 },
+            mb: 4,
+          }}
+        >
+          <Container maxWidth="xl">
+            <Box sx={{ textAlign: "center", mb: 4 }}>
+              <Typography
+                component="h1"
+                variant="h2"
+                sx={{
+                  fontSize: { xs: "2.5rem", md: "3.5rem" },
+                  fontWeight: 700,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mb: 2,
+                }}
+              >
+                Franchise Marketplace
+              </Typography>
+            </Box>
+          </Container>
+        </Box>
+        <Container maxWidth="xl" sx={{ pb: 8 }}>
+          <BrandGridSkeleton count={6} />
+        </Container>
       </Box>
     );
   }
@@ -235,8 +304,35 @@ const Brands = () => {
               <Box sx={{ maxWidth: 600, mx: "auto" }}>
                 <AdvancedSearchBar 
                   brands={brands}
-                  onSearch={handleSearch}
+                  onSearch={(query) => updateSearchQuery(query)}
                   showSuggestions={true}
+                  initialValue={searchQuery}
+                />
+                
+                {/* Did You Mean Suggestion */}
+                {searchQuery && filteredBrands.length === 0 && brands.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <DidYouMean 
+                      searchQuery={searchQuery}
+                      brands={brands}
+                      onSuggestionClick={(suggestion) => updateSearchQuery(suggestion)}
+                    />
+                  </Box>
+                )}
+              </Box>
+
+              {/* Tag Filter - Inline */}
+              <Box sx={{ mt: 3, maxWidth: 800, mx: "auto" }}>
+                <InlineTagFilter 
+                  tags={extractTagsFromBrands(brands, ['category', 'industries'])}
+                  selectedTags={selectedTags}
+                  onTagClick={(tag) => {
+                    setSelectedTags(prev => 
+                      prev.includes(tag) 
+                        ? prev.filter(t => t !== tag)
+                        : [...prev, tag]
+                    );
+                  }}
                 />
               </Box>
             </Box>
@@ -244,8 +340,22 @@ const Brands = () => {
         </Container>
       </Box>
 
+      {/* Breadcrumbs */}
+      <Container maxWidth="xl">
+        <Breadcrumbs />
+      </Container>
+
       {/* Main Content */}
       <Container maxWidth="xl" sx={{ pb: 8 }}>
+        {/* Personalized Recommendations */}
+        <Box sx={{ mb: 4 }}>
+          <PersonalizedRecommendations 
+            allBrands={brands}
+            limit={6}
+            variant="default"
+            excludeBrandIds={filteredBrands.map(b => b.id)}
+          />
+        </Box>
         <Box sx={{ 
           display: 'flex', 
           gap: { xs: 3, lg: 4 }, 
@@ -282,6 +392,9 @@ const Brands = () => {
 
           {/* Brand Results */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* Recently Viewed Brands */}
+            <RecentlyViewedBrands limit={6} />
+
             {/* Results Header */}
             <Box 
               sx={{ 
@@ -317,88 +430,60 @@ const Brands = () => {
             {/* Brand Cards Grid */}
             <Box sx={{ minHeight: '400px' }}>
               {filteredBrands.length > 0 ? (
-                <Grid 
-                  container 
-                  spacing={{ xs: 3, md: 4 }}
-                  sx={{
-                    '& .MuiGrid-item': {
-                      display: 'flex',
-                      alignItems: 'stretch'
-                    }
-                  }}
-                >
-                  {filteredBrands.map((brand, index) => (
-                    <Grid 
-                      item 
-                      key={brand.id} 
-                      xs={12} 
-                      sm={6} 
-                      xl={4}
-                      sx={{ display: 'flex' }}
-                    >
-                      <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ 
-                          duration: 0.5, 
-                          delay: Math.min(index * 0.1, 1),
-                          ease: "easeOut"
-                        }}
-                        whileHover={{ y: -8 }}
-                        style={{ 
-                          height: '100%', 
-                          width: '100%',
-                          display: 'flex'
-                        }}
-                      >
-                        <BrandCard brand={brand} index={index} />
-                      </motion.div>
-                    </Grid>
-                  ))}
-                </Grid>
-              ) : (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    py: 8,
-                    px: 4,
-                    background: theme.palette.background.paper,
-                    borderRadius: 3,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                    border: `1px solid ${theme.palette.divider}`,
-                    textAlign: 'center'
-                  }}
-                >
-                  <StoreIcon 
-                    sx={{ 
-                      fontSize: 80, 
-                      color: theme.palette.grey[400], 
-                      mb: 2 
-                    }} 
+                // Use virtualized list for performance if more than 50 brands
+                filteredBrands.length > 50 ? (
+                  <VirtualizedBrandList 
+                    brands={filteredBrands}
+                    height={800}
                   />
-                  <Typography variant="h5" color="text.secondary" gutterBottom>
-                    {brands.length === 0
-                      ? "No Franchises Available"
-                      : "No Results Found"}
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 400 }}>
-                    {brands.length === 0
-                      ? "We're working on adding new franchise opportunities. Check back soon!"
-                      : "Try adjusting your filters or search terms to find more opportunities."}
-                  </Typography>
-                  {brands.length > 0 && (
-                    <Button 
-                      variant="outlined" 
-                      onClick={handleClearFilters}
-                      sx={{ mt: 1 }}
-                    >
-                      Clear All Filters
-                    </Button>
-                  )}
-                </Box>
+                ) : (
+                  <Grid 
+                    container 
+                    spacing={{ xs: 3, md: 4 }}
+                    sx={{
+                      '& .MuiGrid-item': {
+                        display: 'flex',
+                        alignItems: 'stretch'
+                      }
+                    }}
+                  >
+                    {filteredBrands.map((brand, index) => (
+                      <Grid 
+                        item 
+                        key={brand.id} 
+                        xs={12} 
+                        sm={6} 
+                        xl={4}
+                        sx={{ display: 'flex' }}
+                      >
+                        <motion.div
+                          initial={{ opacity: 0, y: 30 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ 
+                            duration: 0.5, 
+                            delay: Math.min(index * 0.1, 1),
+                            ease: "easeOut"
+                          }}
+                          whileHover={{ y: -8 }}
+                          style={{ 
+                            height: '100%', 
+                            width: '100%',
+                            display: 'flex'
+                          }}
+                        >
+                          <BrandCard brand={brand} index={index} />
+                        </motion.div>
+                      </Grid>
+                    ))}
+                  </Grid>
+                )
+              ) : brands.length === 0 ? (
+                <NoBrandsEmpty />
+              ) : (
+                <NoSearchResultsEmpty 
+                  onReset={handleClearFilters}
+                  message="No franchises match your search criteria"
+                />
               )}
             </Box>
           </Box>

@@ -26,6 +26,7 @@ import {
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getBrandUrl } from "../../utils/brandUtils";
+import { ViewCounter, PopularityBadge, VerifiedBadge } from "../common/SocialProof";
 import logger from "../../utils/logger";
 import { BUSINESS_MODEL_CONFIG } from "../../constants/businessModels";
 
@@ -109,6 +110,8 @@ const BrandCard = ({ brand, index = 0 }) => {
             {brand.brandName?.charAt(0)}
           </Typography>
         )}
+        
+        {/* Franchise Model Badge */}
         <Box
           sx={{
             position: "absolute",
@@ -124,6 +127,26 @@ const BrandCard = ({ brand, index = 0 }) => {
             {brand.franchiseModels?.[0] || "Franchise"}
           </Typography>
         </Box>
+
+        {/* Social Proof Badges */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 12,
+            left: 12,
+            display: "flex",
+            gap: 0.5,
+          }}
+        >
+          {brand.verified && <VerifiedBadge size="small" />}
+          {(brand.trending || brand.featured) && (
+            <PopularityBadge 
+              isTrending={brand.trending} 
+              isFeatured={brand.featured}
+              size="small"
+            />
+          )}
+        </Box>
       </Box>
 
       <CardContent
@@ -137,19 +160,27 @@ const BrandCard = ({ brand, index = 0 }) => {
       >
         {/* Brand Name & Industries */}
         <Box sx={{ mb: 2.5 }}>
-          <Typography 
-            variant="h6" 
-            fontWeight="bold" 
-            sx={{ 
-              mb: 1,
-              lineHeight: 1.3,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap"
-            }}
-          >
-            {brand.brandName}
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+            <Typography 
+              variant="h6" 
+              fontWeight="bold" 
+              sx={{ 
+                lineHeight: 1.3,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                flex: 1,
+                mr: 1,
+              }}
+            >
+              {brand.brandName}
+            </Typography>
+            {/* View Counter */}
+            <ViewCounter 
+              views={brand.viewCount || brand.totalViews || 0} 
+              compact 
+            />
+          </Box>
           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
             {brand.industries?.slice(0, 2).map((industry, i) => (
               <Chip

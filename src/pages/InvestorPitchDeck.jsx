@@ -104,7 +104,7 @@ const InvestorPitchDeck = () => {
     { year: '2021', size: 3750, growth: 7.1 },
     { year: '2022', size: 4000, growth: 6.7 },
     { year: '2023', size: 4250, growth: 6.3 },
-    { year: '2024', size: 4500, growth: 5.9 },
+    { year: '2026', size: 4500, growth: 5.9 },
     { year: '2025', size: 4850, growth: 7.4 },
   ];
 
@@ -159,24 +159,24 @@ const InvestorPitchDeck = () => {
 
   const futureRoadmap = [
     {
-      phase: "Q1 2024",
+      phase: "Q1 2026",
       title: "Enhanced Experience",
       features: ["Voice Search Integration", "Video Consultations", "Advanced AI Recommendations", "Multi-Language Support"]
     },
     {
-      phase: "Q2-Q3 2024", 
+      phase: "Q2-Q3 2026", 
       title: "Ecosystem Expansion",
       features: ["Financial Integration", "Professional Marketplace", "Training Platform", "Community Features"]
     },
     {
-      phase: "Q4 2024",
+      phase: "Q4 2026",
       title: "Global Platform",
       features: ["White-Label Solutions", "API Marketplace", "Blockchain Integration", "Enterprise SaaS"]
     }
   ];
 
   const metrics = [
-    { label: "Target MAU", value: "50K", subtitle: "By end of 2024" },
+    { label: "Target MAU", value: "50K", subtitle: "By end of 2026" },
     { label: "Brand Listings", value: "2,000", subtitle: "Active opportunities" },
     { label: "Monthly Leads", value: "10K", subtitle: "Qualified prospects" },
     { label: "Target ARR", value: "₹1.5Cr", subtitle: "₹100/month + other streams" }
@@ -223,7 +223,7 @@ const InvestorPitchDeck = () => {
             Market Opportunity & Growth
           </Typography>
           
-          <Grid container spacing={4}>
+          <Grid container spacing={4} justifyContent="center">
             {/* Market Size Visualization */}
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 3, height: 400 }}>
@@ -283,7 +283,7 @@ const InvestorPitchDeck = () => {
                 <Typography variant="h6" gutterBottom textAlign="center">
                   Market Pain Points & Our Solutions
                 </Typography>
-                <Grid container spacing={3}>
+                <Grid container spacing={3} justifyContent="center">
                   {[
                     { problem: "Fragmented Discovery", solution: "Unified AI-Powered Platform", impact: 85 },
                     { problem: "Poor Mobile Experience", solution: "PWA with Offline Support", impact: 92 },
@@ -342,7 +342,7 @@ const InvestorPitchDeck = () => {
             We've built a comprehensive, production-ready platform with modern architecture and AI integration.
           </Typography>
           <motion.div variants={staggerContainer} animate="animate">
-            <Grid container spacing={3}>
+            <Grid container spacing={3} justifyContent="center">
               {currentFeatures.map((feature, index) => (
                 <Grid item xs={12} sm={6} md={3} key={index}>
                   <MotionCard 
@@ -390,7 +390,7 @@ const InvestorPitchDeck = () => {
             Pricing Strategy & Model
           </Typography>
           
-          <Grid container spacing={4} alignItems="center">
+          <Grid container spacing={4} alignItems="center" justifyContent="center">
             {/* Pricing Timeline */}
             <Grid item xs={12} md={8}>
               <Typography variant="h6" gutterBottom color="primary">
@@ -401,7 +401,7 @@ const InvestorPitchDeck = () => {
                 followed by affordable subscription pricing that's accessible to the Indian market.
               </Typography>
               
-              <Grid container spacing={3} sx={{ mt: 2 }}>
+              <Grid container spacing={3} justifyContent="center" sx={{ mt: 2 }}>
                 <Grid item xs={12} sm={6}>
                   <Paper sx={{ 
                     p: 3, 
@@ -486,10 +486,10 @@ const InvestorPitchDeck = () => {
             Growth Targets & User Acquisition
           </Typography>
           
-          <Grid container spacing={4}>
+          <Grid container spacing={4} justifyContent="center">
             {/* Key Metrics Cards */}
             <Grid item xs={12}>
-              <Grid container spacing={3}>
+              <Grid container spacing={3} justifyContent="center">
                 {metrics.map((metric, index) => (
                   <Grid item xs={6} md={3} key={index}>
                     <Paper sx={{ 
@@ -630,7 +630,7 @@ const InvestorPitchDeck = () => {
             Revenue Streams & Projections
           </Typography>
           
-          <Grid container spacing={4}>
+          <Grid container spacing={4} justifyContent="center">
             {/* Revenue Distribution Pie Chart */}
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 3, height: 400 }}>
@@ -686,7 +686,7 @@ const InvestorPitchDeck = () => {
 
             {/* Revenue Stream Details */}
             <Grid item xs={12}>
-              <Grid container spacing={3}>
+              <Grid container spacing={3} justifyContent="center">
                 {revenueStreams.map((stream, index) => (
                   <Grid item xs={12} sm={6} md={3} key={index}>
                     <Paper sx={{ 
@@ -782,7 +782,7 @@ const InvestorPitchDeck = () => {
             Competitive Advantages & Market Position
           </Typography>
           
-          <Grid container spacing={4}>
+          <Grid container spacing={4} justifyContent="center">
             {/* Competitive Comparison Radar Chart */}
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 3, height: 400 }}>
@@ -942,7 +942,7 @@ const InvestorPitchDeck = () => {
             Investment Opportunity & Funding
           </Typography>
           
-          <Grid container spacing={4}>
+          <Grid container spacing={4} justifyContent="center">
             {/* Investment Highlights */}
             <Grid item xs={12} md={8}>
               <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
@@ -1038,7 +1038,7 @@ const InvestorPitchDeck = () => {
                 </Typography>
                 <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={[
-                    { year: '2024', valuation: 17, revenue: 1200, users: 12000 },
+                    { year: '2026', valuation: 17, revenue: 1200, users: 12000 },
                     { year: '2025', valuation: 67, revenue: 3800, users: 38000 },
                     { year: '2026', valuation: 210, revenue: 10000, users: 85000 },
                     { year: '2027', valuation: 500, revenue: 20000, users: 150000 },

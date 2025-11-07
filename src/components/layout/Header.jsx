@@ -41,6 +41,7 @@ import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, provider, db } from "../../firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { useAuth } from "../../context/AuthContext";
+import DarkModeToggleIcon from "../common/DarkModeToggle";
 import logger from "../../utils/logger";
 
 const MotionButton = (props) => (
@@ -255,6 +256,9 @@ const Header = () => {
           )}
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {/* Dark Mode Toggle */}
+            <DarkModeToggleIcon />
+            
             {/* Investor Button - Always visible */}
             <MotionButton
               component={RouterLink}
