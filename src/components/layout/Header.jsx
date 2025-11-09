@@ -45,8 +45,8 @@ import DarkModeToggleIcon from "../common/DarkModeToggle";
 import LanguageSelector from "../common/LanguageSelector";
 import FranchiseHubLogo from "../common/FranchiseHubLogo";
 import logger from "../../utils/logger";
-import { emailService } from "../../utils/emailService";
 import { pushNotifications } from "../../utils/pushNotifications";
+import { sendWelcomeEmail } from "../../services/emailServiceNew";
 
 const MotionButton = (props) => (
   <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
@@ -106,14 +106,18 @@ const Header = () => {
         { merge: true }
       );
       
-      // Send welcome email for new users
-      if (isNewUser) {
-        logger.log('New user registered, sending welcome email...');
-        await emailService.sendWelcomeEmail(
-          user.email,
-          user.displayName || 'User',
-          'prospect' // Default to prospect, can be changed based on user type
-        );
+      // Send welcome email to new users
+      if (isNewUser && user.email) {
+        try {
+          await sendWelcomeEmail({
+            email: user.email,
+            name: user.displayName || user.email.split('@')[0],
+          });
+          logger.info('Welcome email sent to new user:', user.email);
+        } catch (emailError) {
+          logger.error('Failed to send welcome email:', emailError);
+          // Don't block sign-in if email fails
+        }
       }
       
       // Request push notification permission (don't block if user denies)
@@ -173,7 +177,8 @@ const Header = () => {
           <Divider sx={{ my: 1 }} />
           <ListItem disablePadding>
             <ListItemButton
-              onClick={handleSignIn}
+              component={RouterLink}
+              to="/login"
               sx={{
                 backgroundColor: "secondary.light",
                 borderRadius: 2,
@@ -264,7 +269,11 @@ const Header = () => {
               gap: 1,
             }}
           >
-            <FranchiseHubLogo variant="full" width={220} height={60} />
+            <FranchiseHubLogo 
+              variant="full" 
+              width={isMobile ? 140 : 220} 
+              height={isMobile ? 40 : 60} 
+            />
           </Box>
 
           {/* Desktop Navigation */}
@@ -316,10 +325,11 @@ const Header = () => {
               <MotionButton
                 variant="contained"
                 color="primary"
-                startIcon={<BrandIcon />}
-                onClick={handleSignIn}
+                component={RouterLink}
+                to="/login"
+                startIcon={<LoginIcon />}
               >
-                For Brands
+                Sign In
               </MotionButton>
             )}
             {isMobile && (

@@ -35,6 +35,8 @@ const BrandDebugger = React.lazy(() => import("./components/debug/BrandDebugger"
 const InvestorPitchDeck = React.lazy(() => import("./pages/InvestorPitchDeck"));
 const FavoritesPage = React.lazy(() => import("./components/favorites/FavoritesPage"));
 const ChatHistoryPage = React.lazy(() => import("./components/chat/ChatHistoryViewer"));
+const AuthPage = React.lazy(() => import("./pages/AuthPage"));
+const ForgotPasswordPage = React.lazy(() => import("./pages/ForgotPasswordPage"));
 
 // Only load debug component in development
 const FirestoreTest = import.meta.env.DEV 
@@ -108,6 +110,11 @@ function App() {
       <Route path="/faq" element={<FAQ />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+      
+      {/* Authentication */}
+      <Route path="/login" element={<AuthPage />} />
+      <Route path="/register" element={<AuthPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       
       {/* Favorites and Chat History */}
       <Route path="/favorites" element={<FavoritesPage />} />
