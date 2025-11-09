@@ -58,6 +58,7 @@ coverage
 *.tmp
 *.temp
 .cache
+.md
 
 # Sensitive and development files
 *.key
