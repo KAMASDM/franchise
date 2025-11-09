@@ -14,8 +14,8 @@
   # Node.js version for build
   NODE_VERSION = "18"
   
-  # Enable modern build features
-  NPM_FLAGS = "--production=false"
+  # Enable modern build features and handle peer dependency conflicts
+  NPM_FLAGS = "--legacy-peer-deps --production=false"
 
 # Redirect rules (same as _redirects file, but in TOML format)
 [[redirects]]
