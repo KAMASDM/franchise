@@ -15,6 +15,9 @@ import {
   useTheme,
   alpha,
   useMediaQuery,
+  Dialog,
+  DialogContent,
+  IconButton,
 } from '@mui/material';
 import {
   ArrowForward,
@@ -24,9 +27,11 @@ import {
   BusinessCenter,
   People,
   Star,
+  Close,
 } from '@mui/icons-material';
 import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useDemoVideo } from '../../hooks/useDemoVideo';
 
 const MotionBox = motion(Box);
 const MotionTypography = motion(Typography);
@@ -315,6 +320,45 @@ const EnhancedHero = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { demoVideo } = useDemoVideo();
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+
+  const handleWatchDemo = () => {
+    if (demoVideo?.videoUrl) {
+      setVideoDialogOpen(true);
+    } else {
+      console.log('No demo video configured');
+    }
+  };
+
+  // Helper function to convert YouTube URL to embed URL
+  const getEmbedUrl = (url) => {
+    if (!url) return null;
+    
+    // YouTube patterns
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(youtubeRegex);
+    
+    if (match && match[1]) {
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1`;
+    }
+    
+    // Vimeo patterns
+    const vimeoRegex = /vimeo\.com\/(?:.*\/)?(\d+)/;
+    const vimeoMatch = url.match(vimeoRegex);
+    
+    if (vimeoMatch && vimeoMatch[1]) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
+    }
+    
+    // Already an embed URL or regular video file
+    return url;
+  };
+
+  const isEmbedVideo = (url) => {
+    if (!url) return false;
+    return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
+  };
 
   return (
     <Box
@@ -455,10 +499,8 @@ const EnhancedHero = () => {
                     variant="outlined"
                     size="large"
                     startIcon={<PlayArrow />}
-                    onClick={() => {
-                      // Open video modal or navigate to demo
-                      console.log('Watch demo');
-                    }}
+                    onClick={handleWatchDemo}
+                    disabled={!demoVideo?.videoUrl}
                     sx={{
                       px: 4,
                       py: 1.75,
@@ -493,6 +535,91 @@ const EnhancedHero = () => {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Demo Video Dialog */}
+      <Dialog
+        open={videoDialogOpen}
+        onClose={() => setVideoDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: 'hidden',
+          },
+        }}
+      >
+        <IconButton
+          onClick={() => setVideoDialogOpen(false)}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            zIndex: 1,
+            bgcolor: 'rgba(0, 0, 0, 0.5)',
+            color: 'white',
+            '&:hover': {
+              bgcolor: 'rgba(0, 0, 0, 0.7)',
+            },
+          }}
+        >
+          <Close />
+        </IconButton>
+
+        <DialogContent sx={{ p: 0 }}>
+          {demoVideo && (
+            <Box>
+              {/* Video Title */}
+              {demoVideo.title && (
+                <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
+                  <Typography variant="h6" fontWeight="bold">
+                    {demoVideo.title}
+                  </Typography>
+                  {demoVideo.description && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      {demoVideo.description}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+
+              {/* Video Player */}
+              <Box sx={{ position: 'relative', paddingTop: '56.25%', bgcolor: 'black' }}>
+                {isEmbedVideo(demoVideo.videoUrl) ? (
+                  <iframe
+                    src={getEmbedUrl(demoVideo.videoUrl)}
+                    title={demoVideo.title || 'Demo Video'}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      border: 'none',
+                    }}
+                  />
+                ) : (
+                  <video
+                    src={demoVideo.videoUrl}
+                    poster={demoVideo.thumbnailUrl}
+                    controls
+                    autoPlay
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

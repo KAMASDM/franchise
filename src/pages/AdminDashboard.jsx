@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme, CircularProgress, useMediaQuery } from '@mui/material';
 import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom';
-import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart, Email, Chat as ChatIcon, VideoLibrary, Info, Article } from '@mui/icons-material';
+import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart, Email, Chat as ChatIcon, VideoLibrary, Info, Article, Videocam } from '@mui/icons-material';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +19,7 @@ import AdminChatLeads from '../components/admin/AdminChatLeads';
 import AdminTestimonialManagement from '../components/admin/AdminTestimonialManagement';
 import AdminAboutUsManagement from '../components/admin/AdminAboutUsManagement';
 import BlogManagement from '../components/admin/BlogManagement';
+import DemoVideoManagement from '../components/admin/DemoVideoManagement';
 
 // Lazy load mobile layout
 const AdminDashboardMobile = lazy(() => import('../components/admin/AdminDashboardMobile'));
@@ -66,6 +67,7 @@ const AdminDashboard = () => {
         { text: 'Contact Messages', path: '/admin/messages', icon: <Email /> },
         { text: 'Blog Management', path: '/admin/blogs', icon: <Article /> },
         { text: 'Video Testimonials', path: '/admin/testimonials', icon: <VideoLibrary /> },
+        { text: 'Demo Video', path: '/admin/demo-video', icon: <Videocam /> },
         { text: 'About Us Content', path: '/admin/about-us', icon: <Info /> },
         { text: 'Analytics', path: '/admin/analytics', icon: <BarChart /> },
         { text: 'User Management', path: '/admin/users', icon: <People /> },
@@ -167,6 +169,7 @@ const AdminDashboard = () => {
                         <Route path="messages" element={<AdminContactMessages />} />
                         <Route path="blogs" element={<BlogManagement />} />
                         <Route path="testimonials" element={<AdminTestimonialManagement />} />
+                        <Route path="demo-video" element={<DemoVideoManagement />} />
                         <Route path="about-us" element={<AdminAboutUsManagement />} />
                         <Route path="analytics" element={<AdminAnalytics />} />
                         <Route path="users" element={<AdminUserManagement />} />
