@@ -8,5 +8,6 @@ Disallow: /*.json$
 Allow: /
 Allow: /brands
 Allow: /brand/
+Allow: /blogs
 
-Sitemap: https://ikama.com/sitemap.xml
+Sitemap: https://ikama.in/sitemap.xml

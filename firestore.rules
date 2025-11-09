@@ -50,8 +50,8 @@ service cloud.firestore {
     match /brandfranchiseInquiry/{inquiryId} {
       allow create: if true;
       allow get: if isSignedIn() && (request.auth.uid == resource.data.brandOwnerId || isAdmin());
-      // Allow authenticated users to list their own inquiries
-      allow list: if isSignedIn();
+      // Allow public to list for live activity feed (limited by client)
+      allow list: if true;
       allow update, delete: if isAdmin();
     }
     
