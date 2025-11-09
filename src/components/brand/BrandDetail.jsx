@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import SEO, { generateBrandStructuredData, generateBreadcrumbStructuredData } from "../common/SEO";
 import {
   Container,
   Typography,
@@ -72,6 +73,7 @@ import {
   REVENUE_MODELS, 
   SUPPORT_TYPES 
 } from "../../constants/businessModels";
+import { FIELD_OPTIONS } from "../../constants/businessModelFields";
 import Breadcrumbs from "../common/Breadcrumbs";
 import ShareButton from "../common/ShareButton";
 import QRCodeGenerator from "../common/QRCodeGenerator";
@@ -233,7 +235,22 @@ const BrandDetail = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <>
+      <SEO
+        title={`${brand.brandName} | Franchise Opportunity - ikama`}
+        description={brand.brandDescription || brand.description || `Explore ${brand.brandName} franchise opportunity. ${brand.businessModelType} business model with investment range ${brand.investmentRange}.`}
+        keywords={`${brand.brandName}, franchise, ${brand.businessModelType}, ${brand.industries?.join(', ')}, franchise opportunity, business opportunity`}
+        image={brand.logo || brand.logoUrl}
+        url={window.location.href}
+        type="product"
+        structuredData={generateBrandStructuredData({
+          ...brand,
+          url: window.location.href,
+          slug: slug
+        })}
+        canonicalUrl={`${window.location.origin}/brand/${slug}`}
+      />
+      <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Breadcrumbs */}
       <Breadcrumbs />
 
@@ -563,11 +580,54 @@ const BrandDetail = () => {
                 {brand.revenueModel && REVENUE_MODELS[brand.revenueModel] && (
                   <Box sx={{ mt: 3, p: 2, bgcolor: 'primary.light', borderRadius: 2 }}>
                     <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-                      Revenue Model: {REVENUE_MODELS[brand.revenueModel].label}
+                      Payment Structure: {REVENUE_MODELS[brand.revenueModel].label}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {REVENUE_MODELS[brand.revenueModel].description}
                     </Typography>
+                  </Box>
+                )}
+
+                {/* Revenue Streams - Partner Income Sources */}
+                {brand.revenueStreams && brand.revenueStreams.length > 0 && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      💰 Revenue Streams for Partners
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                      How you can earn from this opportunity:
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" gap={1.5}>
+                      {brand.revenueStreams.map((stream, index) => {
+                        // Try to find the stream details from FIELD_OPTIONS
+                        const industry = brand.industries?.[0];
+                        const allStreams = industry ? FIELD_OPTIONS.revenueStreams?.[industry] : null;
+                        const streamDetails = allStreams?.find(s => s.value === stream);
+                        
+                        return (
+                          <Chip
+                            key={index}
+                            label={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                {streamDetails?.icon && <span>{streamDetails.icon}</span>}
+                                <span>{streamDetails?.label || stream}</span>
+                              </Box>
+                            }
+                            variant="outlined"
+                            color="success"
+                            size="small"
+                            sx={{ 
+                              borderRadius: 1,
+                              fontWeight: 500,
+                              '& .MuiChip-label': {
+                                px: 1.5,
+                                py: 0.5
+                              }
+                            }}
+                          />
+                        );
+                      })}
+                    </Stack>
                   </Box>
                 )}
 
@@ -1409,6 +1469,7 @@ const BrandDetail = () => {
         showButton={false}
       />
     </Container>
+    </>
   );
 };
 

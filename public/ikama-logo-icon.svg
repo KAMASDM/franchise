@@ -1,0 +1,30 @@
+<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ikamaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5a76a9" />
+      <stop offset="100%" stop-color="#92baac" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Circular background with gradient -->
+  <circle cx="30" cy="30" r="28" fill="url(#ikamaGradient)" opacity="0.1"/>
+  
+  <!-- Abstract 'I' - vertical pillar -->
+  <rect x="14" y="15" width="6" height="30" rx="3" fill="url(#ikamaGradient)"/>
+  
+  <!-- Abstract 'K' - diagonal connection -->
+  <path d="M 26 30 L 40 18 L 44 21 L 30 33 Z" fill="#5a76a9"/>
+  <path d="M 30 27 L 44 39 L 40 42 L 26 30 Z" fill="#92baac"/>
+  
+  <!-- Connection nodes (representing network/franchise) -->
+  <circle cx="42" cy="19" r="4" fill="#92baac" filter="url(#glow)"/>
+  <circle cx="42" cy="41" r="4" fill="#5a76a9" filter="url(#glow)"/>
+  <circle cx="17" cy="30" r="4" fill="#92baac" filter="url(#glow)"/>
+</svg>

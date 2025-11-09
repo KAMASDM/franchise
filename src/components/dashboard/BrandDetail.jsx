@@ -143,16 +143,13 @@ const BrandDetail = () => {
   // Slugs contain hyphens and are lowercase brand names
   const isFirestoreId = id && id.length > 15 && !id.includes("-");
   
-  // Convert slug to brandName if it's a slug (contains hyphens)
-  const brandName = !isFirestoreId && id
-    ? id.split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ")
-    : null;
+  // If it's a slug (contains hyphens), use it as a slug
+  // Otherwise, it's either a Firestore ID or a simple brand name
+  const slug = !isFirestoreId && id && id.includes("-") ? id : null;
 
-  // Use the updated hook with either the brandName or Firestore id
+  // Use the updated hook with either the slug or Firestore id
   const { brand, setBrand: setBrandLocally, loading, error } = useBrand(
-    { brandName, id: isFirestoreId ? id : null }, 
+    { slug, id: isFirestoreId ? id : null }, 
     user
   );
 

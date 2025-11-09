@@ -291,7 +291,7 @@ const LeadCaptureModal = ({ open, onClose }) => {
                     sx={{ mt: 2, textAlign: "center" }}
                   >
                     By submitting this form, you agree to receive communications
-                    from FranchiseHub about franchise opportunities.
+                    from ikama - Franchise Hub about franchise opportunities.
                   </Typography>
                 </CardContent>
               </Card>

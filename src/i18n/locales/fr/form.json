@@ -1,0 +1,142 @@
+{
+  "title": "Formulaire d'Enregistrement de Marque",
+  "subtitle": "Enregistrez votre marque pour vous développer mondialement",
+  "steps": {
+    "businessModel": "Modèle d'Affaires",
+    "basicInfo": "Informations de Base",
+    "brandDetails": "Détails de la Marque",
+    "location": "Localisation et Contact",
+    "investment": "Détails d'Investissement",
+    "media": "Médias et Galerie",
+    "review": "Réviser et Soumettre"
+  },
+  "businessModel": {
+    "title": "Sélectionner le Modèle d'Affaires",
+    "description": "Choisissez le type de modèle d'affaires pour votre marque",
+    "franchise": "Franchise",
+    "distributorship": "Distribution",
+    "dealership": "Concessionnaire",
+    "license": "Licence"
+  },
+  "basicInfo": {
+    "brandName": "Nom de la Marque",
+    "brandNamePlaceholder": "Entrez le nom de votre marque",
+    "brandDescription": "Description de la Marque",
+    "brandDescriptionPlaceholder": "Décrivez votre marque en détail",
+    "industry": "Industrie",
+    "industryPlaceholder": "Sélectionnez l'industrie",
+    "category": "Catégorie",
+    "categoryPlaceholder": "Sélectionnez la catégorie",
+    "establishedYear": "Année de Création",
+    "establishedYearPlaceholder": "AAAA"
+  },
+  "brandDetails": {
+    "aboutBrand": "À Propos de la Marque",
+    "aboutBrandPlaceholder": "Parlez-nous de l'histoire et des valeurs de votre marque",
+    "usp": "Proposition de Valeur Unique",
+    "uspPlaceholder": "Qu'est-ce qui rend votre marque unique?",
+    "targetAudience": "Public Cible",
+    "targetAudiencePlaceholder": "Décrivez votre client idéal",
+    "competitiveAdvantage": "Avantage Concurrentiel",
+    "competitiveAdvantagePlaceholder": "Qu'est-ce qui vous distingue de la concurrence?"
+  },
+  "location": {
+    "address": "Adresse",
+    "addressPlaceholder": "Entrez l'adresse complète",
+    "city": "Ville",
+    "cityPlaceholder": "Entrez la ville",
+    "state": "État",
+    "statePlaceholder": "Entrez l'état",
+    "country": "Pays",
+    "countryPlaceholder": "Sélectionnez le pays",
+    "zipCode": "Code Postal",
+    "zipCodePlaceholder": "Entrez le code postal",
+    "phone": "Numéro de Téléphone",
+    "phonePlaceholder": "+33 6 00 00 00 00",
+    "email": "Adresse E-mail",
+    "emailPlaceholder": "contact@votremarque.com",
+    "website": "Site Web",
+    "websitePlaceholder": "https://www.votremarque.com"
+  },
+  "investment": {
+    "initialInvestment": "Investissement Initial",
+    "initialInvestmentPlaceholder": "Entrez le montant",
+    "franchiseFee": "Frais de Franchise",
+    "franchiseFeePlaceholder": "Entrez le montant des frais",
+    "royaltyFee": "Redevances (%)",
+    "royaltyFeePlaceholder": "Entrez le pourcentage",
+    "expectedROI": "ROI Attendu (%)",
+    "expectedROIPlaceholder": "Entrez le retour attendu",
+    "paybackPeriod": "Période de Récupération (mois)",
+    "paybackPeriodPlaceholder": "Entrez le nombre de mois"
+  },
+  "media": {
+    "logo": "Logo de la Marque",
+    "logoDescription": "Téléchargez le logo de votre marque (PNG, JPG - Max 5MB)",
+    "coverImage": "Image de Couverture",
+    "coverImageDescription": "Téléchargez l'image de couverture pour votre page de marque",
+    "gallery": "Galerie de la Marque",
+    "galleryDescription": "Téléchargez des images présentant votre marque (Max 10 images)",
+    "documents": "Documents",
+    "documentsDescription": "Téléchargez des documents justificatifs (PDF, DOC - Max 10MB chacun)",
+    "dragDrop": "Glissez-déposez les fichiers ici, ou cliquez pour parcourir",
+    "uploadProgress": "Téléchargement en cours...",
+    "uploadSuccess": "Téléchargement réussi",
+    "uploadError": "Échec du téléchargement"
+  },
+  "review": {
+    "title": "Révisez Vos Informations",
+    "subtitle": "Veuillez vérifier tous les détails avant de soumettre",
+    "editSection": "Modifier la Section",
+    "confirmSubmit": "Je confirme que toutes les informations fournies sont exactes",
+    "submitButton": "Soumettre l'Enregistrement",
+    "submitting": "Soumission en cours...",
+    "successMessage": "Enregistrement soumis avec succès!",
+    "errorMessage": "Échec de la soumission de l'enregistrement. Veuillez réessayer."
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire",
+    "invalidEmail": "Veuillez entrer une adresse e-mail valide",
+    "invalidPhone": "Veuillez entrer un numéro de téléphone valide",
+    "invalidUrl": "Veuillez entrer une URL valide",
+    "minLength": "Minimum {{count}} caractères requis",
+    "maxLength": "Maximum {{count}} caractères autorisés",
+    "minValue": "La valeur minimale est {{value}}",
+    "maxValue": "La valeur maximale est {{value}}",
+    "invalidYear": "Veuillez entrer une année valide",
+    "invalidNumber": "Veuillez entrer un nombre valide",
+    "fileTooLarge": "La taille du fichier dépasse le maximum autorisé ({{size}}MB)",
+    "invalidFileType": "Type de fichier invalide. Autorisés: {{types}}"
+  },
+  "help": {
+    "businessModel": "Choisissez le modèle d'affaires qui correspond le mieux à votre stratégie d'expansion",
+    "brandName": "Entrez le nom officiel enregistré de votre marque",
+    "industry": "Sélectionnez l'industrie principale dans laquelle votre marque opère",
+    "investment": "Fournissez des chiffres d'investissement précis pour aider les franchisés potentiels",
+    "documents": "Téléchargez les documents légaux nécessaires, certificats et présentations"
+  },
+  "autoSave": {
+    "saving": "Enregistrement...",
+    "saved": "Enregistré",
+    "lastSaved": "Dernier enregistrement: {{time}}",
+    "draftFound": "Brouillon trouvé de {{time}}. Voulez-vous continuer?",
+    "continueDraft": "Continuer le Brouillon",
+    "startFresh": "Recommencer"
+  },
+  "export": {
+    "title": "Exporter les Données",
+    "description": "Téléchargez vos données d'enregistrement",
+    "json": "Exporter en JSON",
+    "pdf": "Exporter en PDF",
+    "jsonSuccess": "Fichier JSON téléchargé avec succès",
+    "pdfSuccess": "Fichier PDF téléchargé avec succès",
+    "error": "Échec de l'exportation des données"
+  },
+  "accessibility": {
+    "highContrast": "Mode Contraste Élevé",
+    "skipToContent": "Passer au contenu",
+    "closeDialog": "Fermer le dialogue",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu"
+  }
+}

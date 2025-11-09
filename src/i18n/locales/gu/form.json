@@ -1,0 +1,142 @@
+{
+  "title": "બ્રાન્ડ નોંધણી ફોર્મ",
+  "subtitle": "વૈશ્વિક વિસ્તરણ માટે તમારી બ્રાન્ડ નોંધાવો",
+  "steps": {
+    "businessModel": "બિઝનેસ મોડેલ",
+    "basicInfo": "મૂળભૂત માહિતી",
+    "brandDetails": "બ્રાન્ડ વિગતો",
+    "location": "સ્થાન અને સંપર્ક",
+    "investment": "રોકાણ વિગતો",
+    "media": "મીડિયા અને ગેલેરી",
+    "review": "સમીક્ષા અને સબમિટ"
+  },
+  "businessModel": {
+    "title": "બિઝનેસ મોડેલ પસંદ કરો",
+    "description": "તમારી બ્રાન્ડ માટે બિઝનેસ મોડેલનો પ્રકાર પસંદ કરો",
+    "franchise": "ફ્રેન્ચાઇઝી",
+    "distributorship": "વિતરણ",
+    "dealership": "ડીલરશિપ",
+    "license": "લાઇસન્સ"
+  },
+  "basicInfo": {
+    "brandName": "બ્રાન્ડનું નામ",
+    "brandNamePlaceholder": "તમારી બ્રાન્ડનું નામ દાખલ કરો",
+    "brandDescription": "બ્રાન્ડ વર્ણન",
+    "brandDescriptionPlaceholder": "તમારી બ્રાન્ડનું વિગતવાર વર્ણન કરો",
+    "industry": "ઉદ્યોગ",
+    "industryPlaceholder": "ઉદ્યોગ પસંદ કરો",
+    "category": "શ્રેણી",
+    "categoryPlaceholder": "શ્રેણી પસંદ કરો",
+    "establishedYear": "સ્થાપના વર્ષ",
+    "establishedYearPlaceholder": "વર્ષ"
+  },
+  "brandDetails": {
+    "aboutBrand": "બ્રાન્ડ વિશે",
+    "aboutBrandPlaceholder": "અમને તમારી બ્રાન્ડની વાર્તા અને મૂલ્યો વિશે જણાવો",
+    "usp": "અનન્ય વેચાણ પ્રસ્તાવ",
+    "uspPlaceholder": "તમારી બ્રાન્ડને અનન્ય શું બનાવે છે?",
+    "targetAudience": "લક્ષ્ય પ્રેક્ષકો",
+    "targetAudiencePlaceholder": "તમારા આદર્શ ગ્રાહકનું વર્ણન કરો",
+    "competitiveAdvantage": "સ્પર્ધાત્મક લાભ",
+    "competitiveAdvantagePlaceholder": "તમને સ્પર્ધકોથી શું અલગ બનાવે છે?"
+  },
+  "location": {
+    "address": "સરનામું",
+    "addressPlaceholder": "સંપૂર્ણ સરનામું દાખલ કરો",
+    "city": "શહેર",
+    "cityPlaceholder": "શહેર દાખલ કરો",
+    "state": "રાજ્ય",
+    "statePlaceholder": "રાજ્ય દાખલ કરો",
+    "country": "દેશ",
+    "countryPlaceholder": "દેશ પસંદ કરો",
+    "zipCode": "પિન કોડ",
+    "zipCodePlaceholder": "પિન કોડ દાખલ કરો",
+    "phone": "ફોન નંબર",
+    "phonePlaceholder": "+91 98765 43210",
+    "email": "ઈમેલ સરનામું",
+    "emailPlaceholder": "contact@yourbrand.com",
+    "website": "વેબસાઇટ",
+    "websitePlaceholder": "https://www.yourbrand.com"
+  },
+  "investment": {
+    "initialInvestment": "પ્રારંભિક રોકાણ",
+    "initialInvestmentPlaceholder": "રકમ દાખલ કરો",
+    "franchiseFee": "ફ્રેન્ચાઇઝી ફી",
+    "franchiseFeePlaceholder": "ફી રકમ દાખલ કરો",
+    "royaltyFee": "રોયલ્ટી ફી (%)",
+    "royaltyFeePlaceholder": "ટકાવારી દાખલ કરો",
+    "expectedROI": "અપેક્ષિત ROI (%)",
+    "expectedROIPlaceholder": "અપેક્ષિત વળતર દાખલ કરો",
+    "paybackPeriod": "પેબેક સમયગાળો (મહિના)",
+    "paybackPeriodPlaceholder": "મહિનાઓની સંખ્યા દાખલ કરો"
+  },
+  "media": {
+    "logo": "બ્રાન્ડ લોગો",
+    "logoDescription": "તમારી બ્રાન્ડનો લોગો અપલોડ કરો (PNG, JPG - મહત્તમ 5MB)",
+    "coverImage": "કવર ઇમેજ",
+    "coverImageDescription": "તમારા બ્રાન્ડ પેજ માટે કવર ઇમેજ અપલોડ કરો",
+    "gallery": "બ્રાન્ડ ગેલેરી",
+    "galleryDescription": "તમારી બ્રાન્ડ દર્શાવતી ઇમેજ અપલોડ કરો (મહત્તમ 10 ઇમેજ)",
+    "documents": "દસ્તાવેજો",
+    "documentsDescription": "સહાયક દસ્તાવેજો અપલોડ કરો (PDF, DOC - દરેક મહત્તમ 10MB)",
+    "dragDrop": "ફાઇલો અહીં ડ્રેગ અને ડ્રોપ કરો, અથવા બ્રાઉઝ કરવા માટે ક્લિક કરો",
+    "uploadProgress": "અપલોડ થઈ રહ્યું છે...",
+    "uploadSuccess": "અપલોડ સફળ",
+    "uploadError": "અપલોડ નિષ્ફળ"
+  },
+  "review": {
+    "title": "તમારી માહિતીની સમીક્ષા કરો",
+    "subtitle": "કૃપા કરીને સબમિટ કરતા પહેલા બધી વિગતોની સમીક્ષા કરો",
+    "editSection": "વિભાગ સંપાદિત કરો",
+    "confirmSubmit": "હું પુષ્ટિ કરું છું કે પૂરી પાડેલી બધી માહિતી સચોટ છે",
+    "submitButton": "નોંધણી સબમિટ કરો",
+    "submitting": "સબમિટ થઈ રહ્યું છે...",
+    "successMessage": "નોંધણી સફળતાપૂર્વક સબમિટ થઈ!",
+    "errorMessage": "નોંધણી સબમિટ કરવામાં નિષ્ફળ. કૃપા કરીને ફરીથી પ્રયાસ કરો."
+  },
+  "validation": {
+    "required": "આ ક્ષેત્ર આવશ્યક છે",
+    "invalidEmail": "કૃપા કરીને માન્ય ઈમેલ સરનામું દાખલ કરો",
+    "invalidPhone": "કૃપા કરીને માન્ય ફોન નંબર દાખલ કરો",
+    "invalidUrl": "કૃપા કરીને માન્ય URL દાખલ કરો",
+    "minLength": "ન્યૂનતમ {{count}} અક્ષરો આવશ્યક છે",
+    "maxLength": "મહત્તમ {{count}} અક્ષરોની મંજૂરી છે",
+    "minValue": "ન્યૂનતમ મૂલ્ય {{value}} છે",
+    "maxValue": "મહત્તમ મૂલ્ય {{value}} છે",
+    "invalidYear": "કૃપા કરીને માન્ય વર્ષ દાખલ કરો",
+    "invalidNumber": "કૃપા કરીને માન્ય સંખ્યા દાખલ કરો",
+    "fileTooLarge": "ફાઇલનું કદ મહત્તમ મંજૂર ({{size}}MB) કરતાં વધારે છે",
+    "invalidFileType": "અમાન્ય ફાઇલ પ્રકાર. મંજૂર: {{types}}"
+  },
+  "help": {
+    "businessModel": "તમારી વિસ્તરણ વ્યૂહરચના માટે સૌથી યોગ્ય બિઝનેસ મોડેલ પસંદ કરો",
+    "brandName": "તમારી બ્રાન્ડનું સત્તાવાર નોંધાયેલ નામ દાખલ કરો",
+    "industry": "તે પ્રાથમિક ઉદ્યોગ પસંદ કરો જેમાં તમારી બ્રાન્ડ કાર્ય કરે છે",
+    "investment": "સંભવિત ફ્રેન્ચાઇઝીઓને મદદ કરવા માટે ચોક્કસ રોકાણ આંકડા પ્રદાન કરો",
+    "documents": "જરૂરી કાનૂની દસ્તાવેજો, પ્રમાણપત્રો અને પ્રસ્તુતિઓ અપલોડ કરો"
+  },
+  "autoSave": {
+    "saving": "સેવ થઈ રહ્યું છે...",
+    "saved": "સેવ થયું",
+    "lastSaved": "છેલ્લે સેવ થયું: {{time}}",
+    "draftFound": "{{time}} થી ડ્રાફ્ટ મળ્યો. શું તમે ચાલુ રાખવા માંગો છો?",
+    "continueDraft": "ડ્રાફ્ટ ચાલુ રાખો",
+    "startFresh": "નવેસરથી શરૂ કરો"
+  },
+  "export": {
+    "title": "ડેટા એક્સપોર્ટ કરો",
+    "description": "તમારો નોંધણી ડેટા ડાઉનલોડ કરો",
+    "json": "JSON તરીકે એક્સપોર્ટ કરો",
+    "pdf": "PDF તરીકે એક્સપોર્ટ કરો",
+    "jsonSuccess": "JSON ફાઇલ સફળતાપૂર્વક ડાઉનલોડ થઈ",
+    "pdfSuccess": "PDF ફાઇલ સફળતાપૂર્વક ડાઉનલોડ થઈ",
+    "error": "ડેટા એક્સપોર્ટ કરવામાં નિષ્ફળ"
+  },
+  "accessibility": {
+    "highContrast": "હાઇ કોન્ટ્રાસ્ટ મોડ",
+    "skipToContent": "સામગ્રી પર જાઓ",
+    "closeDialog": "સંવાદ બંધ કરો",
+    "openMenu": "મેનૂ ખોલો",
+    "closeMenu": "મેનૂ બંધ કરો"
+  }
+}

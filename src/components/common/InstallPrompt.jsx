@@ -125,7 +125,7 @@ const InstallPrompt = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
             <InstallIcon />
-            Install FranchiseHub
+            Install ikama - Franchise Hub
           </Typography>
           <IconButton onClick={handleLater} sx={{ color: 'white' }} aria-label="Close install prompt">
             <CloseIcon />
@@ -138,7 +138,7 @@ const InstallPrompt = () => {
           Get the best experience!
         </Typography>
         <Typography variant="body2" paragraph color="text.secondary">
-          Install FranchiseHub on your device for quick access and a better experience.
+          Install ikama - Franchise Hub on your device for quick access and a better experience.
         </Typography>
 
         <Stack spacing={2} sx={{ my: 3 }}>

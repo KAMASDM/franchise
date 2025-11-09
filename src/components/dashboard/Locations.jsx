@@ -447,21 +447,39 @@ const Locations = () => {
               No franchise locations registered yet.
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              Once you add brand locations during brand registration, they will
-              appear here.
+              {brands.length === 0 
+                ? "Start by registering your first brand, then add locations to it."
+                : "You have registered brands. Add locations to showcase where your franchise operates."}
             </Typography>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="large"
-              onClick={() => navigate("/dashboard/register-brand")}
-              sx={{
-                bgcolor: "secondary.main",
-                "&:hover": { bgcolor: "secondary.dark" },
-              }}
-            >
-              Register New Brand
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+              {brands.length === 0 ? (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  onClick={() => navigate("/dashboard/register-brand")}
+                  sx={{
+                    bgcolor: "secondary.main",
+                    "&:hover": { bgcolor: "secondary.dark" },
+                  }}
+                >
+                  Register New Brand
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  onClick={() => setOpenAddDialog(true)}
+                  sx={{
+                    bgcolor: "primary.main",
+                    "&:hover": { bgcolor: "primary.dark" },
+                  }}
+                >
+                  + Add Location to Brand
+                </Button>
+              )}
+            </Box>
           </Box>
         ) : (
           <motion.div

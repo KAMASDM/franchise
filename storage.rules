@@ -22,6 +22,24 @@ service firebase.storage {
       allow write: if request.auth != null;
     }
     
+    // Video testimonials - public read, admin write
+    match /testimonials/{allPaths=**} {
+      allow read: if true; // Public can view videos
+      allow write: if request.auth != null; // Only authenticated admins can upload
+    }
+    
+    // About Us images - public read, admin write
+    match /aboutUs/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Blog images - public read, admin write
+    match /blogs/{allPaths=**} {
+      allow read: if true; // Public can view blog images
+      allow write: if request.auth != null; // Only authenticated admins can upload
+    }
+    
     // Default deny for other paths
     match /{allPaths=**} {
       allow read, write: if false;

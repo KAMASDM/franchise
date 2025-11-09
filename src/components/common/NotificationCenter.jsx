@@ -185,7 +185,7 @@ const NotificationCenter = () => {
   }
 
   return (
-    <>
+    <React.Fragment>
       <IconButton
         color="inherit"
         onClick={handleClick}
@@ -216,71 +216,73 @@ const NotificationCenter = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        {/* Header */}
-        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Notifications</Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Header */}
+          <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="h6">Notifications</Typography>
+              {unreadCount > 0 && (
+                <Button
+                  size="small"
+                  startIcon={<MarkReadIcon />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    markAllAsRead();
+                  }}
+                >
+                  Mark all read
+                </Button>
+              )}
+            </Box>
             {unreadCount > 0 && (
-              <Button
-                size="small"
-                startIcon={<MarkReadIcon />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  markAllAsRead();
-                }}
-              >
-                Mark all read
-              </Button>
+              <Typography variant="body2" color="text.secondary">
+                {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+              </Typography>
             )}
           </Box>
-          {unreadCount > 0 && (
-            <Typography variant="body2" color="text.secondary">
-              {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
-            </Typography>
+
+          {/* Content */}
+          <Box sx={{ flex: 1, overflow: 'auto' }}>
+            {loading ? (
+              <Box display="flex" justifyContent="center" alignItems="center" p={3}>
+                <CircularProgress size={24} />
+                <Typography variant="body2" sx={{ ml: 2 }}>
+                  Loading notifications...
+                </Typography>
+              </Box>
+            ) : notifications.length === 0 ? (
+              <Box p={3} textAlign="center">
+                <NotificationsIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                <Typography variant="body2" color="text.secondary">
+                  No notifications yet
+                </Typography>
+              </Box>
+            ) : (
+              <List sx={{ p: 0 }}>
+                {notifications.map((notification, index) => (
+                  <div key={notification.id}>
+                    {renderNotificationItem(notification)}
+                    {index < notifications.length - 1 && <Divider />}
+                  </div>
+                ))}
+              </List>
+            )}
+          </Box>
+
+          {/* Footer */}
+          {notifications.length > 0 && (
+            <Box>
+              <Divider />
+              <Box sx={{ p: 2 }}>
+                <Button fullWidth variant="outlined" onClick={handleClose}>
+                  View All Notifications
+                </Button>
+              </Box>
+            </Box>
           )}
         </Box>
-
-        {/* Content */}
-        <Box sx={{ flex: 1, overflow: 'auto' }}>
-          {loading ? (
-            <Box display="flex" justifyContent="center" alignItems="center" p={3}>
-              <CircularProgress size={24} />
-              <Typography variant="body2" sx={{ ml: 2 }}>
-                Loading notifications...
-              </Typography>
-            </Box>
-          ) : notifications.length === 0 ? (
-            <Box p={3} textAlign="center">
-              <NotificationsIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-              <Typography variant="body2" color="text.secondary">
-                No notifications yet
-              </Typography>
-            </Box>
-          ) : (
-            <List sx={{ p: 0 }}>
-              {notifications.map((notification, index) => (
-                <div key={notification.id}>
-                  {renderNotificationItem(notification)}
-                  {index < notifications.length - 1 && <Divider />}
-                </div>
-              ))}
-            </List>
-          )}
-        </Box>
-
-        {/* Footer */}
-        {notifications.length > 0 && (
-          <>
-            <Divider />
-            <Box sx={{ p: 2 }}>
-              <Button fullWidth variant="outlined" onClick={handleClose}>
-                View All Notifications
-              </Button>
-            </Box>
-          </>
-        )}
       </Menu>
-    </>
+    </React.Fragment>
   );
 };
 

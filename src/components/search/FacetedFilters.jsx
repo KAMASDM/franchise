@@ -51,11 +51,12 @@ const FacetedFilters = ({
     const businessModels = {}; // New: Business model counts
     const locations = {};
     const investmentRanges = {
-      'under50k': { label: 'Under $50K', min: 0, max: 50000, count: 0 },
-      '50k-100k': { label: '$50K - $100K', min: 50000, max: 100000, count: 0 },
-      '100k-250k': { label: '$100K - $250K', min: 100000, max: 250000, count: 0 },
-      '250k-500k': { label: '$250K - $500K', min: 250000, max: 500000, count: 0 },
-      'over500k': { label: 'Over $500K', min: 500000, max: Infinity, count: 0 }
+      'under50k': { label: 'Under ₹50K', min: 0, max: 50000, count: 0 },
+      '50k-100k': { label: '₹50K - ₹100K', min: 50000, max: 100000, count: 0 },
+      '100k-250k': { label: '₹100K - ₹250K', min: 100000, max: 250000, count: 0 },
+      '250k-500k': { label: '₹250K - ₹500K', min: 250000, max: 500000, count: 0 },
+      '500k-1m': { label: '₹500K - ₹1M', min: 500000, max: 1000000, count: 0 },
+      'over1m': { label: 'Over ₹1M', min: 1000000, max: Infinity, count: 0 }
     };
 
     brands.forEach(brand => {
@@ -93,7 +94,7 @@ const FacetedFilters = ({
       }
 
       // Investment ranges
-      const investment = brand.investmentRange?.min || 0;
+      const investment = brand.investmentRange?.min || brand.initialInvestment || brand.investmentRequired || 0;
       Object.keys(investmentRanges).forEach(range => {
         const { min, max } = investmentRanges[range];
         if (investment >= min && investment < max) {
@@ -311,6 +312,8 @@ const FacetedFilters = ({
                 control={
                   <Checkbox 
                     size="small"
+                    checked={(filters.investmentRange || []).includes(label)}
+                    onChange={() => handleCheckboxChange('investmentRange', label)}
                   />
                 }
                 label={

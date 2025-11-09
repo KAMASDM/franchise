@@ -24,6 +24,7 @@ import {
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
+import FranchiseHubLogo from "../common/FranchiseHubLogo";
 
 const MotionBox = motion(Box);
 const MotionButton = motion(Button);
@@ -71,20 +72,15 @@ const Footer = () => {
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <RestaurantIcon
-                  sx={{ color: "primary.main", mr: 1, fontSize: 30 }}
-                />
-                <Typography variant="h5" fontWeight="bold" color="primary.main">
-                  iKama
-                </Typography>
+              <Box sx={{ mb: 2 }}>
+                <FranchiseHubLogo variant="full" width={200} height={50} />
               </Box>
               <Typography
                 variant="body2"
                 color="primary.main"
                 sx={{ mb: 3, lineHeight: 1.8 }}
               >
-                Your trusted partner in finding the perfect restaurant franchise
+                Your trusted partner in finding the perfect franchise
                 opportunity. We connect aspiring entrepreneurs with proven
                 franchise brands.
               </Typography>

@@ -355,6 +355,107 @@ export const FIELD_OPTIONS = {
     { label: '6+ Months', value: '6_plus_months' }
   ],
 
+  // Industry-specific revenue streams (what the franchisee/partner earns from)
+  revenueStreams: {
+    food_beverage: [
+      { label: 'Dine-in Sales', value: 'dine_in', subtitle: 'Regular customer sales', icon: '🍽️' },
+      { label: 'Takeaway/Delivery', value: 'takeaway', subtitle: 'Food delivery orders', icon: '📦' },
+      { label: 'Catering Services', value: 'catering', subtitle: 'Event & bulk orders', icon: '🎉' },
+      { label: 'Online Orders', value: 'online_orders', subtitle: 'App/website orders', icon: '📱' },
+      { label: 'Merchandise Sales', value: 'merchandise', subtitle: 'Branded products', icon: '👕' },
+      { label: 'Franchise Fee from Sub-franchises', value: 'sub_franchise', subtitle: 'Area development', icon: '🏪' }
+    ],
+    retail: [
+      { label: 'Product Sales', value: 'product_sales', subtitle: 'Direct retail sales', icon: '🛒' },
+      { label: 'Online Store', value: 'ecommerce', subtitle: 'E-commerce revenue', icon: '💻' },
+      { label: 'Membership Programs', value: 'membership', subtitle: 'Loyalty programs', icon: '💳' },
+      { label: 'Service Charges', value: 'services', subtitle: 'Installation, setup', icon: '🔧' },
+      { label: 'Extended Warranties', value: 'warranty', subtitle: 'Product warranties', icon: '📋' },
+      { label: 'Seasonal Sales', value: 'seasonal', subtitle: 'Festival/seasonal', icon: '🎁' }
+    ],
+    healthcare: [
+      { label: 'Consultation Fees', value: 'consultation', subtitle: 'Patient consultations', icon: '👨‍⚕️' },
+      { label: 'Diagnostic Services', value: 'diagnostics', subtitle: 'Tests & scans', icon: '🔬' },
+      { label: 'Treatment Packages', value: 'treatments', subtitle: 'Medical treatments', icon: '💊' },
+      { label: 'Pharmacy Sales', value: 'pharmacy', subtitle: 'Medicine sales', icon: '💉' },
+      { label: 'Health Checkup Packages', value: 'checkups', subtitle: 'Preventive care', icon: '📊' },
+      { label: 'Home Care Services', value: 'homecare', subtitle: 'At-home services', icon: '🏠' }
+    ],
+    education: [
+      { label: 'Course Fees', value: 'course_fees', subtitle: 'Regular tuition', icon: '📚' },
+      { label: 'Admission Fees', value: 'admission', subtitle: 'One-time enrollment', icon: '🎓' },
+      { label: 'Certification Programs', value: 'certification', subtitle: 'Professional courses', icon: '📜' },
+      { label: 'Study Materials', value: 'materials', subtitle: 'Books & resources', icon: '📖' },
+      { label: 'Online Courses', value: 'online_courses', subtitle: 'E-learning platform', icon: '💻' },
+      { label: 'Corporate Training', value: 'corporate', subtitle: 'B2B training', icon: '🏢' }
+    ],
+    fitness: [
+      { label: 'Membership Fees', value: 'membership', subtitle: 'Monthly/yearly plans', icon: '💳' },
+      { label: 'Personal Training', value: 'personal_training', subtitle: 'PT sessions', icon: '🏋️' },
+      { label: 'Group Classes', value: 'group_classes', subtitle: 'Yoga, Zumba, etc.', icon: '🧘' },
+      { label: 'Nutrition Consultation', value: 'nutrition', subtitle: 'Diet planning', icon: '🥗' },
+      { label: 'Merchandise & Supplements', value: 'products', subtitle: 'Retail products', icon: '💪' },
+      { label: 'Corporate Wellness', value: 'corporate_wellness', subtitle: 'B2B programs', icon: '🏢' }
+    ],
+    beauty: [
+      { label: 'Service Charges', value: 'services', subtitle: 'Salon/spa services', icon: '✂️' },
+      { label: 'Product Sales', value: 'product_sales', subtitle: 'Beauty products', icon: '💄' },
+      { label: 'Packages & Memberships', value: 'packages', subtitle: 'Service bundles', icon: '💝' },
+      { label: 'Bridal Services', value: 'bridal', subtitle: 'Wedding packages', icon: '👰' },
+      { label: 'Home Services', value: 'home_services', subtitle: 'At-home beauty', icon: '🏠' },
+      { label: 'Training Programs', value: 'training', subtitle: 'Beauty courses', icon: '🎓' }
+    ],
+    automotive: [
+      { label: 'Vehicle Sales', value: 'vehicle_sales', subtitle: 'New/used vehicles', icon: '🚗' },
+      { label: 'Service & Maintenance', value: 'service', subtitle: 'Repairs & servicing', icon: '🔧' },
+      { label: 'Spare Parts', value: 'spare_parts', subtitle: 'Parts & accessories', icon: '⚙️' },
+      { label: 'Insurance Commission', value: 'insurance', subtitle: 'Policy sales', icon: '📋' },
+      { label: 'Extended Warranties', value: 'warranty', subtitle: 'Protection plans', icon: '🛡️' },
+      { label: 'Trade-in Commissions', value: 'trade_in', subtitle: 'Used vehicle exchange', icon: '🔄' }
+    ],
+    real_estate: [
+      { label: 'Commission on Sales', value: 'sales_commission', subtitle: 'Property sales', icon: '🏘️' },
+      { label: 'Rental Commission', value: 'rental_commission', subtitle: 'Lease agreements', icon: '🔑' },
+      { label: 'Property Management Fees', value: 'management', subtitle: 'Ongoing management', icon: '🏢' },
+      { label: 'Consultation Fees', value: 'consultation', subtitle: 'Advisory services', icon: '💼' },
+      { label: 'Home Loan Assistance', value: 'loan_assistance', subtitle: 'Loan processing', icon: '🏦' },
+      { label: 'Interior Design Referrals', value: 'referrals', subtitle: 'Partner commissions', icon: '🎨' }
+    ],
+    technology: [
+      { label: 'Product Sales', value: 'product_sales', subtitle: 'Hardware/software', icon: '💻' },
+      { label: 'Subscription Revenue', value: 'subscription', subtitle: 'SaaS/recurring', icon: '📅' },
+      { label: 'Service Contracts', value: 'service_contracts', subtitle: 'AMC/support', icon: '🔧' },
+      { label: 'Training & Certification', value: 'training', subtitle: 'Tech courses', icon: '🎓' },
+      { label: 'Implementation Fees', value: 'implementation', subtitle: 'Setup & deployment', icon: '⚙️' },
+      { label: 'Customization Projects', value: 'customization', subtitle: 'Bespoke solutions', icon: '🛠️' }
+    ],
+    travel: [
+      { label: 'Tour Package Sales', value: 'tour_packages', subtitle: 'Holiday packages', icon: '🏖️' },
+      { label: 'Flight Bookings', value: 'flight_booking', subtitle: 'Ticket commissions', icon: '✈️' },
+      { label: 'Hotel Bookings', value: 'hotel_booking', subtitle: 'Accommodation', icon: '🏨' },
+      { label: 'Visa Services', value: 'visa_services', subtitle: 'Visa processing', icon: '📋' },
+      { label: 'Travel Insurance', value: 'insurance', subtitle: 'Policy sales', icon: '🛡️' },
+      { label: 'Corporate Travel', value: 'corporate_travel', subtitle: 'B2B bookings', icon: '🏢' }
+    ],
+    entertainment: [
+      { label: 'Ticket Sales', value: 'ticket_sales', subtitle: 'Event/movie tickets', icon: '🎫' },
+      { label: 'Membership Plans', value: 'membership', subtitle: 'Premium access', icon: '💳' },
+      { label: 'F&B Sales', value: 'fnb', subtitle: 'Food & beverages', icon: '🍿' },
+      { label: 'Merchandise', value: 'merchandise', subtitle: 'Branded products', icon: '👕' },
+      { label: 'Event Hosting', value: 'event_hosting', subtitle: 'Private events', icon: '🎉' },
+      { label: 'Advertising Revenue', value: 'advertising', subtitle: 'Sponsorships', icon: '📺' }
+    ],
+    home_services: [
+      { label: 'Service Charges', value: 'service_charges', subtitle: 'Per job/hour', icon: '🔧' },
+      { label: 'AMC Contracts', value: 'amc', subtitle: 'Annual maintenance', icon: '📋' },
+      { label: 'Product Sales', value: 'product_sales', subtitle: 'Equipment/materials', icon: '🛒' },
+      { label: 'Emergency Services', value: 'emergency', subtitle: 'Urgent repairs', icon: '🚨' },
+      { label: 'Package Deals', value: 'packages', subtitle: 'Service bundles', icon: '📦' },
+      { label: 'Referral Commissions', value: 'referrals', subtitle: 'Partner services', icon: '🤝' }
+    ]
+  },
+
+  // Generic revenue models for payment structure (how franchisee pays franchisor)
   revenueModels: [
     { label: 'Royalty Based', value: 'royalty', subtitle: '% of revenue', color: '#1976d2' },
     { label: 'Flat Fee', value: 'flat_fee', subtitle: 'Fixed monthly/yearly', color: '#388e3c' },

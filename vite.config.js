@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'FranchiseHub - Find Your Perfect Franchise',
-        short_name: 'FranchiseHub',
+        name: 'ikama - Franchise Hub | Find Your Perfect Franchise',
+        short_name: 'ikama',
         description: 'Discover and connect with franchise opportunities across industries',
         theme_color: '#5a76a9',
         background_color: '#f0f4ff',
@@ -103,7 +103,18 @@ export default defineConfig({
           {
             // Ignore Firebase Firestore WebSocket/Listen connections (these shouldn't be cached)
             urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*\/Listen\/channel\?.*/i,
-            handler: 'NetworkOnly'
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'firestore-listen-no-cache',
+            }
+          },
+          {
+            // Handle Firestore Listen channel polling requests - NetworkOnly
+            urlPattern: /^https:\/\/firestore\.googleapis\.com\/google\.firestore\.v1\.Firestore\/Listen\/channel.*/i,
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'firestore-realtime-no-cache',
+            }
           },
           {
             // Handle other Firebase API calls
@@ -133,9 +144,21 @@ export default defineConfig({
             }
           }
         ],
-        // Add navigation fallback for SPA
+        // Add navigation fallback for SPA routing
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/]
+        // Deny list: Don't use fallback for assets with extensions or special paths
+        navigateFallbackDenylist: [
+          /^\/_/,                    // Internal paths
+          /\/[^/?]+\.[^/]+$/,        // Files with extensions (e.g., .js, .css, .png)
+          /^\/api\//,                // API routes
+        ],
+        // Allow all navigation routes to use the fallback
+        navigateFallbackAllowlist: [
+          /^\/$/,                    // Home
+          /^\/dashboard/,            // All dashboard routes including dynamic params
+          /^\/brands/,               // Brand pages
+          /^\/admin/,                // Admin routes
+        ]
       },
       devOptions: {
         enabled: true,

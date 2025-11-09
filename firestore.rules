@@ -79,6 +79,25 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
     }
     
+    // Video testimonials - public read, admin write
+    match /videoTestimonials/{testimonialId} {
+      allow read: if true; // Public can read all (filtering by isActive done in query)
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // About Us dynamic content - public read, admin write
+    match /aboutUs/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Blog posts - public read for published, admin write
+    match /blogs/{blogId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow list: if true; // Public can list (client filters by status)
+      allow create, update, delete: if isAdmin();
+    }
+    
     match /faqs/{faqId} {
       allow read: if true;
       allow create: if isSignedIn();

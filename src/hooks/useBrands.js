@@ -14,10 +14,14 @@ export const useBrands = (user = null, options = {}) => {
 
       try {
         const brandsCollection = collection(db, "brands");
-        let queryConstraints = [where("status", "==", "active")];
+        let queryConstraints = [];
 
+        // If user is provided, show all their brands (any status)
+        // If no user, only show active brands (public view)
         if (user && user.uid) {
           queryConstraints.push(where("userId", "==", user.uid));
+        } else {
+          queryConstraints.push(where("status", "==", "active"));
         }
 
         if (options.limit) {

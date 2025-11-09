@@ -33,7 +33,9 @@ import {
 import { motion } from 'framer-motion';
 import { useDevice } from '../hooks/useDevice';
 import { useAllBrands } from '../hooks/useAllBrands';
+import { useVideoTestimonials } from '../hooks/useVideoTestimonials';
 import { getBrandUrl } from '../utils/brandUtils';
+import VideoTestimonialCarousel from '../components/common/VideoTestimonialCarousel';
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -46,6 +48,7 @@ const HomeMobile = () => {
   const navigate = useNavigate();
   const { spacing } = useDevice();
   const { brands, loading } = useAllBrands();
+  const { testimonials, loading: testimonialsLoading } = useVideoTestimonials();
   const [searchQuery, setSearchQuery] = useState('');
 
   const featuredBrands = brands?.slice(0, 10) || [];
@@ -434,6 +437,13 @@ const HomeMobile = () => {
           ))}
         </Box>
       </Box>
+
+      {/* Video Testimonials */}
+      {!testimonialsLoading && testimonials.length > 0 && (
+        <Box sx={{ py: 3 }}>
+          <VideoTestimonialCarousel testimonials={testimonials} />
+        </Box>
+      )}
 
       {/* CTA Section */}
       <Box 

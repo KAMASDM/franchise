@@ -42,6 +42,25 @@ const SortableHeader = ({ label, sortKey, sortConfig, onSort }) => (
 );
 
 const BrandTableView = ({ brands, sortConfig, onSort, onLearnMore }) => {
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'success';
+      case 'pending':
+        return 'warning';
+      case 'rejected':
+        return 'error';
+      case 'draft':
+        return 'default';
+      default:
+        return 'info';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    return status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown';
+  };
+
   return (
     <TableContainer component={Paper} elevation={3} sx={{ mt: 3 }}>
       <Table stickyHeader aria-label="brands table">
@@ -53,6 +72,9 @@ const BrandTableView = ({ brands, sortConfig, onSort, onLearnMore }) => {
               sortConfig={sortConfig}
               onSort={onSort}
             />
+            <TableCell sx={{ fontWeight: "bold", color: "primary.main" }}>
+              Status
+            </TableCell>
             <SortableHeader
               label="Industry"
               sortKey="industries"
@@ -121,6 +143,14 @@ const BrandTableView = ({ brands, sortConfig, onSort, onLearnMore }) => {
                     {brand.brandName}
                   </Typography>
                 </Box>
+              </TableCell>
+              <TableCell>
+                <Chip 
+                  label={getStatusLabel(brand.status)} 
+                  color={getStatusColor(brand.status)}
+                  size="small"
+                  sx={{ fontWeight: 600 }}
+                />
               </TableCell>
               <TableCell>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>

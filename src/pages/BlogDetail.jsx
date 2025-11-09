@@ -16,6 +16,7 @@ import {
   Breadcrumbs,
   Link,
   useTheme,
+  CircularProgress,
 } from "@mui/material";
 import {
   CalendarToday,
@@ -25,9 +26,11 @@ import {
   LinkedIn,
   Home,
   Article,
+  Visibility,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
-import { blogPostsData } from "../data/blogData";
+import { Helmet } from 'react-helmet-async';
+import { useBlog, incrementBlogViews } from "../hooks/useBlogs";
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -36,13 +39,19 @@ const BlogDetail = () => {
   const theme = useTheme();
   const { id } = useParams();
   const navigate = useNavigate();
-  const [post, setPost] = useState(null);
+  const { blog: post, loading, error } = useBlog(id);
   const [readingProgress, setReadingProgress] = useState(0);
+  const [viewIncremented, setViewIncremented] = useState(false);
+
+  // Increment view count once when blog loads
+  useEffect(() => {
+    if (post && !viewIncremented) {
+      incrementBlogViews(post.id);
+      setViewIncremented(true);
+    }
+  }, [post, viewIncremented]);
 
   useEffect(() => {
-    const foundPost = blogPostsData.find((p) => p.id === parseInt(id));
-    setPost(foundPost);
-
     window.scrollTo(0, 0);
   }, [id]);
 
@@ -58,10 +67,90 @@ const BlogDetail = () => {
     return () => window.removeEventListener("scroll", updateReadingProgress);
   }, []);
 
-  // Enhanced content parser to handle markdown-like formatting
+  // Enhanced content parser to handle HTML from rich text editor
   const parseContent = (content) => {
     if (!content) return [];
 
+    // If content is already HTML (from Quill), render it directly
+    if (content.includes('<p>') || content.includes('<h1>') || content.includes('<h2>')) {
+      return (
+        <Box
+          dangerouslySetInnerHTML={{ __html: content }}
+          sx={{
+            '& p': {
+              mb: 3,
+              lineHeight: 1.8,
+              fontSize: '1.125rem',
+              color: 'text.primary',
+              textAlign: 'justify',
+            },
+            '& h1, & h2, & h3': {
+              mb: 3,
+              mt: 5,
+              color: 'primary.main',
+              borderLeft: 4,
+              borderColor: 'primary.main',
+              pl: 2,
+              fontWeight: 'bold',
+            },
+            '& h1': { fontSize: '2rem' },
+            '& h2': { fontSize: '1.75rem' },
+            '& h3': { fontSize: '1.5rem' },
+            '& ul, & ol': {
+              mb: 3,
+              pl: 4,
+              '& li': {
+                mb: 1,
+                lineHeight: 1.8,
+                fontSize: '1.125rem',
+              },
+            },
+            '& img': {
+              maxWidth: '100%',
+              height: 'auto',
+              borderRadius: 2,
+              my: 3,
+            },
+            '& a': {
+              color: 'primary.main',
+              textDecoration: 'none',
+              '&:hover': {
+                textDecoration: 'underline',
+              },
+            },
+            '& blockquote': {
+              borderLeft: 4,
+              borderColor: 'primary.main',
+              pl: 3,
+              py: 2,
+              my: 3,
+              fontStyle: 'italic',
+              backgroundColor: 'primary.50',
+            },
+            '& code': {
+              backgroundColor: 'grey.100',
+              padding: '2px 6px',
+              borderRadius: 1,
+              fontFamily: 'monospace',
+            },
+            '& pre': {
+              backgroundColor: 'grey.900',
+              color: 'grey.50',
+              p: 2,
+              borderRadius: 2,
+              overflow: 'auto',
+              mb: 3,
+              '& code': {
+                backgroundColor: 'transparent',
+                color: 'inherit',
+              },
+            },
+          }}
+        />
+      );
+    }
+
+    // Fallback for plain text with markdown-like formatting
     const paragraphs = content.split("\n\n");
     return paragraphs.map((paragraph, index) => {
       // Handle headers
@@ -117,18 +206,32 @@ const BlogDetail = () => {
 
   const sharePost = (platform) => {
     const url = window.location.href;
-    const title = post.title;
+    const title = post?.title || '';
+    const text = post?.excerpt || '';
 
     const shareUrls = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
-      twitter: `https://twitter.com/intent/tweet?url=${url}&text=${title}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
     };
 
     window.open(shareUrls[platform], "_blank", "width=600,height=400");
   };
 
-  if (!post) {
+  // Loading state
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
+        <CircularProgress />
+        <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
+          Loading blog post...
+        </Typography>
+      </Container>
+    );
+  }
+
+  // Error or not found state
+  if (error || !post) {
     return (
       <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
         <Box
@@ -140,7 +243,7 @@ const BlogDetail = () => {
           }}
         >
           <Typography variant="h4" color="text.secondary">
-            {blogPostsData.length === 0 ? "Loading..." : "Blog post not found"}
+            {error || "Blog post not found"}
           </Typography>
           <Button
             variant="contained"
@@ -155,12 +258,77 @@ const BlogDetail = () => {
     );
   }
 
+  // Generate structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "description": post.excerpt,
+    "image": post.image,
+    "author": {
+      "@type": "Person",
+      "name": post.author
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "FranchiseHub",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://yoursite.com/logo.png"
+      }
+    },
+    "datePublished": post.publishedAt?.toISOString() || post.createdAt.toISOString(),
+    "dateModified": post.updatedAt.toISOString(),
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": window.location.href
+    },
+    "keywords": post.tags?.join(', ') || '',
+    "articleSection": post.category,
+    "wordCount": post.content?.replace(/<[^>]*>/g, '').split(/\s+/).length || 0
+  };
+
   return (
     <Box
       sx={{
         background: `linear-gradient(to bottom, ${theme.palette.primary[50]}, ${theme.palette.background.paper} 50%, ${theme.palette.secondary[50]})`,
       }}
     >
+      {/* Comprehensive SEO Meta Tags */}
+      <Helmet>
+        <title>{post.metaTitle || post.title} | FranchiseHub Blog</title>
+        <meta name="description" content={post.metaDescription || post.excerpt} />
+        <meta name="keywords" content={post.metaKeywords || post.tags?.join(', ') || ''} />
+        <meta name="author" content={post.author} />
+        <link rel="canonical" href={window.location.href} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:title" content={post.metaTitle || post.title} />
+        <meta property="og:description" content={post.metaDescription || post.excerpt} />
+        <meta property="og:image" content={post.image} />
+        <meta property="article:published_time" content={post.publishedAt?.toISOString() || post.createdAt.toISOString()} />
+        <meta property="article:modified_time" content={post.updatedAt.toISOString()} />
+        <meta property="article:author" content={post.author} />
+        <meta property="article:section" content={post.category} />
+        {post.tags?.map((tag, index) => (
+          <meta property="article:tag" content={tag} key={index} />
+        ))}
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content={window.location.href} />
+        <meta name="twitter:title" content={post.metaTitle || post.title} />
+        <meta name="twitter:description" content={post.metaDescription || post.excerpt} />
+        <meta name="twitter:image" content={post.image} />
+        
+        {/* Structured Data (JSON-LD) */}
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
+      </Helmet>
+
       <LinearProgress
         variant="determinate"
         value={readingProgress}
@@ -316,7 +484,7 @@ const BlogDetail = () => {
                           sx={{ fontSize: 18, color: "text.secondary" }}
                         />
                         <Typography variant="body2" color="text.secondary">
-                          {new Date(post.date).toLocaleDateString("en-US", {
+                          {new Date(post.publishedAt || post.createdAt).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
@@ -332,6 +500,17 @@ const BlogDetail = () => {
                         />
                         <Typography variant="body2" color="text.secondary">
                           {post.readTime}
+                        </Typography>
+                      </Box>
+
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <Visibility
+                          sx={{ fontSize: 18, color: "text.secondary" }}
+                        />
+                        <Typography variant="body2" color="text.secondary">
+                          {post.views || 0} views
                         </Typography>
                       </Box>
                     </Box>

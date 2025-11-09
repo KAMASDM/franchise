@@ -1,0 +1,142 @@
+{
+  "title": "ब्रांड पंजीकरण फॉर्म",
+  "subtitle": "वैश्विक रूप से विस्तार के लिए अपने ब्रांड को पंजीकृत करें",
+  "steps": {
+    "businessModel": "बिजनेस मॉडल",
+    "basicInfo": "बेसिक जानकारी",
+    "brandDetails": "ब्रांड विवरण",
+    "location": "स्थान और संपर्क",
+    "investment": "निवेश विवरण",
+    "media": "मीडिया और गैलरी",
+    "review": "समीक्षा और सबमिट"
+  },
+  "businessModel": {
+    "title": "बिजनेस मॉडल चुनें",
+    "description": "अपने ब्रांड के लिए बिजनेस मॉडल का प्रकार चुनें",
+    "franchise": "फ्रेंचाइजी",
+    "distributorship": "वितरण",
+    "dealership": "डीलरशिप",
+    "license": "लाइसेंस"
+  },
+  "basicInfo": {
+    "brandName": "ब्रांड का नाम",
+    "brandNamePlaceholder": "अपने ब्रांड का नाम दर्ज करें",
+    "brandDescription": "ब्रांड विवरण",
+    "brandDescriptionPlaceholder": "अपने ब्रांड का विस्तार से वर्णन करें",
+    "industry": "उद्योग",
+    "industryPlaceholder": "उद्योग चुनें",
+    "category": "श्रेणी",
+    "categoryPlaceholder": "श्रेणी चुनें",
+    "establishedYear": "स्थापना वर्ष",
+    "establishedYearPlaceholder": "वर्ष"
+  },
+  "brandDetails": {
+    "aboutBrand": "ब्रांड के बारे में",
+    "aboutBrandPlaceholder": "हमें अपने ब्रांड की कहानी और मूल्यों के बारे में बताएं",
+    "usp": "अनूठा विक्रय प्रस्ताव",
+    "uspPlaceholder": "आपके ब्रांड को अनूठा क्या बनाता है?",
+    "targetAudience": "लक्षित दर्शक",
+    "targetAudiencePlaceholder": "अपने आदर्श ग्राहक का वर्णन करें",
+    "competitiveAdvantage": "प्रतिस्पर्धात्मक लाभ",
+    "competitiveAdvantagePlaceholder": "आपको प्रतिस्पर्धियों से क्या अलग बनाता है?"
+  },
+  "location": {
+    "address": "पता",
+    "addressPlaceholder": "पूरा पता दर्ज करें",
+    "city": "शहर",
+    "cityPlaceholder": "शहर दर्ज करें",
+    "state": "राज्य",
+    "statePlaceholder": "राज्य दर्ज करें",
+    "country": "देश",
+    "countryPlaceholder": "देश चुनें",
+    "zipCode": "पिन कोड",
+    "zipCodePlaceholder": "पिन कोड दर्ज करें",
+    "phone": "फोन नंबर",
+    "phonePlaceholder": "+91 98765 43210",
+    "email": "ईमेल पता",
+    "emailPlaceholder": "contact@yourbrand.com",
+    "website": "वेबसाइट",
+    "websitePlaceholder": "https://www.yourbrand.com"
+  },
+  "investment": {
+    "initialInvestment": "प्रारंभिक निवेश",
+    "initialInvestmentPlaceholder": "राशि दर्ज करें",
+    "franchiseFee": "फ्रेंचाइजी शुल्क",
+    "franchiseFeePlaceholder": "शुल्क राशि दर्ज करें",
+    "royaltyFee": "रॉयल्टी शुल्क (%)",
+    "royaltyFeePlaceholder": "प्रतिशत दर्ज करें",
+    "expectedROI": "अपेक्षित ROI (%)",
+    "expectedROIPlaceholder": "अपेक्षित रिटर्न दर्ज करें",
+    "paybackPeriod": "पेबैक अवधि (महीने)",
+    "paybackPeriodPlaceholder": "महीनों की संख्या दर्ज करें"
+  },
+  "media": {
+    "logo": "ब्रांड लोगो",
+    "logoDescription": "अपने ब्रांड का लोगो अपलोड करें (PNG, JPG - अधिकतम 5MB)",
+    "coverImage": "कवर इमेज",
+    "coverImageDescription": "अपने ब्रांड पेज के लिए कवर इमेज अपलोड करें",
+    "gallery": "ब्रांड गैलरी",
+    "galleryDescription": "अपने ब्रांड को प्रदर्शित करने वाली इमेज अपलोड करें (अधिकतम 10 इमेज)",
+    "documents": "दस्तावेज़",
+    "documentsDescription": "सहायक दस्तावेज़ अपलोड करें (PDF, DOC - प्रत्येक अधिकतम 10MB)",
+    "dragDrop": "फाइलें यहां ड्रैग और ड्रॉप करें, या ब्राउज़ करने के लिए क्लिक करें",
+    "uploadProgress": "अपलोड हो रहा है...",
+    "uploadSuccess": "अपलोड सफल",
+    "uploadError": "अपलोड विफल"
+  },
+  "review": {
+    "title": "अपनी जानकारी की समीक्षा करें",
+    "subtitle": "कृपया सबमिट करने से पहले सभी विवरण की समीक्षा करें",
+    "editSection": "सेक्शन संपादित करें",
+    "confirmSubmit": "मैं पुष्टि करता/करती हूं कि प्रदान की गई सभी जानकारी सही है",
+    "submitButton": "पंजीकरण सबमिट करें",
+    "submitting": "सबमिट हो रहा है...",
+    "successMessage": "पंजीकरण सफलतापूर्वक सबमिट किया गया!",
+    "errorMessage": "पंजीकरण सबमिट करने में विफल। कृपया पुनः प्रयास करें।"
+  },
+  "validation": {
+    "required": "यह फ़ील्ड आवश्यक है",
+    "invalidEmail": "कृपया एक वैध ईमेल पता दर्ज करें",
+    "invalidPhone": "कृपया एक वैध फोन नंबर दर्ज करें",
+    "invalidUrl": "कृपया एक वैध URL दर्ज करें",
+    "minLength": "न्यूनतम {{count}} अक्षर आवश्यक हैं",
+    "maxLength": "अधिकतम {{count}} अक्षर की अनुमति है",
+    "minValue": "न्यूनतम मान {{value}} है",
+    "maxValue": "अधिकतम मान {{value}} है",
+    "invalidYear": "कृपया एक वैध वर्ष दर्ज करें",
+    "invalidNumber": "कृपया एक वैध संख्या दर्ज करें",
+    "fileTooLarge": "फ़ाइल का आकार अधिकतम अनुमत ({{size}}MB) से अधिक है",
+    "invalidFileType": "अमान्य फ़ाइल प्रकार। अनुमत: {{types}}"
+  },
+  "help": {
+    "businessModel": "वह बिजनेस मॉडल चुनें जो आपकी विस्तार रणनीति के लिए सबसे उपयुक्त हो",
+    "brandName": "अपने ब्रांड का आधिकारिक पंजीकृत नाम दर्ज करें",
+    "industry": "वह प्राथमिक उद्योग चुनें जिसमें आपका ब्रांड काम करता है",
+    "investment": "संभावित फ्रेंचाइजियों की मदद के लिए सटीक निवेश आंकड़े प्रदान करें",
+    "documents": "आवश्यक कानूनी दस्तावेज़, प्रमाणपत्र और प्रस्तुतियां अपलोड करें"
+  },
+  "autoSave": {
+    "saving": "सेव हो रहा है...",
+    "saved": "सेव किया गया",
+    "lastSaved": "अंतिम बार सेव किया गया: {{time}}",
+    "draftFound": "{{time}} से ड्राफ्ट मिला। क्या आप जारी रखना चाहेंगे?",
+    "continueDraft": "ड्राफ्ट जारी रखें",
+    "startFresh": "नए से शुरू करें"
+  },
+  "export": {
+    "title": "डेटा एक्सपोर्ट करें",
+    "description": "अपना पंजीकरण डेटा डाउनलोड करें",
+    "json": "JSON के रूप में एक्सपोर्ट करें",
+    "pdf": "PDF के रूप में एक्सपोर्ट करें",
+    "jsonSuccess": "JSON फ़ाइल सफलतापूर्वक डाउनलोड की गई",
+    "pdfSuccess": "PDF फ़ाइल सफलतापूर्वक डाउनलोड की गई",
+    "error": "डेटा एक्सपोर्ट करने में विफल"
+  },
+  "accessibility": {
+    "highContrast": "हाई कंट्रास्ट मोड",
+    "skipToContent": "कंटेंट पर जाएं",
+    "closeDialog": "डायलॉग बंद करें",
+    "openMenu": "मेनू खोलें",
+    "closeMenu": "मेनू बंद करें"
+  }
+}

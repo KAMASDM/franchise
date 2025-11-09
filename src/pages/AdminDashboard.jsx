@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme, CircularProgress, useMediaQuery } from '@mui/material';
 import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom';
-import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart, Email, Chat as ChatIcon } from '@mui/icons-material';
+import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart, Email, Chat as ChatIcon, VideoLibrary, Info, Article } from '@mui/icons-material';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +16,9 @@ import AdminLeadManagement from '../components/admin/AdminLeadManagement';
 import AdminAnalytics from '../components/admin/AdminAnalytics';
 import AdminContactMessages from '../components/admin/AdminContactMessages';
 import AdminChatLeads from '../components/admin/AdminChatLeads';
+import AdminTestimonialManagement from '../components/admin/AdminTestimonialManagement';
+import AdminAboutUsManagement from '../components/admin/AdminAboutUsManagement';
+import BlogManagement from '../components/admin/BlogManagement';
 
 // Lazy load mobile layout
 const AdminDashboardMobile = lazy(() => import('../components/admin/AdminDashboardMobile'));
@@ -61,6 +64,9 @@ const AdminDashboard = () => {
         { text: 'Franchise Leads', path: '/admin/leads', icon: <Leaderboard /> },
         { text: 'Chat Leads', path: '/admin/chat-leads', icon: <ChatIcon /> },
         { text: 'Contact Messages', path: '/admin/messages', icon: <Email /> },
+        { text: 'Blog Management', path: '/admin/blogs', icon: <Article /> },
+        { text: 'Video Testimonials', path: '/admin/testimonials', icon: <VideoLibrary /> },
+        { text: 'About Us Content', path: '/admin/about-us', icon: <Info /> },
         { text: 'Analytics', path: '/admin/analytics', icon: <BarChart /> },
         { text: 'User Management', path: '/admin/users', icon: <People /> },
         { text: 'Send Notifications', path: '/admin/notifications', icon: <NotificationsIcon /> },
@@ -84,6 +90,9 @@ const AdminDashboard = () => {
                                 <Route path="/leads" element={<AdminLeadManagement />} />
                                 <Route path="/chat-leads" element={<AdminChatLeads />} />
                                 <Route path="/messages" element={<AdminContactMessages />} />
+                                <Route path="/blogs" element={<BlogManagement />} />
+                                <Route path="/testimonials" element={<AdminTestimonialManagement />} />
+                                <Route path="/about-us" element={<AdminAboutUsManagement />} />
                                 <Route path="/analytics" element={<AdminAnalytics />} />
                                 <Route path="/users" element={<AdminUserManagement />} />
                                 <Route path="/notifications" element={<AdminNotifications />} />
@@ -127,7 +136,7 @@ const AdminDashboard = () => {
                 <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'primary.dark' }}>
                     <Toolbar>
                         <Typography variant="h6" noWrap component="div">
-                            FranchiseHub Admin
+                            ikama Admin Portal
                         </Typography>
                     </Toolbar>
                 </AppBar>
@@ -156,6 +165,9 @@ const AdminDashboard = () => {
                         <Route path="leads" element={<AdminLeadManagement />} />
                         <Route path="chat-leads" element={<AdminChatLeads />} />
                         <Route path="messages" element={<AdminContactMessages />} />
+                        <Route path="blogs" element={<BlogManagement />} />
+                        <Route path="testimonials" element={<AdminTestimonialManagement />} />
+                        <Route path="about-us" element={<AdminAboutUsManagement />} />
                         <Route path="analytics" element={<AdminAnalytics />} />
                         <Route path="users" element={<AdminUserManagement />} />
                         <Route path="notifications" element={<AdminNotifications />} />

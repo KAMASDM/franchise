@@ -66,6 +66,7 @@ const BrandGrid = ({ limit = null, filters = null }) => {
           display: "flex",
           flexWrap: "wrap",
           gap: { xs: 2, sm: 3, md: 4 },
+          justifyContent: "center",
         }}
       >
         {displayBrands.map((brand, index) => (
@@ -77,6 +78,7 @@ const BrandGrid = ({ limit = null, filters = null }) => {
                 sm: "calc(50% - 12px)",
                 md: "calc(33.333% - 21.33px)",
               },
+              maxWidth: "420px",
             }}
           >
             <BrandCard brand={brand} index={index} />

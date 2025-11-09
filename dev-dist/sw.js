@@ -82,12 +82,12 @@ define(['./workbox-103f0bbe'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "/index.html",
-    "revision": "0.magg97sr43g"
+    "revision": "0.abnerjh1k8g"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
     allowlist: [/^\/$/],
-    denylist: [/^\/_/, /\/[^/?]+\.[^/]+$/]
+    denylist: [/^\/_/, /\/[^/?]+\.[^/]+$/, /^\/api\//]
   }));
   workbox.registerRoute(/^https:\/\/fonts\.googleapis\.com\/.*/i, new workbox.CacheFirst({
     "cacheName": "google-fonts-cache",
@@ -117,7 +117,14 @@ define(['./workbox-103f0bbe'], (function (workbox) { 'use strict';
       statuses: [0, 200]
     })]
   }), 'GET');
-  workbox.registerRoute(/^https:\/\/firestore\.googleapis\.com\/.*\/Listen\/channel\?.*/i, new workbox.NetworkOnly(), 'GET');
+  workbox.registerRoute(/^https:\/\/firestore\.googleapis\.com\/.*\/Listen\/channel\?.*/i, new workbox.NetworkOnly({
+    "cacheName": "firestore-listen-no-cache",
+    plugins: []
+  }), 'GET');
+  workbox.registerRoute(/^https:\/\/firestore\.googleapis\.com\/google\.firestore\.v1\.Firestore\/Listen\/channel.*/i, new workbox.NetworkOnly({
+    "cacheName": "firestore-realtime-no-cache",
+    plugins: []
+  }), 'GET');
   workbox.registerRoute(/^https:\/\/identitytoolkit\.googleapis\.com\/.*/i, new workbox.NetworkFirst({
     "cacheName": "firebase-auth-cache",
     "networkTimeoutSeconds": 3,

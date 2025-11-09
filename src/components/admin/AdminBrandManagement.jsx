@@ -8,6 +8,7 @@ import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableConta
 import { Link as RouterLink } from 'react-router-dom';
 import { Download, Search, Clear } from '@mui/icons-material';
 import NotificationService from '../../utils/NotificationService';
+import * as emailService from '../../services/emailNotificationService';
 import logger from '../../utils/logger';
 import { exportBrands } from '../../utils/exportUtils';
 
@@ -41,13 +42,35 @@ const AdminBrandManagement = () => {
             // Find the brand data for notification
             const brand = brands.find(b => b.id === brandId);
             
-            // Send notification to brand owner
+            // Send in-app notification to brand owner
             if (brand && brand.userId) {
                 await NotificationService.sendBrandApprovalNotification(
                     brand.userId, 
                     { ...brand, id: brandId }, 
                     newStatus === 'active'
                 );
+            }
+            
+            // Send email notification (non-blocking)
+            if (brand) {
+                const emailData = {
+                    brandName: brand.brandName,
+                    contactName: brand.brandOwnerInformation?.name || brand.contactInfo?.name,
+                    contactEmail: brand.brandOwnerInformation?.email || brand.contactInfo?.email,
+                    email: brand.brandOwnerInformation?.email || brand.contactInfo?.email,
+                    id: brandId,
+                    slug: brand.slug
+                };
+                
+                if (newStatus === 'active') {
+                    emailService.sendApprovalNotification(emailData).catch(err => 
+                        logger.error('Failed to send approval email:', err)
+                    );
+                } else if (newStatus === 'rejected') {
+                    emailService.sendRejectionNotification(emailData, 'Please review the submission requirements and resubmit.').catch(err => 
+                        logger.error('Failed to send rejection email:', err)
+                    );
+                }
             }
             
             setBrands(prevBrands => 

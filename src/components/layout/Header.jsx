@@ -39,10 +39,14 @@ import {
 import { motion } from "framer-motion";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, provider, db } from "../../firebase/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useAuth } from "../../context/AuthContext";
 import DarkModeToggleIcon from "../common/DarkModeToggle";
+import LanguageSelector from "../common/LanguageSelector";
+import FranchiseHubLogo from "../common/FranchiseHubLogo";
 import logger from "../../utils/logger";
+import { emailService } from "../../utils/emailService";
+import { pushNotifications } from "../../utils/pushNotifications";
 
 const MotionButton = (props) => (
   <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
@@ -52,7 +56,6 @@ const MotionButton = (props) => (
 
 const navItems = [
   { text: "Home", path: "/", icon: <HomeIcon /> },
-  { text: "About Us", path: "/about", icon: <AboutIcon /> },
   { text: "Brands", path: "/brands", icon: <BrandsIcon /> },
   { text: "Blog", path: "/blogs", icon: <BlogIcon /> },
   { text: "Contact", path: "/contact", icon: <ContactIcon /> },
@@ -84,17 +87,51 @@ const Header = () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      
+      // Check if user already exists
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      const isNewUser = !userDoc.exists();
+      
       await setDoc(
-        doc(db, "users", user.uid),
+        userDocRef,
         {
           uid: user.uid,
           displayName: user.displayName,
           email: user.email,
           photoURL: user.photoURL,
           lastLogin: new Date(),
+          createdAt: isNewUser ? new Date() : userDoc.data()?.createdAt,
         },
         { merge: true }
       );
+      
+      // Send welcome email for new users
+      if (isNewUser) {
+        logger.log('New user registered, sending welcome email...');
+        await emailService.sendWelcomeEmail(
+          user.email,
+          user.displayName || 'User',
+          'prospect' // Default to prospect, can be changed based on user type
+        );
+      }
+      
+      // Request push notification permission (don't block if user denies)
+      setTimeout(async () => {
+        if (pushNotifications.isNotificationSupported()) {
+          const currentPermission = pushNotifications.getPermissionStatus();
+          // Only request if not already granted or denied
+          if (currentPermission === 'default') {
+            try {
+              await pushNotifications.requestPermission();
+            } catch (error) {
+              logger.error('Failed to request push notification permission:', error);
+              // Don't show error to user, they can enable it later in settings
+            }
+          }
+        }
+      }, 2000); // Wait 2 seconds after sign-in to avoid overwhelming the user
+      
       navigate("/dashboard/register-brand");
     } catch (error) {
       logger.error("Google Sign-In Failed:", error);
@@ -118,10 +155,7 @@ const Header = () => {
       onClick={handleDrawer(false)}
     >
       <Box sx={{ px: 2, mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-        <RestaurantIcon sx={{ fontSize: 30, color: "primary.main", fontFamily: "sanchez" }} />
-        <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: "sanchez", fontStyle: "italic" }}>
-          iKama
-        </Typography>
+        <FranchiseHubLogo variant="full" width={200} height={50} />
       </Box>
       <Divider />
       <List>
@@ -230,13 +264,7 @@ const Header = () => {
               gap: 1,
             }}
           >
-            <RestaurantIcon sx={{ fontSize: 30, color: "primary.main" }} />
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 700, display: { xs: "none", sm: "block" } }}
-            >
-              iKama
-            </Typography>
+            <FranchiseHubLogo variant="full" width={220} height={60} />
           </Box>
 
           {/* Desktop Navigation */}
@@ -256,6 +284,9 @@ const Header = () => {
           )}
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {/* Language Selector */}
+            <LanguageSelector />
+            
             {/* Dark Mode Toggle */}
             <DarkModeToggleIcon />
             

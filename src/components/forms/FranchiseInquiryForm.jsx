@@ -25,6 +25,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import NotificationService from "../../utils/NotificationService";
+import * as emailService from "../../services/emailNotificationService";
 import { INVESTMENT_RANGES, BUSINESS_EXPERIENCE_OPTIONS, TIMELINE_OPTIONS } from "../../constants";
 import logger from "../../utils/logger";
 
@@ -182,10 +183,31 @@ const FranchiseInquiryForm = ({ brand, onClose, onSuccess }) => {
         inquiryData
       );
 
-      // Send notification to brand owner
+      // Send in-app notification to brand owner
       await NotificationService.sendLeadNotification(
         brand.userId, 
         { ...inquiryData, id: docRef.id }
+      );
+
+      // Send email notification to brand owner (non-blocking)
+      const leadData = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        phone: formData.phone,
+        location: `${formData.city}, ${formData.state}`,
+        investmentCapacity: formData.investmentRange,
+        message: formData.message
+      };
+      
+      const brandData = {
+        brandName: brand.brandName,
+        contactName: brand.brandOwnerInformation?.name || brand.contactInfo?.name,
+        contactEmail: brand.brandOwnerInformation?.email || brand.contactInfo?.email,
+        email: brand.brandOwnerInformation?.email || brand.contactInfo?.email
+      };
+      
+      emailService.sendLeadReceivedNotification(leadData, brandData).catch(err =>
+        logger.error('Failed to send lead received email:', err)
       );
 
       setSubmitted(true);
@@ -502,7 +524,7 @@ const FranchiseInquiryForm = ({ brand, onClose, onSuccess }) => {
                     color="primary"
                   />
                 }
-                label="I agree to be contacted by FranchiseHub and the franchise brand regarding this opportunity *"
+                label="I agree to be contacted by ikama - Franchise Hub and the franchise brand regarding this opportunity *"
               />
               {errors.agreement && (
                 <Typography variant="caption" color="error">

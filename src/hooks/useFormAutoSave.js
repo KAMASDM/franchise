@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import logger from './logger';
-import { showToast } from './toastUtils';
+import logger from '../utils/logger';
+import { showToast } from '../utils/toastUtils';
 
 /**
  * Custom hook for form auto-save functionality
@@ -23,8 +23,14 @@ export const useFormAutoSave = (formId, formData, options = {}) => {
   const [hasDraft, setHasDraft] = useState(false);
   const saveTimeoutRef = useRef(null);
   const isDirtyRef = useRef(false);
+  const formDataRef = useRef(formData);
 
   const draftKey = `${DRAFT_PREFIX}${formId}`;
+
+  // Update ref when formData changes
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
 
   // Check for existing draft on mount
   useEffect(() => {
@@ -35,11 +41,11 @@ export const useFormAutoSave = (formId, formData, options = {}) => {
     }
   }, [formId]);
 
-  // Save draft function
+  // Save draft function - uses ref to avoid recreation
   const saveDraft = useCallback(() => {
     try {
       // Filter out excluded fields
-      const dataToSave = { ...formData };
+      const dataToSave = { ...formDataRef.current };
       excludeFields.forEach(field => {
         delete dataToSave[field];
       });
@@ -66,7 +72,7 @@ export const useFormAutoSave = (formId, formData, options = {}) => {
     } catch (error) {
       logger.error('Failed to save draft:', error);
     }
-  }, [formData, formId, draftKey, excludeFields, onSave, showNotifications]);
+  }, [formId, draftKey, excludeFields, onSave, showNotifications]); // Removed formData
 
   // Get saved draft
   const getDraft = useCallback(() => {
@@ -119,6 +125,19 @@ export const useFormAutoSave = (formId, formData, options = {}) => {
 
   // Auto-save effect
   useEffect(() => {
+    // Don't save empty forms
+    const hasData = Object.values(formData).some(value => {
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === 'object' && value !== null) {
+        return Object.values(value).some(v => v !== '' && v !== null && v !== undefined);
+      }
+      return value !== '' && value !== null && value !== undefined;
+    });
+
+    if (!hasData) {
+      return;
+    }
+
     // Mark as dirty when form data changes
     isDirtyRef.current = true;
 
@@ -140,15 +159,15 @@ export const useFormAutoSave = (formId, formData, options = {}) => {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [formData, saveInterval, saveDraft]);
+  }, [formData, saveInterval]); // Removed saveDraft from dependencies
 
   // Save on unmount (component cleanup)
   useEffect(() => {
     return () => {
       if (isDirtyRef.current) {
-        // Try to save one last time
+        // Try to save one last time using ref
         try {
-          const dataToSave = { ...formData };
+          const dataToSave = { ...formDataRef.current };
           excludeFields.forEach(field => {
             delete dataToSave[field];
           });
@@ -163,7 +182,7 @@ export const useFormAutoSave = (formId, formData, options = {}) => {
         }
       }
     };
-  }, [formData, formId, draftKey, excludeFields]);
+  }, [formId, draftKey, excludeFields]); // Removed formData
 
   return {
     saveDraft: save,

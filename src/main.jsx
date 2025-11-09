@@ -3,8 +3,12 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { HelmetProvider } from "react-helmet-async";
 import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
+import { HighContrastProvider } from "./context/HighContrastContext.jsx";
 import App from "./App.jsx";
+import "./index.css";
+import "./i18n/config"; // Initialize i18n
 
 const theme = createTheme({
   palette: {
@@ -142,18 +146,54 @@ const theme = createTheme({
         },
       },
     },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          '&:focus-visible': {
+            outline: '3px solid #5a76a9',
+            outlineOffset: '2px',
+            boxShadow: '0 0 0 3px rgba(90, 118, 169, 0.2)',
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          '&:focus-visible': {
+            outline: '2px solid #5a76a9',
+            outlineOffset: '2px',
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            '&.Mui-focused': {
+              boxShadow: '0 0 0 3px rgba(90, 118, 169, 0.2)',
+            },
+          },
+        },
+      },
+    },
   },
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
-      </ThemeProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <HighContrastProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+          </ThemeProvider>
+        </HighContrastProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </React.StrictMode>
 );

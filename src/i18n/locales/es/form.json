@@ -1,0 +1,142 @@
+{
+  "title": "Formulario de Registro de Marca",
+  "subtitle": "Registra tu marca para expandirte globalmente",
+  "steps": {
+    "businessModel": "Modelo de Negocio",
+    "basicInfo": "Información Básica",
+    "brandDetails": "Detalles de la Marca",
+    "location": "Ubicación y Contacto",
+    "investment": "Detalles de Inversión",
+    "media": "Medios y Galería",
+    "review": "Revisar y Enviar"
+  },
+  "businessModel": {
+    "title": "Seleccionar Modelo de Negocio",
+    "description": "Elige el tipo de modelo de negocio para tu marca",
+    "franchise": "Franquicia",
+    "distributorship": "Distribución",
+    "dealership": "Concesionario",
+    "license": "Licencia"
+  },
+  "basicInfo": {
+    "brandName": "Nombre de la Marca",
+    "brandNamePlaceholder": "Ingresa el nombre de tu marca",
+    "brandDescription": "Descripción de la Marca",
+    "brandDescriptionPlaceholder": "Describe tu marca en detalle",
+    "industry": "Industria",
+    "industryPlaceholder": "Selecciona industria",
+    "category": "Categoría",
+    "categoryPlaceholder": "Selecciona categoría",
+    "establishedYear": "Año de Fundación",
+    "establishedYearPlaceholder": "AAAA"
+  },
+  "brandDetails": {
+    "aboutBrand": "Acerca de la Marca",
+    "aboutBrandPlaceholder": "Cuéntanos sobre la historia y valores de tu marca",
+    "usp": "Propuesta Única de Valor",
+    "uspPlaceholder": "¿Qué hace única a tu marca?",
+    "targetAudience": "Público Objetivo",
+    "targetAudiencePlaceholder": "Describe a tu cliente ideal",
+    "competitiveAdvantage": "Ventaja Competitiva",
+    "competitiveAdvantagePlaceholder": "¿Qué te diferencia de la competencia?"
+  },
+  "location": {
+    "address": "Dirección",
+    "addressPlaceholder": "Ingresa dirección completa",
+    "city": "Ciudad",
+    "cityPlaceholder": "Ingresa ciudad",
+    "state": "Estado",
+    "statePlaceholder": "Ingresa estado",
+    "country": "País",
+    "countryPlaceholder": "Selecciona país",
+    "zipCode": "Código Postal",
+    "zipCodePlaceholder": "Ingresa código postal",
+    "phone": "Número de Teléfono",
+    "phonePlaceholder": "+34 600 000 000",
+    "email": "Correo Electrónico",
+    "emailPlaceholder": "contacto@tumarca.com",
+    "website": "Sitio Web",
+    "websitePlaceholder": "https://www.tumarca.com"
+  },
+  "investment": {
+    "initialInvestment": "Inversión Inicial",
+    "initialInvestmentPlaceholder": "Ingresa monto",
+    "franchiseFee": "Tarifa de Franquicia",
+    "franchiseFeePlaceholder": "Ingresa monto de tarifa",
+    "royaltyFee": "Regalías (%)",
+    "royaltyFeePlaceholder": "Ingresa porcentaje",
+    "expectedROI": "ROI Esperado (%)",
+    "expectedROIPlaceholder": "Ingresa retorno esperado",
+    "paybackPeriod": "Período de Recuperación (meses)",
+    "paybackPeriodPlaceholder": "Ingresa número de meses"
+  },
+  "media": {
+    "logo": "Logo de la Marca",
+    "logoDescription": "Sube el logo de tu marca (PNG, JPG - Máx 5MB)",
+    "coverImage": "Imagen de Portada",
+    "coverImageDescription": "Sube imagen de portada para tu página de marca",
+    "gallery": "Galería de la Marca",
+    "galleryDescription": "Sube imágenes de tu marca (Máx 10 imágenes)",
+    "documents": "Documentos",
+    "documentsDescription": "Sube documentos de respaldo (PDF, DOC - Máx 10MB cada uno)",
+    "dragDrop": "Arrastra y suelta archivos aquí, o haz clic para buscar",
+    "uploadProgress": "Subiendo...",
+    "uploadSuccess": "Subida exitosa",
+    "uploadError": "Error al subir"
+  },
+  "review": {
+    "title": "Revisa Tu Información",
+    "subtitle": "Por favor revisa todos los detalles antes de enviar",
+    "editSection": "Editar Sección",
+    "confirmSubmit": "Confirmo que toda la información proporcionada es precisa",
+    "submitButton": "Enviar Registro",
+    "submitting": "Enviando...",
+    "successMessage": "¡Registro enviado exitosamente!",
+    "errorMessage": "Error al enviar el registro. Por favor intenta de nuevo."
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "Por favor ingresa un correo electrónico válido",
+    "invalidPhone": "Por favor ingresa un número de teléfono válido",
+    "invalidUrl": "Por favor ingresa una URL válida",
+    "minLength": "Se requieren mínimo {{count}} caracteres",
+    "maxLength": "Máximo {{count}} caracteres permitidos",
+    "minValue": "El valor mínimo es {{value}}",
+    "maxValue": "El valor máximo es {{value}}",
+    "invalidYear": "Por favor ingresa un año válido",
+    "invalidNumber": "Por favor ingresa un número válido",
+    "fileTooLarge": "El tamaño del archivo excede el máximo permitido ({{size}}MB)",
+    "invalidFileType": "Tipo de archivo inválido. Permitidos: {{types}}"
+  },
+  "help": {
+    "businessModel": "Elige el modelo de negocio que mejor se adapte a tu estrategia de expansión",
+    "brandName": "Ingresa el nombre oficial registrado de tu marca",
+    "industry": "Selecciona la industria principal en la que opera tu marca",
+    "investment": "Proporciona cifras de inversión precisas para ayudar a posibles franquiciados",
+    "documents": "Sube documentos legales necesarios, certificados y presentaciones"
+  },
+  "autoSave": {
+    "saving": "Guardando...",
+    "saved": "Guardado",
+    "lastSaved": "Último guardado: {{time}}",
+    "draftFound": "Borrador encontrado de {{time}}. ¿Deseas continuar?",
+    "continueDraft": "Continuar Borrador",
+    "startFresh": "Empezar de Nuevo"
+  },
+  "export": {
+    "title": "Exportar Datos",
+    "description": "Descarga tus datos de registro",
+    "json": "Exportar como JSON",
+    "pdf": "Exportar como PDF",
+    "jsonSuccess": "Archivo JSON descargado exitosamente",
+    "pdfSuccess": "Archivo PDF descargado exitosamente",
+    "error": "Error al exportar datos"
+  },
+  "accessibility": {
+    "highContrast": "Modo de Alto Contraste",
+    "skipToContent": "Saltar al contenido",
+    "closeDialog": "Cerrar diálogo",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "title": "Brand Registration Form",
+  "subtitle": "Register your brand to expand globally",
+  "steps": {
+    "businessModel": "Business Model",
+    "basicInfo": "Basic Information",
+    "brandDetails": "Brand Details",
+    "location": "Location & Contact",
+    "investment": "Investment Details",
+    "media": "Media & Gallery",
+    "review": "Review & Submit"
+  },
+  "businessModel": {
+    "title": "Select Business Model",
+    "description": "Choose the type of business model for your brand",
+    "franchise": "Franchise",
+    "distributorship": "Distributorship",
+    "dealership": "Dealership",
+    "license": "License"
+  },
+  "basicInfo": {
+    "brandName": "Brand Name",
+    "brandNamePlaceholder": "Enter your brand name",
+    "brandDescription": "Brand Description",
+    "brandDescriptionPlaceholder": "Describe your brand in detail",
+    "industry": "Industry",
+    "industryPlaceholder": "Select industry",
+    "category": "Category",
+    "categoryPlaceholder": "Select category",
+    "establishedYear": "Established Year",
+    "establishedYearPlaceholder": "YYYY"
+  },
+  "brandDetails": {
+    "aboutBrand": "About Brand",
+    "aboutBrandPlaceholder": "Tell us about your brand's story and values",
+    "usp": "Unique Selling Proposition",
+    "uspPlaceholder": "What makes your brand unique?",
+    "targetAudience": "Target Audience",
+    "targetAudiencePlaceholder": "Describe your ideal customer",
+    "competitiveAdvantage": "Competitive Advantage",
+    "competitiveAdvantagePlaceholder": "What sets you apart from competitors?"
+  },
+  "location": {
+    "address": "Address",
+    "addressPlaceholder": "Enter complete address",
+    "city": "City",
+    "cityPlaceholder": "Enter city",
+    "state": "State",
+    "statePlaceholder": "Enter state",
+    "country": "Country",
+    "countryPlaceholder": "Select country",
+    "zipCode": "Zip Code",
+    "zipCodePlaceholder": "Enter zip code",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+1 (555) 000-0000",
+    "email": "Email Address",
+    "emailPlaceholder": "contact@yourbrand.com",
+    "website": "Website",
+    "websitePlaceholder": "https://www.yourbrand.com"
+  },
+  "investment": {
+    "initialInvestment": "Initial Investment",
+    "initialInvestmentPlaceholder": "Enter amount",
+    "franchiseFee": "Franchise Fee",
+    "franchiseFeePlaceholder": "Enter fee amount",
+    "royaltyFee": "Royalty Fee (%)",
+    "royaltyFeePlaceholder": "Enter percentage",
+    "expectedROI": "Expected ROI (%)",
+    "expectedROIPlaceholder": "Enter expected return",
+    "paybackPeriod": "Payback Period (months)",
+    "paybackPeriodPlaceholder": "Enter number of months"
+  },
+  "media": {
+    "logo": "Brand Logo",
+    "logoDescription": "Upload your brand logo (PNG, JPG - Max 5MB)",
+    "coverImage": "Cover Image",
+    "coverImageDescription": "Upload cover image for your brand page",
+    "gallery": "Brand Gallery",
+    "galleryDescription": "Upload images showcasing your brand (Max 10 images)",
+    "documents": "Documents",
+    "documentsDescription": "Upload supporting documents (PDF, DOC - Max 10MB each)",
+    "dragDrop": "Drag and drop files here, or click to browse",
+    "uploadProgress": "Uploading...",
+    "uploadSuccess": "Upload successful",
+    "uploadError": "Upload failed"
+  },
+  "review": {
+    "title": "Review Your Information",
+    "subtitle": "Please review all details before submitting",
+    "editSection": "Edit Section",
+    "confirmSubmit": "I confirm that all information provided is accurate",
+    "submitButton": "Submit Registration",
+    "submitting": "Submitting...",
+    "successMessage": "Registration submitted successfully!",
+    "errorMessage": "Failed to submit registration. Please try again."
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "invalidPhone": "Please enter a valid phone number",
+    "invalidUrl": "Please enter a valid URL",
+    "minLength": "Minimum {{count}} characters required",
+    "maxLength": "Maximum {{count}} characters allowed",
+    "minValue": "Minimum value is {{value}}",
+    "maxValue": "Maximum value is {{value}}",
+    "invalidYear": "Please enter a valid year",
+    "invalidNumber": "Please enter a valid number",
+    "fileTooLarge": "File size exceeds maximum allowed ({{size}}MB)",
+    "invalidFileType": "Invalid file type. Allowed: {{types}}"
+  },
+  "help": {
+    "businessModel": "Choose the business model that best fits your expansion strategy",
+    "brandName": "Enter the official registered name of your brand",
+    "industry": "Select the primary industry your brand operates in",
+    "investment": "Provide accurate investment figures to help potential franchisees",
+    "documents": "Upload necessary legal documents, certificates, and presentations"
+  },
+  "autoSave": {
+    "saving": "Saving...",
+    "saved": "Saved",
+    "lastSaved": "Last saved: {{time}}",
+    "draftFound": "Draft found from {{time}}. Would you like to continue?",
+    "continueDraft": "Continue Draft",
+    "startFresh": "Start Fresh"
+  },
+  "export": {
+    "title": "Export Data",
+    "description": "Download your registration data",
+    "json": "Export as JSON",
+    "pdf": "Export as PDF",
+    "jsonSuccess": "JSON file downloaded successfully",
+    "pdfSuccess": "PDF file downloaded successfully",
+    "error": "Failed to export data"
+  },
+  "accessibility": {
+    "highContrast": "High Contrast Mode",
+    "skipToContent": "Skip to content",
+    "closeDialog": "Close dialog",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  }
+}

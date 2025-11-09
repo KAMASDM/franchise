@@ -1,0 +1,62 @@
+{
+  "app": {
+    "title": "Portail de Franchise",
+    "tagline": "Développez Votre Entreprise Globalement"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "brands": "Marques",
+    "dashboard": "Tableau de Bord",
+    "admin": "Administrateur",
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "register": "S'inscrire"
+  },
+  "languages": {
+    "en": "Anglais",
+    "es": "Espagnol",
+    "fr": "Français",
+    "hi": "Hindi",
+    "gu": "Gujarati"
+  },
+  "buttons": {
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "finish": "Terminer",
+    "close": "Fermer",
+    "upload": "Télécharger",
+    "download": "Télécharger",
+    "export": "Exporter",
+    "import": "Importer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "reset": "Réinitialiser",
+    "apply": "Appliquer"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "warning": "Avertissement",
+    "info": "Information",
+    "noData": "Aucune donnée disponible",
+    "selectOption": "Sélectionnez une option",
+    "required": "Obligatoire",
+    "optional": "Facultatif",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "notifications": {
+    "success": "Opération terminée avec succès",
+    "error": "Une erreur s'est produite",
+    "saved": "Enregistré avec succès",
+    "deleted": "Supprimé avec succès",
+    "updated": "Mis à jour avec succès"
+  }
+}

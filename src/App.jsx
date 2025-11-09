@@ -41,6 +41,10 @@ const FirestoreTest = import.meta.env.DEV
   ? React.lazy(() => import("./components/debug/FirestoreTest"))
   : null;
 
+const TestimonialDebugger = import.meta.env.DEV
+  ? React.lazy(() => import("./components/debug/TestimonialDebugger"))
+  : null;
+
 const LoadingFallback = () => (
   <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
     <CircularProgress />
@@ -121,6 +125,11 @@ function App() {
       {/* Debug route - only available in development */}
       {import.meta.env.DEV && FirestoreTest && (
         <Route path="/test-firestore" element={<FirestoreTest />} />
+      )}
+      
+      {/* Testimonials Debug - only in development */}
+      {import.meta.env.DEV && TestimonialDebugger && (
+        <Route path="/debug-testimonials" element={<TestimonialDebugger />} />
       )}
     </Routes>
   );

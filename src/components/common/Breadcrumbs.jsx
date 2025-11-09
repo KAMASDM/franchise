@@ -23,7 +23,7 @@ const routeNameMap = {
   'dashboard': 'Dashboard',
   'admin': 'Admin',
   'register-brand': 'Register Brand',
-  'brands': 'My Brands',
+  'my-brands': 'My Brands',
   'leads': 'Leads',
   'locations': 'Locations',
   'reviews': 'Reviews',

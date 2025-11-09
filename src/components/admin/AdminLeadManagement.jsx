@@ -7,6 +7,7 @@ import logger from '../../utils/logger';
 import { exportLeads } from '../../utils/exportUtils';
 import { useSimpleSearch } from '../../hooks/useSimpleSearch';
 import { useArrayPagination } from '../../hooks/usePagination';
+import * as emailService from '../../services/emailNotificationService';
 import {
   Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Avatar, CircularProgress, Alert, Link as MuiLink, TextField, InputAdornment, IconButton,
@@ -73,7 +74,37 @@ const AdminLeadManagement = () => {
 
     const handleStatusChange = async (id, newStatus) => {
         try {
+            const lead = leads.find(l => l.id === id);
+            const oldStatus = lead?.status || 'New';
+            
             await updateDoc(doc(db, "brandfranchiseInquiry", id), { status: newStatus });
+            
+            // Send email notification to brand owner (non-blocking)
+            if (lead && lead.brandId) {
+                const brand = brands.find(b => b.id === lead.brandId);
+                if (brand) {
+                    const leadData = {
+                        name: lead.name,
+                        email: lead.email,
+                        phone: lead.phone,
+                        location: lead.location,
+                        investmentCapacity: lead.investmentCapacity,
+                        message: lead.message
+                    };
+                    
+                    const brandData = {
+                        brandName: brand.brandName,
+                        contactName: brand.brandOwnerInformation?.name || brand.contactInfo?.name,
+                        contactEmail: brand.brandOwnerInformation?.email || brand.contactInfo?.email,
+                        email: brand.brandOwnerInformation?.email || brand.contactInfo?.email
+                    };
+                    
+                    emailService.sendLeadStatusChangeNotification(leadData, brandData, oldStatus, newStatus).catch(err =>
+                        logger.error('Failed to send lead status change email:', err)
+                    );
+                }
+            }
+            
             setLeads(prev => 
                 prev.map(lead => 
                     lead.id === id ? { ...lead, status: newStatus } : lead

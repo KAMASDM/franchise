@@ -727,7 +727,7 @@ const Chatbot = () => {
             </Avatar>
             <Box>
               <Typography variant="h6" fontWeight="bold">
-                FranchiseHub Assistant
+                ikama Assistant
               </Typography>
               <Typography variant="caption" sx={{ opacity: 0.9, display: "flex", alignItems: "center", gap: 0.5 }}>
                 Find your perfect franchise match

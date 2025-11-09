@@ -18,6 +18,8 @@ import {
   Chip,
   useMediaQuery,
   useTheme,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import { useBrands } from "../../hooks/useBrands";
 import { useAuth } from "../../context/AuthContext";
@@ -239,6 +241,15 @@ const Brands = () => {
       </Box>
 
       <Container maxWidth="xl" sx={{ py: 4 }}>
+        {/* Status Info Alert - Show if user has pending brands */}
+        {brands.some(brand => brand.status === 'pending') && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <AlertTitle>Brand Approval Process</AlertTitle>
+            Your newly registered brands are marked as <strong>Pending</strong> and are under review. 
+            Once approved by our team, they will be marked as <strong>Active</strong> and visible to potential franchise partners.
+          </Alert>
+        )}
+
         {brands.length === 0 ? (
           <Box sx={{ textAlign: "center", py: 8 }}>
             <Typography variant="h5" color="text.secondary" gutterBottom>
