@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - ikama</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%); padding: 30px 20px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">ikama</h1>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 40px 30px;">
+            <h2 style="font-size: 24px; color: #1976d2; margin-bottom: 20px;">Verify Your Email Address</h2>
+            
+            <p style="font-size: 16px; color: #555555; line-height: 1.6;">
+                Hello <strong>{{to_name}}</strong>,
+            </p>
+            
+            <p style="font-size: 16px; color: #555555; line-height: 1.6;">
+                Thank you for registering with ikama! To complete your registration and access all features, 
+                please verify your email address by clicking the button below:
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{verification_link}}" 
+                   style="display: inline-block; padding: 14px 32px; background-color: #1976d2; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                    Verify Email Address
+                </a>
+            </div>
+            
+            <div style="background-color: #fff8f0; border-left: 4px solid #ff9800; padding: 15px 20px; margin: 20px 0; border-radius: 4px;">
+                <p style="margin: 0; font-size: 14px; color: #555555;">
+                    <strong>⏰ This link will expire in 24 hours</strong><br>
+                    For your security, please verify your email as soon as possible.
+                </p>
+            </div>
+            
+            <p style="font-size: 14px; color: #777777; line-height: 1.6;">
+                If the button doesn't work, copy and paste this link into your browser:
+            </p>
+            <p style="font-size: 13px; color: #1976d2; word-break: break-all;">
+                {{verification_link}}
+            </p>
+            
+            <div style="height: 1px; background-color: #eeeeee; margin: 30px 0;"></div>
+            
+            <p style="font-size: 14px; color: #777777;">
+                If you didn't create an account with ikama, please ignore this email or 
+                <a href="mailto:support@ikama.in" style="color: #1976d2;">contact our support team</a>.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f9f9f9; padding: 30px; text-align: center; border-top: 1px solid #eeeeee;">
+            <p style="font-size: 12px; color: #999999; margin: 5px 0;">
+                © 2025 ikama. All rights reserved.
+            </p>
+            <p style="font-size: 12px; color: #999999;">
+                <a href="mailto:support@ikama.in" style="color: #1976d2;">support@ikama.in</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

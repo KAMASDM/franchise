@@ -8,9 +8,10 @@ import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableConta
 import { Link as RouterLink } from 'react-router-dom';
 import { Download, Search, Clear } from '@mui/icons-material';
 import NotificationService from '../../utils/NotificationService';
-import * as emailService from '../../services/emailNotificationService';
 import logger from '../../utils/logger';
 import { exportBrands } from '../../utils/exportUtils';
+import { sendBrandStatusUpdateEmail } from '../../services/emailServiceNew';
+import { getDoc } from 'firebase/firestore';
 
 const AdminBrandManagement = () => {
     const { brands, loading, error, setBrands } = useAllBrands();
@@ -49,27 +50,28 @@ const AdminBrandManagement = () => {
                     { ...brand, id: brandId }, 
                     newStatus === 'active'
                 );
-            }
-            
-            // Send email notification (non-blocking)
-            if (brand) {
-                const emailData = {
-                    brandName: brand.brandName,
-                    contactName: brand.brandOwnerInformation?.name || brand.contactInfo?.name,
-                    contactEmail: brand.brandOwnerInformation?.email || brand.contactInfo?.email,
-                    email: brand.brandOwnerInformation?.email || brand.contactInfo?.email,
-                    id: brandId,
-                    slug: brand.slug
-                };
                 
-                if (newStatus === 'active') {
-                    emailService.sendApprovalNotification(emailData).catch(err => 
-                        logger.error('Failed to send approval email:', err)
-                    );
-                } else if (newStatus === 'rejected') {
-                    emailService.sendRejectionNotification(emailData, 'Please review the submission requirements and resubmit.').catch(err => 
-                        logger.error('Failed to send rejection email:', err)
-                    );
+                // Send email notification to brand owner
+                try {
+                    const brandOwnerDoc = await getDoc(doc(db, "users", brand.userId));
+                    const brandOwnerData = brandOwnerDoc.data();
+                    
+                    if (brandOwnerData?.email) {
+                        await sendBrandStatusUpdateEmail({
+                            brandOwnerEmail: brandOwnerData.email,
+                            brandOwnerName: brandOwnerData.displayName || brand.brandOwnerInformation?.name || 'Brand Owner',
+                            brandName: brand.brandName,
+                            status: newStatus === 'active' ? 'approved' : 'rejected',
+                            message: newStatus === 'active' 
+                                ? 'Your brand has been approved and is now live on our platform.'
+                                : 'Your brand status has been updated.',
+                            brandSlug: brand.slug || brand.brandName?.toLowerCase().replace(/\s+/g, '-'),
+                        });
+                        logger.info('Brand status update email sent to brand owner:', brandOwnerData.email);
+                    }
+                } catch (emailError) {
+                    logger.error('Failed to send brand status update email:', emailError);
+                    // Don't block the approval if email fails
                 }
             }
             

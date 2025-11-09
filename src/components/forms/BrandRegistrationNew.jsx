@@ -104,7 +104,6 @@ import { BUSINESS_MODEL_CONFIG, BUSINESS_MODEL_TYPES } from "../../constants/bus
 import { getBusinessModelFields, getFieldOptions } from "../../constants/businessModelFields";
 import { isFieldVisible } from "../../utils/conditionalFields";
 import * as analytics from "../../utils/analytics";
-import * as emailService from "../../services/emailNotificationService";
 
 const BrandRegistrationNew = () => {
   const { t } = useTranslation(['form', 'common']);
@@ -1400,26 +1399,6 @@ const BrandRegistrationNew = () => {
       // Track successful submission
       const totalTimeSpent = (Date.now() - startTime) / 1000;
       analytics.trackFormSubmission(true, totalTimeSpent, formData.businessModelType);
-      
-      // Send email notifications (non-blocking)
-      // Email is a nice-to-have feature, we don't want it to block the user
-      Promise.all([
-        emailService.sendSubmissionConfirmation({
-          email: formData.contactInfo?.email || formData.email,
-          name: formData.ownerInfo?.name || formData.brandName,
-          brandName: formData.brandName,
-          businessModelType: formData.businessModelType,
-          id: docRef.id,
-        }).catch(err => console.warn('Confirmation email failed:', err)),
-        
-        emailService.sendAdminNotification({
-          ...formData,
-          id: docRef.id,
-        }).catch(err => console.warn('Admin notification email failed:', err))
-      ]).catch(err => {
-        // Silently fail - emails are not critical
-        console.warn('Email notifications failed (non-critical):', err);
-      });
       
       // Clear draft after successful submission
       clearDraft();

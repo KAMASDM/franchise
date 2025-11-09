@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{email_title}}</title>
+    <style>
+        /* Base styles for all email templates */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+        
+        .email-body {
+            padding: 40px 30px;
+            color: #333333;
+        }
+        
+        .email-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #1976d2;
+        }
+        
+        .email-content {
+            font-size: 16px;
+            color: #555555;
+            margin-bottom: 20px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 14px 32px;
+            background-color: #1976d2;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+            transition: background-color 0.3s;
+        }
+        
+        .cta-button:hover {
+            background-color: #1565c0;
+        }
+        
+        .info-box {
+            background-color: #f0f7ff;
+            border-left: 4px solid #1976d2;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #4caf50;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .warning-box {
+            background-color: #fff8f0;
+            border-left: 4px solid #ff9800;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .error-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #f44336;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .detail-row {
+            margin: 12px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #eeeeee;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #333333;
+            display: inline-block;
+            min-width: 140px;
+        }
+        
+        .detail-value {
+            color: #555555;
+        }
+        
+        .email-footer {
+            background-color: #f9f9f9;
+            padding: 30px;
+            text-align: center;
+            color: #777777;
+            font-size: 14px;
+            border-top: 1px solid #eeeeee;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #1976d2;
+            text-decoration: none;
+        }
+        
+        .footer-links {
+            margin: 15px 0;
+        }
+        
+        .footer-links a {
+            color: #1976d2;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        
+        .divider {
+            height: 1px;
+            background-color: #eeeeee;
+            margin: 30px 0;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
+            .email-body {
+                padding: 25px 20px;
+            }
+            
+            .email-title {
+                font-size: 20px;
+            }
+            
+            .email-content {
+                font-size: 14px;
+            }
+            
+            .detail-label {
+                display: block;
+                min-width: auto;
+                margin-bottom: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <a href="https://ikama.in" class="logo">ikama</a>
+        </div>
+        
+        <!-- Body -->
+        <div class="email-body">
+            {{email_body_content}}
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <p><strong>ikama Franchise Portal</strong></p>
+            <p>Your trusted partner in franchise opportunities</p>
+            
+            <div class="footer-links">
+                <a href="https://ikama.in/brands">Browse Brands</a> |
+                <a href="https://ikama.in/about">About Us</a> |
+                <a href="https://ikama.in/contact">Contact</a> |
+                <a href="https://ikama.in/blog">Blog</a>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <p style="font-size: 12px; color: #999999;">
+                1C Satyam Appt, Vishwas Colony, Alkapuri<br>
+                Vadodara, Gujarat 390007, India
+            </p>
+            
+            <p style="font-size: 12px; color: #999999;">
+                <a href="mailto:support@ikama.in" style="color: #1976d2;">support@ikama.in</a> |
+                <a href="tel:+919638389455" style="color: #1976d2;">+91 96383 89455</a>
+            </p>
+            
+            <p style="font-size: 11px; color: #aaaaaa; margin-top: 20px;">
+                © 2025 ikama. All rights reserved.<br>
+                You are receiving this email because you registered on ikama.in
+            </p>
+        </div>
+    </div>
+</body>
+</html>

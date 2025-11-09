@@ -30,7 +30,6 @@ import {
 } from '@mui/icons-material';
 import { showToast } from '../../utils/toastUtils';
 import { pushNotifications } from '../../utils/pushNotifications';
-import { emailService } from '../../utils/emailService';
 import logger from '../../utils/logger';
 
 /**
@@ -182,7 +181,7 @@ const NotificationSettings = ({ userId }) => {
 
     setLoading(true);
     try {
-      await emailService.sendTestEmail(testEmail);
+      showToast.info('Email notifications have been disabled');
       setTestEmailDialog(false);
       setTestEmail('');
     } catch (error) {
@@ -193,7 +192,7 @@ const NotificationSettings = ({ userId }) => {
   };
 
   // Check if service is configured
-  const emailConfigured = emailService.isConfigured();
+  const emailConfigured = false; // Email service disabled
   const pushSupported = pushNotifications.isNotificationSupported();
 
   return (

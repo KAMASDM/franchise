@@ -110,6 +110,13 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
     }
     
+    // Email logs - system can write, admins can read
+    match /emailLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if true; // Allow system to log emails (even from unauthenticated triggers)
+      allow update, delete: if isAdmin();
+    }
+    
     // Test collection for debugging
     match /test/{testId} {
       allow read, write: if isSignedIn();

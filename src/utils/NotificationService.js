@@ -6,7 +6,6 @@ import {
   doc,
   getDoc 
 } from "firebase/firestore";
-import { emailService } from './emailService';
 import { pushNotifications } from './pushNotifications';
 import logger from './logger';
 
@@ -49,20 +48,6 @@ export class NotificationService {
 
       // Get user notification preferences
       const settings = this.getUserSettings(brandOwnerId);
-
-      // Send email notification if enabled
-      if (settings.email.newLeads && userData.email) {
-        try {
-          await emailService.sendNewLeadEmail(userData.email, {
-            ...leadData,
-            brandOwnerName: userData.firstName || userData.displayName || 'Brand Owner',
-            location: leadData.userAddress?.city || leadData.brandFranchiseLocation?.city || "Not specified",
-          });
-          logger.log('✅ Email notification sent');
-        } catch (error) {
-          logger.error('Failed to send email notification:', error);
-        }
-      }
 
       // Send push notification if enabled and permission granted
       if (settings.push.newLeads && pushNotifications.getPermissionStatus() === 'granted') {
@@ -116,23 +101,6 @@ export class NotificationService {
       // Get user notification preferences
       const settings = this.getUserSettings(brandOwnerId);
 
-      // Send email notification if enabled
-      if (settings.email.brandApproval && userData.email) {
-        try {
-          await emailService.sendBrandStatusEmail(
-            userData.email,
-            {
-              ...brandData,
-              ownerName: userData.firstName || userData.displayName || 'Brand Owner',
-            },
-            approved
-          );
-          logger.log('✅ Email notification sent');
-        } catch (error) {
-          logger.error('Failed to send email notification:', error);
-        }
-      }
-
       // Send push notification if enabled and permission granted
       if (settings.push.brandApproval && pushNotifications.getPermissionStatus() === 'granted') {
         try {
@@ -178,29 +146,6 @@ export class NotificationService {
         console.log(`✅ Admin notifications sent to ${ADMIN_UIDS.length} admins`);
       }
 
-      // Send email notification for brand submissions
-      if (data.type === 'brand_submission' && data.submittedBy) {
-        try {
-          // Send confirmation email to brand owner
-          const userRef = doc(db, "users", data.userId);
-          const userSnap = await getDoc(userRef);
-          
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
-            await emailService.sendBrandRegistrationEmail(userData.email, {
-              ownerName: userData.firstName || userData.displayName || 'Brand Owner',
-              brandName: data.brandName,
-              businessModel: data.businessModel,
-              industries: data.industries,
-              investmentRange: data.investmentRange,
-            });
-            logger.log('✅ Brand registration confirmation email sent');
-          }
-        } catch (emailError) {
-          logger.error('Failed to send brand registration email:', emailError);
-          // Don't throw - email failure shouldn't break the notification
-        }
-      }
     } catch (error) {
       console.error("❌ Error sending admin notification:", error);
     }

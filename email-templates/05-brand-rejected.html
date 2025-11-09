@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Rejected - ikama</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%); padding: 30px 20px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">ikama</h1>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 40px 30px;">
+            <h2 style="font-size: 24px; color: #333333; margin-bottom: 20px;">Brand Submission Update</h2>
+            
+            <p style="font-size: 16px; color: #555555; line-height: 1.6;">
+                Hello <strong>{{brand_owner_name}}</strong>,
+            </p>
+            
+            <p style="font-size: 16px; color: #555555; line-height: 1.6;">
+                Thank you for your interest in listing <strong>{{brand_name}}</strong> on ikama. After careful review, 
+                we're unable to approve your brand listing at this time.
+            </p>
+            
+            <div style="background-color: #fff8f0; border-left: 4px solid #ff9800; padding: 15px 20px; margin: 20px 0; border-radius: 4px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #ff9800;">Reason for Rejection:</h3>
+                <p style="margin: 0; font-size: 14px; color: #555555; line-height: 1.6;">
+                    {{rejection_reason}}
+                </p>
+            </div>
+            
+            {{#admin_message}}
+            <div style="background-color: #f0f7ff; border-left: 4px solid #1976d2; padding: 15px 20px; margin: 20px 0; border-radius: 4px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #1976d2;">Additional Feedback:</h3>
+                <p style="margin: 0; font-size: 14px; color: #555555; line-height: 1.6;">
+                    {{admin_message}}
+                </p>
+            </div>
+            {{/admin_message}}
+            
+            <h3 style="font-size: 18px; color: #333333; margin: 30px 0 15px 0;">How to Resubmit:</h3>
+            
+            <ol style="font-size: 14px; color: #777777; line-height: 1.8; padding-left: 20px;">
+                <li>Review the feedback provided above</li>
+                <li>Make the necessary changes to your brand information</li>
+                <li>Ensure all required documentation is complete and accurate</li>
+                <li>Resubmit your brand listing through your dashboard</li>
+            </ol>
+            
+            <div style="background-color: #f0fdf4; border-left: 4px solid #4caf50; padding: 15px 20px; margin: 20px 0; border-radius: 4px;">
+                <p style="margin: 0; font-size: 14px; color: #555555;">
+                    <strong>💡 Need Help?</strong><br>
+                    Our team is here to assist you. If you have questions about the rejection or need guidance on 
+                    how to improve your listing, please don't hesitate to reach out.
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{dashboard_url}}" 
+                   style="display: inline-block; padding: 14px 32px; background-color: #1976d2; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; margin-right: 10px;">
+                    Edit & Resubmit
+                </a>
+                <a href="mailto:support@ikama.in" 
+                   style="display: inline-block; padding: 14px 32px; background-color: #ffffff; color: #1976d2; text-decoration: none; border-radius: 6px; font-weight: 600; border: 2px solid #1976d2;">
+                    Contact Support
+                </a>
+            </div>
+            
+            <div style="height: 1px; background-color: #eeeeee; margin: 30px 0;"></div>
+            
+            <p style="font-size: 14px; color: #777777;">
+                We appreciate your understanding and look forward to the possibility of featuring your brand on ikama in the future.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f9f9f9; padding: 30px; text-align: center; border-top: 1px solid #eeeeee;">
+            <p style="font-size: 12px; color: #999999; margin: 5px 0;">
+                © 2025 ikama. All rights reserved.
+            </p>
+            <p style="font-size: 12px; color: #999999;">
+                <a href="mailto:support@ikama.in" style="color: #1976d2;">support@ikama.in</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme, CircularProgress, useMediaQuery } from '@mui/material';
 import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom';
-import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart, Email, Chat as ChatIcon, VideoLibrary, Info, Article, Videocam } from '@mui/icons-material';
+import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart, Email, Chat as ChatIcon, VideoLibrary, Info, Article, Videocam, Settings } from '@mui/icons-material';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,8 @@ import AdminTestimonialManagement from '../components/admin/AdminTestimonialMana
 import AdminAboutUsManagement from '../components/admin/AdminAboutUsManagement';
 import BlogManagement from '../components/admin/BlogManagement';
 import DemoVideoManagement from '../components/admin/DemoVideoManagement';
+import EmailTester from '../components/admin/EmailTester';
+import EmailJSChecker from '../components/admin/EmailJSChecker';
 
 // Lazy load mobile layout
 const AdminDashboardMobile = lazy(() => import('../components/admin/AdminDashboardMobile'));
@@ -69,6 +71,8 @@ const AdminDashboard = () => {
         { text: 'Video Testimonials', path: '/admin/testimonials', icon: <VideoLibrary /> },
         { text: 'Demo Video', path: '/admin/demo-video', icon: <Videocam /> },
         { text: 'About Us Content', path: '/admin/about-us', icon: <Info /> },
+        { text: 'Email Tester', path: '/admin/email-tester', icon: <Email /> },
+        { text: 'Email Config Check', path: '/admin/email-config', icon: <Settings /> },
         { text: 'Analytics', path: '/admin/analytics', icon: <BarChart /> },
         { text: 'User Management', path: '/admin/users', icon: <People /> },
         { text: 'Send Notifications', path: '/admin/notifications', icon: <NotificationsIcon /> },
@@ -95,6 +99,8 @@ const AdminDashboard = () => {
                                 <Route path="/blogs" element={<BlogManagement />} />
                                 <Route path="/testimonials" element={<AdminTestimonialManagement />} />
                                 <Route path="/about-us" element={<AdminAboutUsManagement />} />
+                                <Route path="/email-tester" element={<EmailTester />} />
+                                <Route path="/email-config" element={<EmailJSChecker />} />
                                 <Route path="/analytics" element={<AdminAnalytics />} />
                                 <Route path="/users" element={<AdminUserManagement />} />
                                 <Route path="/notifications" element={<AdminNotifications />} />
@@ -171,6 +177,8 @@ const AdminDashboard = () => {
                         <Route path="testimonials" element={<AdminTestimonialManagement />} />
                         <Route path="demo-video" element={<DemoVideoManagement />} />
                         <Route path="about-us" element={<AdminAboutUsManagement />} />
+                        <Route path="email-tester" element={<EmailTester />} />
+                        <Route path="email-config" element={<EmailJSChecker />} />
                         <Route path="analytics" element={<AdminAnalytics />} />
                         <Route path="users" element={<AdminUserManagement />} />
                         <Route path="notifications" element={<AdminNotifications />} />

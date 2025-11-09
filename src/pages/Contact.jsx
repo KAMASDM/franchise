@@ -41,9 +41,9 @@ const contactMethods = [
     icon: <Email sx={{ color: "primary.dark" }} />,
     title: "Email",
     description: "Send us your questions",
-    contact: "info@ikamain",
+    contact: "support@ikama.in",
     action: "Email Us",
-    href: "mailto:info@ikama.in",
+    href: "mailto:support@ikama.in",
   },
   {
     icon: <LocationOn sx={{ color: "primary.dark" }} />,

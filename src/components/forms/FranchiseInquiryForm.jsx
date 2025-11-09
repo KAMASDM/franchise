@@ -25,9 +25,10 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import NotificationService from "../../utils/NotificationService";
-import * as emailService from "../../services/emailNotificationService";
 import { INVESTMENT_RANGES, BUSINESS_EXPERIENCE_OPTIONS, TIMELINE_OPTIONS } from "../../constants";
 import logger from "../../utils/logger";
+import { sendNewLeadInquiryEmail } from "../../services/emailServiceNew";
+import { doc, getDoc } from "firebase/firestore";
 
 const investmentRanges = INVESTMENT_RANGES;
 const businessExperience = BUSINESS_EXPERIENCE_OPTIONS;
@@ -189,26 +190,29 @@ const FranchiseInquiryForm = ({ brand, onClose, onSuccess }) => {
         { ...inquiryData, id: docRef.id }
       );
 
-      // Send email notification to brand owner (non-blocking)
-      const leadData = {
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email,
-        phone: formData.phone,
-        location: `${formData.city}, ${formData.state}`,
-        investmentCapacity: formData.investmentRange,
-        message: formData.message
-      };
-      
-      const brandData = {
-        brandName: brand.brandName,
-        contactName: brand.brandOwnerInformation?.name || brand.contactInfo?.name,
-        contactEmail: brand.brandOwnerInformation?.email || brand.contactInfo?.email,
-        email: brand.brandOwnerInformation?.email || brand.contactInfo?.email
-      };
-      
-      emailService.sendLeadReceivedNotification(leadData, brandData).catch(err =>
-        logger.error('Failed to send lead received email:', err)
-      );
+      // Send email notification to brand owner
+      try {
+        // Get brand owner details
+        const brandOwnerDoc = await getDoc(doc(db, "users", brand.userId));
+        const brandOwnerData = brandOwnerDoc.data();
+        
+        if (brandOwnerData?.email) {
+          await sendNewLeadInquiryEmail({
+            brandOwnerEmail: brandOwnerData.email,
+            brandOwnerName: brandOwnerData.displayName || 'Brand Owner',
+            brandName: brand.brandName,
+            inquirerName: `${formData.firstName} ${formData.lastName}`,
+            inquirerEmail: formData.email,
+            inquirerPhone: formData.phone,
+            message: formData.comments,
+            investmentRange: formData.budget,
+          });
+          logger.info('New lead inquiry email sent to brand owner:', brandOwnerData.email);
+        }
+      } catch (emailError) {
+        logger.error('Failed to send lead inquiry email:', emailError);
+        // Don't block the inquiry submission if email fails
+      }
 
       setSubmitted(true);
       

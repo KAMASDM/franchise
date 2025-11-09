@@ -28,11 +28,10 @@ import {
   Stack,
   LinearProgress,
   Badge,
+  Pagination,
 } from "@mui/material";
 import {
-  ViewModule as GridViewIcon,
   ViewList as ListViewIcon,
-  ViewComfy as ComfortViewIcon,
   FilterList as FilterIcon,
   Sort as SortIcon,
   Close as CloseIcon,
@@ -54,7 +53,6 @@ import FacetedFilters from "../components/search/FacetedFilters";
 import { BrandGridSkeleton } from "../components/common/SkeletonLoader";
 import { NoSearchResultsEmpty } from "../components/common/EmptyState";
 import RecentlyViewedBrands from "../components/brand/RecentlyViewedBrands";
-import PersonalizedRecommendations from "../components/recommendations/PersonalizedRecommendations";
 import { extractTagsFromBrands } from "../components/common/TagFilter";
 import { DidYouMean } from "../components/common/SearchSuggestions";
 import Breadcrumbs from "../components/common/Breadcrumbs";
@@ -80,10 +78,8 @@ const SORT_OPTIONS = [
   { value: 'alphabetical', label: 'A to Z', icon: <Business /> },
 ];
 
-// View density options
+// View density options - Only List View
 const VIEW_MODES = [
-  { value: 'comfortable', label: 'Comfortable', icon: <ComfortViewIcon /> },
-  { value: 'compact', label: 'Compact', icon: <GridViewIcon /> },
   { value: 'list', label: 'List', icon: <ListViewIcon /> },
 ];
 
@@ -93,13 +89,14 @@ const BrandsModern = () => {
   const { isMobile } = useDevice();
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const { brands, loading, error } = useBrands();
-  const [filteredBrands, setFilteredBrands] = useState([]);
   const [filters, setFilters] = useState({});
   const { searchQuery, updateSearchQuery } = useSearchWithURL();
   const [selectedTags, setSelectedTags] = useState([]);
-  const [viewMode, setViewMode] = useState('comfortable');
+  const [viewMode, setViewMode] = useState('list'); // Default to list view
   const [sortBy, setSortBy] = useState('recommended');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [itemsPerPage] = useState(12); // 12 brands per page
   const { trackVisit } = useGamification();
 
   useEffect(() => {
@@ -121,8 +118,8 @@ const BrandsModern = () => {
     );
   }
 
-  // Filter and search brands
-  useEffect(() => {
+  // Filter and search brands - optimized with useMemo
+  const filteredBrands = useMemo(() => {
     let results = brands || [];
 
     // Apply search
@@ -204,7 +201,7 @@ const BrandsModern = () => {
       });
     }
 
-    setFilteredBrands(results);
+    return results;
   }, [brands, searchQuery, filters, selectedTags]);
 
   // Sort brands
@@ -241,6 +238,25 @@ const BrandsModern = () => {
         return sorted;
     }
   }, [filteredBrands, sortBy]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(sortedBrands.length / itemsPerPage);
+  const paginatedBrands = useMemo(() => {
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedBrands.slice(startIndex, endIndex);
+  }, [sortedBrands, page, itemsPerPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [filters, searchQuery, selectedTags, sortBy]);
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    // Scroll to top of results
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleFilterChange = (filterKey, value) => {
     setFilters(prev => ({
@@ -422,16 +438,6 @@ const BrandsModern = () => {
 
       {/* Main Content */}
       <Container maxWidth="xl" sx={{ py: 6 }}>
-        {/* Personalized Recommendations */}
-        <Box sx={{ mb: 6 }}>
-          <PersonalizedRecommendations
-            allBrands={brands}
-            limit={6}
-            variant="default"
-            excludeBrandIds={filteredBrands.map(b => b.id)}
-          />
-        </Box>
-
         {/* Control Bar */}
         <Box
           sx={{
@@ -501,22 +507,6 @@ const BrandsModern = () => {
                   ))}
                 </ToggleButtonGroup>
               </Box>
-
-              {/* View Mode Toggle */}
-              <ToggleButtonGroup
-                value={viewMode}
-                exclusive
-                onChange={(e, newValue) => newValue && setViewMode(newValue)}
-                size="small"
-              >
-                {VIEW_MODES.map((mode) => (
-                  <ToggleButton key={mode.value} value={mode.value}>
-                    <Tooltip title={mode.label}>
-                      {mode.icon}
-                    </Tooltip>
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
 
               {/* Clear Filters */}
               {activeFilterCount > 0 && (
@@ -636,10 +626,10 @@ const BrandsModern = () => {
             {/* Brand Grid/List */}
             <Box>
               {sortedBrands.length > 0 ? (
-                viewMode === 'list' ? (
-                  // List View
+                <>
+                  {/* List View Only */}
                   <Stack spacing={2}>
-                    {sortedBrands.map((brand, index) => (
+                    {paginatedBrands.map((brand, index) => (
                       <motion.div
                         key={brand.id}
                         initial={{ opacity: 0, x: -20 }}
@@ -653,37 +643,41 @@ const BrandsModern = () => {
                       </motion.div>
                     ))}
                   </Stack>
-                ) : (
-                  // Grid View
-                  <Grid
-                    container
-                    spacing={viewMode === 'compact' ? 2 : 3}
-                  >
-                    {sortedBrands.map((brand, index) => (
-                      <Grid
-                        item
-                        key={brand.id}
-                        xs={12}
-                        sm={6}
-                        lg={viewMode === 'compact' ? 4 : 4}
-                        xl={viewMode === 'compact' ? 3 : 4}
-                      >
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: 0.4,
-                            delay: Math.min(index * 0.05, 0.5),
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <Box 
+                      sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center',
+                        mt: 6,
+                        mb: 4,
+                      }}
+                    >
+                      <Stack spacing={2} alignItems="center">
+                        <Pagination
+                          count={totalPages}
+                          page={page}
+                          onChange={handlePageChange}
+                          color="primary"
+                          size="large"
+                          showFirstButton
+                          showLastButton
+                          sx={{
+                            '& .MuiPaginationItem-root': {
+                              fontSize: '1rem',
+                              fontWeight: 500,
+                            },
                           }}
-                          whileHover={{ y: -4 }}
-                          style={{ height: '100%' }}
-                        >
-                          <BrandCard brand={brand} index={index} />
-                        </motion.div>
-                      </Grid>
-                    ))}
-                  </Grid>
-                )
+                        />
+                        <Typography variant="body2" color="text.secondary">
+                          Showing {((page - 1) * itemsPerPage) + 1} - {Math.min(page * itemsPerPage, sortedBrands.length)} of {sortedBrands.length} brands
+                        </Typography>
+                      </Stack>
+                    </Box>
+                  )}
+                </>
               ) : (
                 <NoSearchResultsEmpty
                   onReset={handleClearFilters}
