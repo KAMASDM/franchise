@@ -27,6 +27,7 @@ import { useBrandViews } from "../../hooks/useBrandViews";
 import BrandCardView from "./Brands/BrandCardView";
 import BrandTableView from "./Brands/BrandTableView";
 import { Search, FilterList, Clear } from "@mui/icons-material";
+import { generateBrandSlug } from "../../utils/brandUtils";
 
 const franchiseModelOptions = [
   "Unit",
@@ -174,9 +175,9 @@ const Brands = () => {
   }, [brandsWithViews, searchTerm, filters, sortConfig]);
 
   const handleLearnMore = (brandName) => {
-    navigate(
-      `/dashboard/brand-details/${brandName.replace(/\s+/g, "-").toLowerCase()}`
-    );
+    // Use the same slug generation as the rest of the app
+    const slug = generateBrandSlug(brandName);
+    navigate(`/dashboard/brand-details/${slug}`);
   };
 
   if (loading || isViewsLoading) {
