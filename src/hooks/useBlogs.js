@@ -36,20 +36,21 @@ export const useBlogs = (options = {}) => {
   useEffect(() => {
     try {
       const blogsRef = collection(db, 'blogs');
-      const baseConstraints = [];
+      const constraints = [];
 
       if (includeDrafts) {
-        baseConstraints.push(orderBy('createdAt', 'desc'));
+        constraints.push(orderBy('createdAt', 'desc'));
+        if (limitCount) {
+          constraints.push(limit(limitCount));
+        }
       } else {
-        baseConstraints.push(where('status', '==', 'published'));
-        baseConstraints.push(orderBy('publishedAt', 'desc'));
+        constraints.push(where('status', '==', 'published'));
+        if (limitCount) {
+          constraints.push(limit(limitCount));
+        }
       }
 
-      if (limitCount) {
-        baseConstraints.push(limit(limitCount));
-      }
-
-      let q = query(blogsRef, ...baseConstraints);
+      const q = constraints.length > 0 ? query(blogsRef, ...constraints) : blogsRef;
 
       const unsubscribe = onSnapshot(
         q,
@@ -66,9 +67,8 @@ export const useBlogs = (options = {}) => {
           if (includeDrafts) {
             blogsData.sort((a, b) => b.createdAt - a.createdAt);
           } else {
-            // Firestore already filters to published, but we still guard just in case metadata lags
             blogsData = blogsData
-              .filter(blog => blog.status === 'published')
+              .filter(blog => blog.status?.toLowerCase() === 'published')
               .sort((a, b) => {
                 const dateA = a.publishedAt || a.createdAt;
                 const dateB = b.publishedAt || b.createdAt;
@@ -100,7 +100,7 @@ export const useBlogs = (options = {}) => {
           console.error('Error fetching blogs:', err);
 
           if (!includeDrafts && err?.code === 'failed-precondition') {
-            // Fallback without Firestore index requirements
+            // Fallback without additional constraints (index likely missing)
             (async () => {
               try {
                 const fallbackQuery = query(blogsRef, where('status', '==', 'published'));
@@ -114,7 +114,7 @@ export const useBlogs = (options = {}) => {
                 }));
 
                 const sortedFallback = fallbackBlogs
-                  .filter(blog => blog.status === 'published')
+                  .filter(blog => blog.status?.toLowerCase() === 'published')
                   .sort((a, b) => {
                     const dateA = a.publishedAt || a.createdAt;
                     const dateB = b.publishedAt || b.createdAt;
