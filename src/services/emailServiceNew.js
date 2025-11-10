@@ -1,9 +1,13 @@
 import emailjs from '@emailjs/browser';
 import { getEmailTemplate } from './emailTemplates';
 
+// Import comprehensive email templates (backwards compatible)
+import * as comprehensiveEmails from './emailServiceComprehensive';
+
 /**
  * Enhanced Email Service using EmailJS as sending service only
  * We use our own HTML templates for unlimited flexibility
+ * Now extended with comprehensive email templates (56 total)
  */
 
 // Initialize EmailJS with public key
@@ -332,7 +336,50 @@ export const isValidEmail = (email) => {
   return emailRegex.test(email);
 };
 
+// ==========================================
+// RE-EXPORT COMPREHENSIVE EMAIL FUNCTIONS
+// All 56 email templates now available
+// ==========================================
+
+// Transactional (Additional - 6-22)
+export const {
+  sendPhoneVerificationEmail,
+  sendNewDeviceLoginEmail,
+  sendAccountDeactivationEmail,
+  sendBrandApprovedEmail,
+  sendBrandRejectedEmail,
+  sendBrandPublishedEmail,
+  sendBrandUpdatedEmail,
+  sendBrandUnpublishedEmail,
+  sendNewInquiryToBrandOwnerEmail,
+  sendInquirySentConfirmationEmail,
+  sendContactFormConfirmationEmail,
+  sendInquiryResponseEmail,
+  sendLeadStatusUpdateEmail,
+  sendDocumentUploadConfirmationEmail,
+  sendDocumentVerifiedEmail,
+  sendDocumentVerificationFailedEmail,
+  sendInvestmentProofVerifiedEmail,
+  
+  // Engagement (23-36)
+  sendGettingStartedEmail,
+  sendProfileCompletionReminderEmail,
+  sendFindRightFranchiseGuideEmail,
+  sendPlatformTourEmail,
+  sendSuccessStoriesEmail,
+  sendIncompleteInquiryFollowupEmail,
+  sendSavedBrandsReminderEmail,
+  sendNewBrandsInCategoryEmail,
+  sendPriceDropAlertEmail,
+  sendApplicationDeadlineReminderEmail,
+  sendWeMissYouEmail,
+  sendWhatsNewEmail,
+  sendPersonalizedRecommendationsEmail,
+  sendLimitedTimeOpportunitiesEmail,
+} = comprehensiveEmails;
+
 export default {
+  // Original functions (backwards compatible)
   sendWelcomeEmail,
   sendNewLeadInquiryEmail,
   sendBrandStatusUpdateEmail,
@@ -343,4 +390,37 @@ export default {
   sendEmailVerification,
   logEmailActivity,
   isValidEmail,
+  
+  // New comprehensive functions (22 additional transactional + 14 engagement)
+  sendPhoneVerificationEmail,
+  sendNewDeviceLoginEmail,
+  sendAccountDeactivationEmail,
+  sendBrandApprovedEmail,
+  sendBrandRejectedEmail,
+  sendBrandPublishedEmail,
+  sendBrandUpdatedEmail,
+  sendBrandUnpublishedEmail,
+  sendNewInquiryToBrandOwnerEmail,
+  sendInquirySentConfirmationEmail,
+  sendContactFormConfirmationEmail,
+  sendInquiryResponseEmail,
+  sendLeadStatusUpdateEmail,
+  sendDocumentUploadConfirmationEmail,
+  sendDocumentVerifiedEmail,
+  sendDocumentVerificationFailedEmail,
+  sendInvestmentProofVerifiedEmail,
+  sendGettingStartedEmail,
+  sendProfileCompletionReminderEmail,
+  sendFindRightFranchiseGuideEmail,
+  sendPlatformTourEmail,
+  sendSuccessStoriesEmail,
+  sendIncompleteInquiryFollowupEmail,
+  sendSavedBrandsReminderEmail,
+  sendNewBrandsInCategoryEmail,
+  sendPriceDropAlertEmail,
+  sendApplicationDeadlineReminderEmail,
+  sendWeMissYouEmail,
+  sendWhatsNewEmail,
+  sendPersonalizedRecommendationsEmail,
+  sendLimitedTimeOpportunitiesEmail,
 };
