@@ -95,6 +95,10 @@ import HighContrastToggle from "../common/HighContrastToggle";
 import DataExport from "../common/DataExport";
 import ConditionalField from "../common/ConditionalField";
 
+// Import verification components
+import PhoneVerification from "../verification/PhoneVerification";
+import EmailVerification from "../verification/EmailVerification";
+
 // Import our new components
 import CardSelector from "./CardSelector";
 import QuickValueSelector from "./QuickValueSelector";
@@ -201,22 +205,26 @@ const BrandRegistrationNew = () => {
       state: "",
       country: "India",
       zipCode: "",
-      phone: "",
+      phone: "+91 ",
       email: "",
       website: "",
       linkedinUrl: "",
       instagramUrl: "",
       facebookUrl: "",
-      twitterUrl: ""
+      twitterUrl: "",
+      phoneVerified: false,
+      emailVerified: false
     },
 
     // Owner Information
     ownerInfo: {
       name: "",
       email: "",
-      phone: "",
+      phone: "+91 ",
       bio: "",
-      linkedinUrl: ""
+      linkedinUrl: "",
+      phoneVerified: false,
+      emailVerified: false
     },
 
     // Franchise Images and Locations
@@ -979,17 +987,18 @@ const BrandRegistrationNew = () => {
           newErrors.industries = formatErrorMessage(error);
         }
         
-        if (!formData.contactInfo.phone.trim()) {
+        if (!formData.contactInfo.phone.trim() || formData.contactInfo.phone === '+91 ') {
           const error = getEnhancedError('phone', 'required');
           newErrors.phone = formatErrorMessage(error);
-        } else if (formData.contactInfo.phone.length < 10) {
-          const error = getEnhancedError('phone', 'tooShort');
-          newErrors.phone = formatErrorMessage(error);
+        } else if (!formData.contactInfo.phoneVerified) {
+          newErrors.phone = 'Please verify your phone number';
         }
         
         if (!formData.contactInfo.email.trim()) {
           const error = getEnhancedError('email', 'required');
           newErrors.email = formatErrorMessage(error);
+        } else if (!formData.contactInfo.emailVerified) {
+          newErrors.email = 'Please verify your email address';
         }
         
         if (formData.foundedYear) {
@@ -1624,59 +1633,40 @@ const BrandRegistrationNew = () => {
               
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Phone Number"
+                  <PhoneVerification
                     value={formData.contactInfo.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value, 'contactInfo')}
-                    error={!!errors.phone || !!phoneValidation.error}
-                    helperText={errors.phone || phoneValidation.error || 'Format: +91-XXXXXXXXXX'}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PhoneIcon />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <ValidationIndicator
-                            isValid={phoneValidation.isValid}
-                            isValidating={phoneValidation.isValidating}
-                            error={phoneValidation.error}
-                            showWhen="touched"
-                          />
-                        </InputAdornment>
-                      ),
+                    onChange={(value) => handleInputChange('phone', value, 'contactInfo')}
+                    onVerificationChange={(isVerified, phoneNumber) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        contactInfo: {
+                          ...prev.contactInfo,
+                          phone: phoneNumber,
+                          phoneVerified: isVerified
+                        }
+                      }));
                     }}
+                    label="Phone Number"
+                    helperText="We will send an OTP to verify"
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Email Address"
-                    type="email"
+                  <EmailVerification
                     value={formData.contactInfo.email}
-                    onChange={(e) => handleInputChange('email', e.target.value, 'contactInfo')}
-                    error={!!errors.email || !!emailValidation.error}
-                    helperText={errors.email || emailValidation.error}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <EmailIcon />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <ValidationIndicator
-                            isValid={emailValidation.isValid}
-                            isValidating={emailValidation.isValidating}
-                            error={emailValidation.error}
-                            showWhen="touched"
-                          />
-                        </InputAdornment>
-                      ),
+                    onChange={(value) => handleInputChange('email', value, 'contactInfo')}
+                    onVerificationChange={(isVerified, email) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        contactInfo: {
+                          ...prev.contactInfo,
+                          email: email,
+                          emailVerified: isVerified
+                        }
+                      }));
                     }}
+                    label="Email Address"
+                    helperText="We will send a verification code"
                   />
                 </Grid>
 
@@ -3101,7 +3091,23 @@ const BrandRegistrationNew = () => {
             </Box>
           )}
           <InfoRow label="Phone" value={formData.contactInfo.phone} />
+          <Box sx={{ ml: 2, mt: -1, mb: 1 }}>
+            <Chip 
+              icon={formData.contactInfo.phoneVerified ? <CheckIcon /> : <ErrorIcon />}
+              label={formData.contactInfo.phoneVerified ? "Verified" : "Not Verified"}
+              color={formData.contactInfo.phoneVerified ? "success" : "error"}
+              size="small"
+            />
+          </Box>
           <InfoRow label="Email" value={formData.contactInfo.email} />
+          <Box sx={{ ml: 2, mt: -1, mb: 1 }}>
+            <Chip 
+              icon={formData.contactInfo.emailVerified ? <CheckIcon /> : <ErrorIcon />}
+              label={formData.contactInfo.emailVerified ? "Verified" : "Not Verified"}
+              color={formData.contactInfo.emailVerified ? "success" : "error"}
+              size="small"
+            />
+          </Box>
           <InfoRow label="Website" value={formData.contactInfo.website} />
         </ReviewSection>
 

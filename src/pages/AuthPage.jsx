@@ -66,7 +66,7 @@ const AuthPage = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    phone: '',
+    phone: '+91 ',
     otp: '',
     firstName: '',
     lastName: '',
@@ -154,13 +154,21 @@ const AuthPage = () => {
     try {
       if (!otpSent) {
         // Send OTP
-        if (!formData.phone.startsWith('+')) {
-          setError('Phone number must include country code (e.g., +91 9876543210)');
+        if (!formData.phone.startsWith('+91')) {
+          setError('Phone number must start with +91');
           setLoading(false);
           return;
         }
 
-        const result = await authService.sendPhoneOTP(formData.phone);
+        // Validate Indian phone number format (should be +91 followed by 10 digits)
+        const phoneDigits = formData.phone.replace(/\s/g, '').substring(3);
+        if (phoneDigits.length !== 10 || !/^\d{10}$/.test(phoneDigits)) {
+          setError('Please enter a valid 10-digit mobile number');
+          setLoading(false);
+          return;
+        }
+
+        const result = await authService.sendPhoneOTP(formData.phone.replace(/\s/g, ''));
         setOtpSent(true);
         setSuccess(result.message);
       } else {
@@ -374,11 +382,18 @@ const AuthPage = () => {
         name="phone"
         type="tel"
         value={formData.phone}
-        onChange={handleInputChange}
+        onChange={(e) => {
+          // Prevent user from deleting +91
+          if (!e.target.value.startsWith('+91')) {
+            setFormData(prev => ({ ...prev, phone: '+91 ' }));
+          } else {
+            handleInputChange(e);
+          }
+        }}
         required
         disabled={otpSent}
-        placeholder="+91 9876543210"
-        helperText="Include country code (e.g., +91 for India)"
+        placeholder="9876543210"
+        helperText="Enter your 10-digit mobile number"
         sx={{ mb: 2 }}
         InputProps={{
           startAdornment: (

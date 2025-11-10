@@ -29,6 +29,8 @@ import { INVESTMENT_RANGES, BUSINESS_EXPERIENCE_OPTIONS, TIMELINE_OPTIONS } from
 import logger from "../../utils/logger";
 import { sendNewLeadInquiryEmail } from "../../services/emailServiceNew";
 import { doc, getDoc } from "firebase/firestore";
+import PhoneVerification from "../verification/PhoneVerification";
+import EmailVerification from "../verification/EmailVerification";
 
 const investmentRanges = INVESTMENT_RANGES;
 const businessExperience = BUSINESS_EXPERIENCE_OPTIONS;
@@ -41,7 +43,9 @@ const FranchiseInquiryForm = ({ brand, onClose, onSuccess }) => {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
+    phone: "+91 ",
+    emailVerified: false,
+    phoneVerified: false,
 
     // User Address
     userAddress: "",
@@ -87,17 +91,15 @@ const FranchiseInquiryForm = ({ brand, onClose, onSuccess }) => {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Invalid email address";
+    } else if (!formData.emailVerified) {
+      newErrors.email = "Please verify your email address";
     }
 
     // Phone Validation
-    if (!formData.phone.trim()) {
+    if (!formData.phone.trim() || formData.phone === '+91 ') {
       newErrors.phone = "Phone number is required";
-    } else if (
-      !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(
-        formData.phone
-      )
-    ) {
-      newErrors.phone = "Invalid phone number";
+    } else if (!formData.phoneVerified) {
+      newErrors.phone = "Please verify your phone number";
     }
 
     // Address Validation
@@ -306,31 +308,33 @@ const FranchiseInquiryForm = ({ brand, onClose, onSuccess }) => {
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              name="email"
-              label="Email *"
-              type="email"
+            <EmailVerification
               value={formData.email}
-              onChange={handleChange}
-              fullWidth
-              error={!!errors.email}
-              helperText={errors.email}
-              aria-describedby={errors.email ? "email-error" : undefined}
-              FormHelperTextProps={{ id: "email-error" }}
+              onChange={(value) => setFormData({ ...formData, email: value })}
+              onVerificationChange={(isVerified, email) => {
+                setFormData(prev => ({
+                  ...prev,
+                  email: email,
+                  emailVerified: isVerified
+                }));
+              }}
+              label="Email"
+              helperText="We will send a verification code"
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              name="phone"
-              label="Phone Number *"
+            <PhoneVerification
               value={formData.phone}
-              onChange={handleChange}
-              fullWidth
-              error={!!errors.phone}
-              helperText={errors.phone}
-              placeholder="e.g. 123-456-7890"
-              aria-describedby={errors.phone ? "phone-error" : undefined}
-              FormHelperTextProps={{ id: "phone-error" }}
+              onChange={(value) => setFormData({ ...formData, phone: value })}
+              onVerificationChange={(isVerified, phoneNumber) => {
+                setFormData(prev => ({
+                  ...prev,
+                  phone: phoneNumber,
+                  phoneVerified: isVerified
+                }));
+              }}
+              label="Phone Number"
+              helperText="We will send an OTP to verify"
             />
           </Grid>
         </Grid>

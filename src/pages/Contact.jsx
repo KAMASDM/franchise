@@ -20,6 +20,8 @@ import { useForm } from "react-hook-form";
 import { db } from "../firebase/firebase";
 import { addDoc, collection } from "firebase/firestore";
 import logger from "../utils/logger";
+import PhoneVerification from "../components/verification/PhoneVerification";
+import EmailVerification from "../components/verification/EmailVerification";
 
 const MotionCard = motion(Card);
 
@@ -74,13 +76,29 @@ const Contact = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('+91 ');
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
 
   const onSubmit = async (data) => {
+    // Validate verification
+    if (!emailVerified) {
+      setError('Please verify your email address');
+      return;
+    }
+    if (!phoneVerified) {
+      setError('Please verify your phone number');
+      return;
+    }
+
     const contactData = {
       name: `${data.firstName} ${data.lastName}`,
-      email: data.email,
+      email: email,
       message: data.message,
-      phone: data.phone,
+      phone: phone,
+      emailVerified: emailVerified,
+      phoneVerified: phoneVerified,
       timestamp: new Date(),
     };
 
@@ -270,43 +288,30 @@ const Contact = () => {
                   />
                 </Grid>
               </Grid>
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Email"
-                type="email"
-                sx={{ mt: 2 }}
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Invalid email address",
-                  },
-                })}
-                error={!!errors.email}
-                helperText={errors.email?.message}
-                aria-describedby={errors.email ? "email-error" : undefined}
-                FormHelperTextProps={{ id: "email-error" }}
-              />
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Phone Number"
-                sx={{ mt: 2 }}
-                {...register("phone", {
-                  pattern: {
-                    value: /^[0-9]{10,15}$/,
-                    message: "Please enter a valid phone number",
-                  },
-                })}
-                error={!!errors.phone}
-                helperText={errors.phone?.message}
-                inputProps={{
-                  inputMode: "numeric",
-                }}
-                aria-describedby={errors.phone ? "phone-error" : undefined}
-                FormHelperTextProps={{ id: "phone-error" }}
-              />
+              <Box sx={{ mt: 2 }}>
+                <EmailVerification
+                  value={email}
+                  onChange={setEmail}
+                  onVerificationChange={(isVerified, emailValue) => {
+                    setEmail(emailValue);
+                    setEmailVerified(isVerified);
+                  }}
+                  label="Email"
+                  helperText="We will send a verification code"
+                />
+              </Box>
+              <Box sx={{ mt: 2 }}>
+                <PhoneVerification
+                  value={phone}
+                  onChange={setPhone}
+                  onVerificationChange={(isVerified, phoneValue) => {
+                    setPhone(phoneValue);
+                    setPhoneVerified(isVerified);
+                  }}
+                  label="Phone Number"
+                  helperText="We will send an OTP to verify"
+                />
+              </Box>
               <TextField
                 fullWidth
                 variant="outlined"
