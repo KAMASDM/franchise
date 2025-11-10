@@ -36,6 +36,8 @@ import { db } from "../../firebase/firebase";
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import logger from "../../utils/logger";
 import NotificationService from "../../utils/NotificationService";
+import BrandBrochureManager from "../brand/BrandBrochureManager";
+import AutoBrochureService from "../../services/AutoBrochureService";
 
 const AdminBrandDetail = () => {
   const { id } = useParams();
@@ -948,6 +950,22 @@ const AdminBrandDetail = () => {
           </CardContent>
         </Card>
       </Stack>
+
+      {/* Brand Brochure Manager */}
+      {brand && brand.status === 'active' && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Brand Marketing Materials
+          </Typography>
+          <BrandBrochureManager 
+            brand={{...brand, id}} 
+            onSuccess={() => {
+              // Optionally reload brand data to show updated brochure info
+              console.log('Brochure generated successfully');
+            }}
+          />
+        </Box>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>

@@ -32,6 +32,7 @@ import {
   Palette as RestaurantIcon,
   Reviews as ReviewsIcon,
   Quiz as QuizIcon,
+  PictureAsPdf as MarketingIcon,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import {
@@ -56,6 +57,7 @@ import BrandDetail from "../components/dashboard/BrandDetail";
 import NotificationCenter from "../components/common/NotificationCenter";
 import Review from "../components/dashboard/Review";
 import FAQs from "../components/dashboard/FAQs";
+import MarketingMaterials from "../components/dashboard/MarketingMaterials";
 import { useAdminStatus } from "../hooks/useAdminStatus";
 
 const drawerWidth = 240;
@@ -111,6 +113,11 @@ const Dashboard = () => {
     },
     { text: "Brands", path: "/dashboard/brands", icon: <MyBrandsIcon /> },
     {
+      text: "Marketing Materials",
+      path: "/dashboard/marketing",
+      icon: <MarketingIcon />,
+    },
+    {
       text: "Locations",
       path: "/dashboard/locations",
       icon: <MyLocationIcon />,
@@ -137,6 +144,11 @@ const Dashboard = () => {
       icon: <AppRegistrationIcon />,
     },
     { text: "Brands", path: "/dashboard/brands", icon: <MyBrandsIcon /> },
+    {
+      text: "Marketing",
+      path: "/dashboard/marketing",
+      icon: <MarketingIcon />,
+    },
     {
       text: "Locations",
       path: "/dashboard/locations",
@@ -266,6 +278,7 @@ const Dashboard = () => {
             <Route path="register-brand" element={<BrandRegistration />} />
             <Route path="brands" element={<Brands />} />
             <Route path="brand-details/:id" element={<BrandDetail />} />
+            <Route path="marketing" element={<MarketingMaterials />} />
             <Route path="locations" element={<Locations />} />
             <Route path="leads" element={<Leads />} />
             <Route path="reviews" element={<Review />} />

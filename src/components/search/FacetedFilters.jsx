@@ -45,6 +45,9 @@ const FacetedFilters = ({
 
   // Calculate facet counts
   const facets = useMemo(() => {
+    // Ensure brands is always an array to prevent null errors
+    const safeBrands = brands || [];
+    
     const categories = {};
     const industries = {};
     const models = {};
@@ -59,7 +62,7 @@ const FacetedFilters = ({
       'over1m': { label: 'Over ₹1M', min: 1000000, max: Infinity, count: 0 }
     };
 
-    brands.forEach(brand => {
+    safeBrands.forEach(brand => {
       // Categories
       const category = brand.brandCategory || 'Other';
       categories[category] = (categories[category] || 0) + 1;

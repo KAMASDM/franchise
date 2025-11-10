@@ -11,6 +11,7 @@ import NotificationService from '../../utils/NotificationService';
 import logger from '../../utils/logger';
 import { exportBrands } from '../../utils/exportUtils';
 import { sendBrandStatusUpdateEmail, sendBrandApprovedEmail, sendBrandRejectedEmail } from '../../services/emailServiceNew';
+import AutoBrochureService from '../../services/AutoBrochureService';
 import { getDoc } from 'firebase/firestore';
 
 const AdminBrandManagement = () => {
@@ -80,6 +81,22 @@ const AdminBrandManagement = () => {
                 } catch (emailError) {
                     logger.error('Failed to send brand status update email:', emailError);
                     // Don't block the approval if email fails
+                }
+            }
+            
+            // Auto-generate brochure for approved brands
+            if (newStatus === 'active') {
+                try {
+                    logger.info('Auto-generating brochure for approved brand:', brand.brandName);
+                    const brochureResult = await AutoBrochureService.generateAndStoreBrochure(brandId, brand);
+                    if (brochureResult.success) {
+                        logger.info('✅ Brochure auto-generated successfully:', brochureResult.filename);
+                    } else {
+                        logger.warn('⚠️ Brochure auto-generation failed:', brochureResult.error);
+                    }
+                } catch (brochureError) {
+                    logger.error('❌ Error in brochure auto-generation:', brochureError);
+                    // Don't block approval if brochure generation fails
                 }
             }
             

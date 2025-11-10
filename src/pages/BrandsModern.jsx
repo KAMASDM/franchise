@@ -47,18 +47,18 @@ import {
   BookmarkBorder,
 } from "@mui/icons-material";
 import BrandCard from "../components/brand/BrandCard";
-import BrandListItem from "../components/brand/BrandListItem";
-import AdvancedSearchBar from "../components/search/AdvancedSearchBar";
-import FacetedFilters from "../components/search/FacetedFilters";
+const BrandListItem = lazy(() => import("../components/brand/BrandListItem"));
+const AdvancedSearchBar = lazy(() => import("../components/search/AdvancedSearchBar"));
+const FacetedFilters = lazy(() => import("../components/search/FacetedFilters"));
 import { BrandGridSkeleton } from "../components/common/SkeletonLoader";
 import { NoSearchResultsEmpty } from "../components/common/EmptyState";
-import RecentlyViewedBrands from "../components/brand/RecentlyViewedBrands";
+const RecentlyViewedBrands = lazy(() => import("../components/brand/RecentlyViewedBrands"));
 import { extractTagsFromBrands } from "../components/common/TagFilter";
 import { DidYouMean } from "../components/common/SearchSuggestions";
 import Breadcrumbs from "../components/common/Breadcrumbs";
 import { useBrands } from "../hooks/useBrands";
 import { useDevice } from "../hooks/useDevice";
-import { useSearchWithURL } from "../hooks/useSearchWithURL";
+import { useDebounce } from "../hooks/useDebounce";
 import { enhancedSearch } from "../utils/fuzzySearch";
 import { useGamification } from "../hooks/useGamification";
 import { useNavigate } from "react-router-dom";
@@ -88,9 +88,13 @@ const BrandsModern = () => {
   const navigate = useNavigate();
   const { isMobile } = useDevice();
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
-  const { brands, loading, error } = useBrands();
+  
+  // Data loading without excessive logging
+  const { brands, loading, error } = useBrands(null, { limit: 100 });
+  
   const [filters, setFilters] = useState({});
-  const { searchQuery, updateSearchQuery } = useSearchWithURL();
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300); // 300ms debounce
   const [selectedTags, setSelectedTags] = useState([]);
   const [viewMode, setViewMode] = useState('list'); // Default to list view
   const [sortBy, setSortBy] = useState('recommended');
@@ -120,129 +124,138 @@ const BrandsModern = () => {
     );
   }
 
-  // Filter and search brands - optimized with useMemo
+  // Filter and search brands - optimized with single-pass filtering
   const filteredBrands = useMemo(() => {
-    let results = brands || [];
+    let results = brands || []; // Ensure brands is always an array
 
-    // Apply search
-    if (searchQuery && searchQuery.trim()) {
-      const searchResult = enhancedSearch(results, searchQuery, {
+    // Apply search first (most selective) - using debounced query
+    if (debouncedSearchQuery && debouncedSearchQuery.trim()) {
+      const searchResult = enhancedSearch(results, debouncedSearchQuery, {
         keys: ['brandName', 'industries', 'businessModel', 'brandStory', 'description'],
         threshold: 0.3,
       });
       results = searchResult.results || [];
     }
 
-    // Apply tag filters
-    if (selectedTags.length > 0) {
+    // Single-pass filtering for all other criteria
+    if (selectedTags.length > 0 || Object.keys(filters).length > 0) {
       results = results.filter(brand => {
-        const brandTags = [
-          brand.category,
-          brand.businessModel,
-          ...(brand.industries || []),
-        ].filter(Boolean);
-        return selectedTags.some(tag =>
-          brandTags.some(bt => bt && bt.toLowerCase().includes(tag.toLowerCase()))
-        );
+        // Tag filters
+        if (selectedTags.length > 0) {
+          const brandTags = [
+            brand.category,
+            brand.businessModel,
+            ...(brand.industries || []),
+          ].filter(Boolean);
+          
+          const hasMatchingTag = selectedTags.some(tag =>
+            brandTags.some(bt => bt && bt.toLowerCase().includes(tag.toLowerCase()))
+          );
+          if (!hasMatchingTag) return false;
+        }
+
+        // Category filter
+        if (filters.brandCategory?.length > 0) {
+          if (!filters.brandCategory.includes(brand.brandCategory)) return false;
+        }
+
+        // Business model filter
+        if (filters.businessModel?.length > 0) {
+          if (!filters.businessModel.includes(brand.businessModel)) return false;
+        }
+
+        // Industries filter
+        if (filters.industries?.length > 0) {
+          const hasMatchingIndustry = brand.industries && brand.industries.some(ind =>
+            filters.industries.includes(ind)
+          );
+          if (!hasMatchingIndustry) return false;
+        }
+
+        // Locations filter
+        if (filters.locations?.length > 0) {
+          const hasMatchingLocation = brand.locations && brand.locations.some(loc =>
+            filters.locations.includes(loc.state || loc)
+          );
+          if (!hasMatchingLocation) return false;
+        }
+
+        // Investment range filter
+        if (filters.investmentRange?.length > 0) {
+          const investment = brand.investmentRange?.min || brand.initialInvestment || brand.investmentRequired || 0;
+          const matchesInvestment = filters.investmentRange.some(range => {
+            switch (range) {
+              case "Under ₹50K":
+                return investment < 50000;
+              case "₹50K - ₹100K":
+                return investment >= 50000 && investment < 100000;
+              case "₹100K - ₹250K":
+                return investment >= 100000 && investment < 250000;
+              case "₹250K - ₹500K":
+                return investment >= 250000 && investment < 500000;
+              case "₹500K - ₹1M":
+                return investment >= 500000 && investment < 1000000;
+              case "Over ₹1M":
+                return investment >= 1000000;
+              default:
+                return true;
+            }
+          });
+          if (!matchesInvestment) return false;
+        }
+
+        return true;
       });
     }
-
-    // Apply category filter
-    if (filters.brandCategory && filters.brandCategory.length > 0) {
-      results = results.filter(brand =>
-        filters.brandCategory.includes(brand.brandCategory)
-      );
-    }
-
-    // Apply business model filter
-    if (filters.businessModel && filters.businessModel.length > 0) {
-      results = results.filter(brand =>
-        filters.businessModel.includes(brand.businessModel)
-      );
-    }
-
-    // Apply industries filter
-    if (filters.industries && filters.industries.length > 0) {
-      results = results.filter(brand =>
-        brand.industries && brand.industries.some(ind =>
-          filters.industries.includes(ind)
-        )
-      );
-    }
-
-    // Apply locations filter
-    if (filters.locations && filters.locations.length > 0) {
-      results = results.filter(brand =>
-        brand.locations && brand.locations.some(loc =>
-          filters.locations.includes(loc.state || loc)
-        )
-      );
-    }
-
-    // Apply investment range filter
-    if (filters.investmentRange && filters.investmentRange.length > 0) {
-      results = results.filter(brand => {
-        const investment = brand.investmentRange?.min || brand.initialInvestment || brand.investmentRequired || 0;
-        return filters.investmentRange.some(range => {
-          switch (range) {
-            case "Under ₹50K":
-              return investment < 50000;
-            case "₹50K - ₹100K":
-              return investment >= 50000 && investment < 100000;
-            case "₹100K - ₹250K":
-              return investment >= 100000 && investment < 250000;
-            case "₹250K - ₹500K":
-              return investment >= 250000 && investment < 500000;
-            case "₹500K - ₹1M":
-              return investment >= 500000 && investment < 1000000;
-            case "Over ₹1M":
-              return investment >= 1000000;
-            default:
-              return true;
-          }
-        });
-      });
-    }
-
+    
     return results;
-  }, [brands, searchQuery, filters, selectedTags]);
+  }, [brands, debouncedSearchQuery, filters, selectedTags]);
 
-  // Sort brands
+  // Sort brands - optimized
   const sortedBrands = useMemo(() => {
     const sorted = [...filteredBrands];
     
+    let result;
     switch (sortBy) {
       case 'newest':
-        return sorted.sort((a, b) => 
+        result = sorted.sort((a, b) => 
           (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
         );
+        break;
       case 'investment-low':
-        return sorted.sort((a, b) => {
+        result = sorted.sort((a, b) => {
           const invA = a.investmentRange?.min || a.initialInvestment || 0;
           const invB = b.investmentRange?.min || b.initialInvestment || 0;
           return invA - invB;
         });
+        break;
       case 'investment-high':
-        return sorted.sort((a, b) => {
+        result = sorted.sort((a, b) => {
           const invA = a.investmentRange?.min || a.initialInvestment || 0;
           const invB = b.investmentRange?.min || b.initialInvestment || 0;
           return invB - invA;
         });
+        break;
       case 'roi-high':
-        return sorted.sort((a, b) => 
+        result = sorted.sort((a, b) => 
           (b.estimatedROI || 0) - (a.estimatedROI || 0)
         );
+        break;
       case 'alphabetical':
-        return sorted.sort((a, b) => 
+        result = sorted.sort((a, b) => 
           (a.brandName || '').localeCompare(b.brandName || '')
         );
+        break;
       case 'recommended':
       default:
-        return sorted;
+        result = sorted;
+        break;
     }
+    
+    return result;
   }, [filteredBrands, sortBy]);
 
-  // Pagination logic
+  // Pagination logic - optimized
   const totalPages = Math.ceil(sortedBrands.length / itemsPerPage);
   const paginatedBrands = useMemo(() => {
     const startIndex = (page - 1) * itemsPerPage;
@@ -253,7 +266,7 @@ const BrandsModern = () => {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [filters, searchQuery, selectedTags, sortBy]);
+  }, [filters, debouncedSearchQuery, selectedTags, sortBy]);
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -269,9 +282,9 @@ const BrandsModern = () => {
   };
 
   const handleClearFilters = () => {
-    setFilters({});
-    updateSearchQuery('');
-    setSelectedTags([]);
+  setFilters({});
+  setSearchQuery('');
+  setSelectedTags([]);
   };
 
   const activeFilterCount = useMemo(() => {
@@ -417,20 +430,22 @@ const BrandsModern = () => {
 
             {/* Advanced Search */}
             <Box sx={{ maxWidth: 700, mx: 'auto' }}>
-              <AdvancedSearchBar
-                brands={brands}
-                onSearch={(query) => updateSearchQuery(query)}
-                showSuggestions={true}
-                initialValue={searchQuery}
-              />
+              <Suspense fallback={<CircularProgress size={24} />}>
+                <AdvancedSearchBar
+                  brands={brands || []} // Ensure brands is never null
+                  onSearch={(query) => setSearchQuery(query)}
+                  showSuggestions={true}
+                  initialValue={searchQuery}
+                />
+              </Suspense>
 
               {/* Did You Mean */}
-              {searchQuery && filteredBrands.length === 0 && brands.length > 0 && (
+              {searchQuery && filteredBrands.length === 0 && (brands || []).length > 0 && (
                 <Box sx={{ mt: 2 }}>
                   <DidYouMean
                     searchQuery={searchQuery}
-                    brands={brands}
-                    onSuggestionClick={(suggestion) => updateSearchQuery(suggestion)}
+                    brands={brands || []} // Ensure brands is never null
+                    onSuggestionClick={(suggestion) => setSearchQuery(suggestion)}
                   />
                 </Box>
               )}
@@ -585,12 +600,14 @@ const BrandsModern = () => {
                   overflow: 'hidden',
                 }}
               >
-                <FacetedFilters
-                  brands={brands}
-                  filters={filters}
-                  onFilterChange={handleFilterChange}
-                  onClearFilters={handleClearFilters}
-                />
+                <Suspense fallback={<CircularProgress size={24} />}>
+                  <FacetedFilters
+                    brands={brands || []} // Ensure brands is never null
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    onClearFilters={handleClearFilters}
+                  />
+                </Suspense>
               </Box>
             </Box>
           )}
@@ -610,12 +627,14 @@ const BrandsModern = () => {
                   <CloseIcon />
                 </IconButton>
               </Box>
-              <FacetedFilters
-                brands={brands}
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onClearFilters={handleClearFilters}
-              />
+              <Suspense fallback={<CircularProgress size={24} />}>
+                <FacetedFilters
+                  brands={brands || []} // Ensure brands is never null
+                  filters={filters}
+                  onFilterChange={handleFilterChange}
+                  onClearFilters={handleClearFilters}
+                />
+              </Suspense>
             </Box>
           </Drawer>
 
@@ -623,26 +642,30 @@ const BrandsModern = () => {
           <Box sx={{ flex: 1, minWidth: 0 }}>
             {/* Recently Viewed */}
             <Box sx={{ mb: 4 }}>
-              <RecentlyViewedBrands limit={6} />
+              <Suspense fallback={<CircularProgress size={24} />}>
+                <RecentlyViewedBrands limit={6} />
+              </Suspense>
             </Box>
 
             {/* Brand Grid/List */}
             <Box>
               {sortedBrands.length > 0 ? (
                 <>
-                  {/* List View Only */}
+                  {/* List View Only - Optimized Animations */}
                   <Stack spacing={2}>
                     {paginatedBrands.map((brand, index) => (
                       <motion.div
                         key={brand.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
                         transition={{
-                          duration: 0.4,
-                          delay: Math.min(index * 0.05, 0.5),
+                          duration: 0.2,
+                          // Removed staggered delays to reduce animation overhead
                         }}
                       >
-                        <BrandListItem brand={brand} index={index} />
+                        <Suspense fallback={<BrandGridSkeleton />}>
+                          <BrandListItem brand={brand} index={index} />
+                        </Suspense>
                       </motion.div>
                     ))}
                   </Stack>

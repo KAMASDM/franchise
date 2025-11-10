@@ -8,8 +8,10 @@ import {
   Card,
   CardContent,
   Grid,
+  Stack,
 } from "@mui/material";
-import { LocationOn } from "@mui/icons-material";
+import { LocationOn, Download, PictureAsPdf } from "@mui/icons-material";
+import BrandBrochureManager from "../../brand/BrandBrochureManager";
 
 const BrandCardView = ({ brands, onLearnMore }) => {
   const getStatusColor = (status) => {
@@ -106,14 +108,39 @@ const BrandCardView = ({ brands, onLearnMore }) => {
                 </Typography>
               </Box>
 
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => onLearnMore(brand.brandName)}
-                size="small"
-              >
-                View Details
-              </Button>
+              <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                <Button
+                  variant="outlined"
+                  onClick={() => onLearnMore(brand.brandName)}
+                  size="small"
+                  sx={{ flex: 1 }}
+                >
+                  View Details
+                </Button>
+                
+                {brand.status === 'active' && (
+                  <Button
+                    variant="contained"
+                    startIcon={<PictureAsPdf />}
+                    size="small"
+                    color="secondary"
+                    onClick={() => {
+                      // This will be handled by the BrandBrochureManager component
+                    }}
+                    disabled
+                    sx={{ minWidth: 'auto', px: 1 }}
+                  >
+                    PDF
+                  </Button>
+                )}
+              </Stack>
+
+              {/* Brand Brochure Manager for Active Brands */}
+              {brand.status === 'active' && (
+                <Box sx={{ mt: 2, display: 'none' }}>
+                  <BrandBrochureManager brand={brand} />
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>

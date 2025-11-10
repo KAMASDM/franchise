@@ -182,7 +182,7 @@ const theme = createTheme({
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
+  // <React.StrictMode> {/* Temporarily disabled to prevent duplicate Firebase calls */}
     <HelmetProvider>
       <BrowserRouter>
         <HighContrastProvider>
@@ -195,5 +195,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </HighContrastProvider>
       </BrowserRouter>
     </HelmetProvider>
-  </React.StrictMode>
+  // </React.StrictMode>
 );
