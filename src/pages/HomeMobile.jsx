@@ -144,15 +144,20 @@ const HomeMobile = () => {
               borderRadius: 3,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 3,
+                fontSize: '1rem', // Better mobile readability
                 '& fieldset': {
                   border: 'none',
+                },
+                '& input': {
+                  minHeight: 48, // WCAG touch target
+                  padding: '12px 14px',
                 },
               },
             }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon color="action" />
+                  <SearchIcon color="action" sx={{ fontSize: 24 }} />
                 </InputAdornment>
               ),
               endAdornment: (
@@ -162,8 +167,11 @@ const HomeMobile = () => {
                     sx={{ 
                       bgcolor: 'primary.main',
                       color: 'white',
+                      minWidth: 44,
+                      minHeight: 44, // WCAG touch target
                       '&:hover': { bgcolor: 'primary.dark' },
                     }}
+                    aria-label="Search brands"
                   >
                     <ArrowForward />
                   </IconButton>

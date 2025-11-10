@@ -56,6 +56,7 @@ const MotionButton = (props) => (
 
 const navItems = [
   { text: "Home", path: "/", icon: <HomeIcon /> },
+  { text: "About", path: "/about", icon: <AboutIcon /> },
   { text: "Brands", path: "/brands", icon: <BrandsIcon /> },
   { text: "Blog", path: "/blogs", icon: <BlogIcon /> },
   { text: "Contact", path: "/contact", icon: <ContactIcon /> },
@@ -165,30 +166,46 @@ const Header = () => {
       <List>
         {navItems.map(({ text, path, icon }) => (
           <ListItem key={text} disablePadding>
-            <ListItemButton component={RouterLink} to={path}>
+            <ListItemButton 
+              component={RouterLink} 
+              to={path}
+              sx={{ minHeight: 48 }} // WCAG touch target minimum
+            >
               <ListItemIcon>{icon}</ListItemIcon>
-              <ListItemText primary={text} />
+              <ListItemText 
+                primary={text}
+                primaryTypographyProps={{ fontSize: '0.95rem' }}
+              />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
+      <Divider sx={{ my: 1 }} />
       {!user && (
         <>
-          <Divider sx={{ my: 1 }} />
           <ListItem disablePadding>
             <ListItemButton
               component={RouterLink}
               to="/login"
               sx={{
-                backgroundColor: "secondary.light",
+                backgroundColor: "primary.main",
+                color: "white",
                 borderRadius: 2,
                 mx: 2,
+                mb: 1,
+                '&:hover': {
+                  backgroundColor: "primary.dark",
+                },
+                minHeight: 48, // WCAG touch target minimum
               }}
             >
               <ListItemIcon>
-                <LoginIcon />
+                <LoginIcon sx={{ color: "white" }} />
               </ListItemIcon>
-              <ListItemText primary="Brand Sign In" />
+              <ListItemText 
+                primary="Sign In" 
+                primaryTypographyProps={{ fontWeight: 600 }}
+              />
             </ListItemButton>
           </ListItem>
         </>
@@ -339,6 +356,11 @@ const Header = () => {
                 color="inherit"
                 onClick={handleDrawer(true)}
                 aria-label="Open navigation menu"
+                sx={{ 
+                  minWidth: 48, 
+                  minHeight: 48, // WCAG touch target minimum
+                  ml: 1 
+                }}
               >
                 <MenuIcon />
               </IconButton>

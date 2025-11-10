@@ -28,6 +28,8 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import authService from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import FranchiseHubLogo from '../components/common/FranchiseHubLogo';
+import { useDevice } from '../hooks/useDevice';
 
 /**
  * Modern Authentication Page
@@ -36,6 +38,7 @@ import { useAuth } from '../context/AuthContext';
 const AuthPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isMobile } = useDevice();
   const [activeTab, setActiveTab] = useState(0); // 0 = Login, 1 = Register
 
   // Redirect if already logged in
@@ -492,20 +495,20 @@ const AuthPage = () => {
             </IconButton>
 
             {/* Logo/Brand */}
-            <Box sx={{ textAlign: 'center', mb: 3, mt: 2 }}>
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 'bold',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  mb: 1,
-                }}
+            <Box sx={{ textAlign: 'center', mb: 4, mt: isMobile ? 1 : 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <FranchiseHubLogo 
+                  width={isMobile ? 160 : 200} 
+                  height={isMobile ? 48 : 60} 
+                  variant="full"
+                  color="primary"
+                />
+              </Box>
+              <Typography 
+                variant={isMobile ? "body2" : "body1"} 
+                color="text.secondary"
+                sx={{ fontWeight: 500 }}
               >
-                ikama
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
                 Your Gateway to Franchise Opportunities
               </Typography>
             </Box>

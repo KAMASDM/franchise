@@ -210,17 +210,30 @@ const BrandsMobile = () => {
             borderRadius: 2,
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
+              fontSize: '1rem', // Better mobile readability
+              '& input': {
+                minHeight: 48, // WCAG touch target
+                padding: '12px 14px',
+              },
             },
           }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon color="action" />
+                <SearchIcon color="action" sx={{ fontSize: 24 }} />
               </InputAdornment>
             ),
             endAdornment: searchQuery && (
               <InputAdornment position="end">
-                <IconButton size="small" onClick={() => setSearchQuery('')}>
+                <IconButton 
+                  size="small" 
+                  onClick={() => setSearchQuery('')}
+                  sx={{ 
+                    minWidth: 40,
+                    minHeight: 40,
+                  }}
+                  aria-label="Clear search"
+                >
                   <CloseIcon />
                 </IconButton>
               </InputAdornment>
@@ -237,7 +250,10 @@ const BrandsMobile = () => {
                 label={industry}
                 size="small"
                 onDelete={() => handleFilterChange('industries', industry)}
-                sx={{ height: 24 }}
+                sx={{ 
+                  height: 32, // Better touch target
+                  fontSize: '0.85rem',
+                }}
               />
             ))}
             {filters.businessModels.map((model) => (
@@ -246,7 +262,10 @@ const BrandsMobile = () => {
                 label={model}
                 size="small"
                 onDelete={() => handleFilterChange('businessModels', model)}
-                sx={{ height: 24 }}
+                sx={{ 
+                  height: 32,
+                  fontSize: '0.85rem',
+                }}
               />
             ))}
             {filters.investmentRanges.map((range) => (
@@ -255,7 +274,10 @@ const BrandsMobile = () => {
                 label={range}
                 size="small"
                 onDelete={() => handleFilterChange('investmentRanges', range)}
-                sx={{ height: 24 }}
+                sx={{ 
+                  height: 32,
+                  fontSize: '0.85rem',
+                }}
               />
             ))}
           </Box>

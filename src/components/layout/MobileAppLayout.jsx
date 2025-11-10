@@ -33,6 +33,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useDevice } from '../../hooks/useDevice';
+import FranchiseHubLogo from '../common/FranchiseHubLogo';
 
 /**
  * Mobile App Layout - Native app feeling for public pages
@@ -123,7 +124,7 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
           borderColor: 'primary.dark',
         }}
       >
-        <Toolbar sx={{ minHeight: 56 }}>
+        <Toolbar sx={{ minHeight: 56, px: 1.5 }}>
           <Box 
             display="flex" 
             alignItems="center" 
@@ -131,21 +132,19 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
             onClick={() => navigate('/')}
             sx={{ cursor: 'pointer' }}
           >
-            <BusinessIcon sx={{ mr: 1, fontSize: 28 }} />
-            <Box>
-              <Typography variant="h6" fontWeight="bold" sx={{ lineHeight: 1.2 }}>
-                FranchiseHub
-              </Typography>
-              <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '0.65rem' }}>
-                Find Your Perfect Franchise
-              </Typography>
-            </Box>
+            <FranchiseHubLogo 
+              width={140} 
+              height={40} 
+              variant="full"
+              color="white"
+            />
           </Box>
 
           {user ? (
             <IconButton
               onClick={() => navigate('/dashboard')}
-              sx={{ color: 'inherit', ml: 1 }}
+              sx={{ color: 'inherit', ml: 1, minWidth: 44, minHeight: 44 }}
+              aria-label="Go to dashboard"
             >
               <Avatar 
                 src={user?.photoURL} 
@@ -155,8 +154,18 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
             </IconButton>
           ) : (
             <IconButton
-              onClick={() => navigate('/dashboard')}
-              sx={{ color: 'inherit', ml: 1 }}
+              onClick={() => navigate('/login')}
+              sx={{ 
+                color: 'inherit', 
+                ml: 1, 
+                minWidth: 44, 
+                minHeight: 44,
+                bgcolor: 'rgba(255,255,255,0.1)',
+                '&:hover': {
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                }
+              }}
+              aria-label="Sign in"
             >
               <LoginIcon />
             </IconButton>
@@ -197,7 +206,8 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
             bgcolor: 'background.paper',
             '& .MuiBottomNavigationAction-root': {
               minWidth: 0,
-              padding: '6px 0 8px',
+              minHeight: 48, // WCAG touch target minimum
+              padding: '6px 12px 8px',
               color: 'text.secondary',
               '&.Mui-selected': {
                 color: 'primary.main',
@@ -205,9 +215,10 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
               },
             },
             '& .MuiBottomNavigationAction-label': {
-              fontSize: '0.7rem',
+              fontSize: '0.75rem', // Improved readability
+              marginTop: '4px',
               '&.Mui-selected': {
-                fontSize: '0.75rem',
+                fontSize: '0.8rem',
                 fontWeight: 600,
               },
             },
@@ -258,7 +269,12 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
             </Box>
             <IconButton
               onClick={() => setDrawerOpen(false)}
-              sx={{ color: 'inherit' }}
+              sx={{ 
+                color: 'inherit',
+                minWidth: 44,
+                minHeight: 44, // WCAG touch target minimum
+              }}
+              aria-label="Close menu"
             >
               <CloseIcon />
             </IconButton>
@@ -273,13 +289,17 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
                   sx={{
                     borderRadius: 2,
                     mb: 0.5,
+                    minHeight: 48, // WCAG touch target minimum
                     bgcolor: 'primary.lighter',
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 40 }}>
                     <BusinessIcon />
                   </ListItemIcon>
-                  <ListItemText primary="My Dashboard" />
+                  <ListItemText 
+                    primary="My Dashboard"
+                    primaryTypographyProps={{ fontSize: '0.95rem' }}
+                  />
                 </ListItemButton>
               </List>
               <Divider />
@@ -288,17 +308,25 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
             <>
               <List sx={{ px: 1, py: 2 }}>
                 <ListItemButton
-                  onClick={() => handleDrawerItemClick('/dashboard')}
+                  onClick={() => handleDrawerItemClick('/login')}
                   sx={{
                     borderRadius: 2,
                     mb: 0.5,
-                    bgcolor: 'primary.lighter',
+                    minHeight: 48, // WCAG touch target minimum
+                    bgcolor: 'primary.main',
+                    color: 'white',
+                    '&:hover': {
+                      bgcolor: 'primary.dark',
+                    },
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 40 }}>
-                    <LoginIcon />
+                    <LoginIcon sx={{ color: 'white' }} />
                   </ListItemIcon>
-                  <ListItemText primary="Login / Sign Up" />
+                  <ListItemText 
+                    primary="Sign In" 
+                    primaryTypographyProps={{ fontSize: '0.95rem', fontWeight: 600 }}
+                  />
                 </ListItemButton>
               </List>
               <Divider />
@@ -321,6 +349,7 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
                 sx={{
                   borderRadius: 2,
                   mb: 0.5,
+                  minHeight: 48, // WCAG touch target minimum
                   '&:hover': {
                     bgcolor: 'action.hover',
                   },
@@ -329,7 +358,10 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
                 <ListItemIcon sx={{ minWidth: 40 }}>
                   {item.icon}
                 </ListItemIcon>
-                <ListItemText primary={item.label} />
+                <ListItemText 
+                  primary={item.label}
+                  primaryTypographyProps={{ fontSize: '0.95rem' }}
+                />
               </ListItemButton>
             ))}
           </List>

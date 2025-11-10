@@ -9,10 +9,13 @@ import {
   TextField,
   Avatar,
   useTheme,
+  useMediaQuery,
   Grid,
   CircularProgress,
   Snackbar,
   Alert,
+  Stack,
+  Divider,
 } from "@mui/material";
 import { Phone, Email, LocationOn, Schedule, Send } from "@mui/icons-material";
 import { motion } from "framer-motion";
@@ -67,6 +70,7 @@ const contactMethods = [
 
 const Contact = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const {
     register,
     handleSubmit,
@@ -182,181 +186,398 @@ const Contact = () => {
             mb: 8,
           }}
         >
-          <Box
-            sx={{
-              flex: 1,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 3,
-            }}
-          >
-            {contactMethods.map((method, index) => (
-              <MotionCard
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -5, boxShadow: theme.shadows[10] }}
-                sx={{
-                  width: { xs: "100%", sm: "calc(50% - 12px)" },
-                  textAlign: "center",
-                  p: 3,
-                  borderRadius: 3,
-                  boxShadow: theme.shadows[3],
-                }}
-              >
-                <CardContent>
-                  <Avatar
-                    sx={{
-                      backgroundColor: "primary.light",
-                      width: 60,
-                      height: 60,
-                      mx: "auto",
-                      mb: 2,
-                    }}
-                  >
-                    {method.icon}
-                  </Avatar>
-                  <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
-                    {method.title}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2, minHeight: 40 }}
-                  >
-                    {method.description}
-                  </Typography>
-                  <Typography variant="body1" fontWeight="bold" sx={{ mb: 3 }}>
-                    {method.contact}
-                  </Typography>
-                  <Button variant="outlined" size="small" color="primary">
-                    {method.action}
-                  </Button>
-                </CardContent>
-              </MotionCard>
-            ))}
-          </Box>
-
-          <MotionCard
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            sx={{ flex: 1, p: 4, borderRadius: 3, boxShadow: theme.shadows[3] }}
-          >
-            <Typography variant="h4" fontWeight="bold" sx={{ mb: 3 }}>
-              Send Us a Message
-            </Typography>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    variant="outlined"
-                    label="First Name"
-                    {...register("firstName", {
-                      required: "First name is required",
-                      minLength: {
-                        value: 2,
-                        message: "First name must be at least 2 characters",
-                      },
-                    })}
-                    error={!!errors.firstName}
-                    helperText={errors.firstName?.message}
-                    aria-describedby={errors.firstName ? "firstName-error" : undefined}
-                    FormHelperTextProps={{ id: "firstName-error" }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    variant="outlined"
-                    label="Last Name"
-                    {...register("lastName", {
-                      required: "Last name is required",
-                      minLength: {
-                        value: 2,
-                        message: "Last name must be at least 2 characters",
-                      },
-                    })}
-                    error={!!errors.lastName}
-                    helperText={errors.lastName?.message}
-                    aria-describedby={errors.lastName ? "lastName-error" : undefined}
-                    FormHelperTextProps={{ id: "lastName-error" }}
-                  />
-                </Grid>
-              </Grid>
-              <Box sx={{ mt: 2 }}>
-                <EmailVerification
-                  value={email}
-                  onChange={setEmail}
-                  onVerificationChange={(isVerified, emailValue) => {
-                    setEmail(emailValue);
-                    setEmailVerified(isVerified);
-                  }}
-                  label="Email"
-                  helperText="We will send a verification code"
-                />
-              </Box>
-              <Box sx={{ mt: 2 }}>
-                <PhoneVerification
-                  value={phone}
-                  onChange={setPhone}
-                  onVerificationChange={(isVerified, phoneValue) => {
-                    setPhone(phoneValue);
-                    setPhoneVerified(isVerified);
-                  }}
-                  label="Phone Number"
-                  helperText="We will send an OTP to verify"
-                />
-              </Box>
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Message"
-                multiline
-                rows={6}
-                sx={{ mt: 2 }}
-                {...register("message", {
-                  required: "Message is required",
-                  minLength: {
-                    value: 10,
-                    message: "Message must be at least 10 characters",
-                  },
-                })}
-                error={!!errors.message}
-                helperText={errors.message?.message}
-                aria-describedby={errors.message ? "message-error" : undefined}
-                FormHelperTextProps={{ id: "message-error" }}
-              />
-              <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  startIcon={
-                    loading ? (
-                      <CircularProgress size={20} color="inherit" />
-                    ) : (
-                      <Send />
-                    )
-                  }
-                  disabled={loading}
+          {/* MOBILE: Stack contact methods vertically */}
+          {isMobile ? (
+            <Stack spacing={2} sx={{ width: '100%' }}>
+              {/* Quick Contact Cards - Compact for Mobile */}
+              {contactMethods.map((method, index) => (
+                <MotionCard
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  component="a"
+                  href={method.href}
                   sx={{
-                    borderRadius: 25,
-                    px: 4,
-                    py: 1.5,
-                    fontWeight: "bold",
-                    minWidth: 180,
+                    textDecoration: 'none',
+                    borderRadius: 3,
+                    boxShadow: theme.shadows[2],
+                    '&:active': {
+                      transform: 'scale(0.98)',
+                    }
                   }}
                 >
-                  {loading ? "Sending..." : "Send Message"}
-                </Button>
+                  <CardContent sx={{ p: 2.5 }}>
+                    <Box display="flex" alignItems="flex-start" gap={2}>
+                      <Avatar
+                        sx={{
+                          backgroundColor: "primary.lighter",
+                          color: "primary.main",
+                          width: 48,
+                          height: 48,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {method.icon}
+                      </Avatar>
+                      <Box flex={1}>
+                        <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 0.5 }}>
+                          {method.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.85rem' }}>
+                          {method.description}
+                        </Typography>
+                        <Typography variant="body2" fontWeight="600" color="primary.main" sx={{ fontSize: '0.9rem' }}>
+                          {method.contact}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </MotionCard>
+              ))}
+
+              {/* Divider */}
+              <Divider sx={{ my: 2 }}>
+                <Typography variant="caption" color="text.secondary" fontWeight="600">
+                  OR SEND A MESSAGE
+                </Typography>
+              </Divider>
+
+              {/* Contact Form - Full Width on Mobile */}
+              <MotionCard
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                viewport={{ once: true }}
+                sx={{ borderRadius: 3, boxShadow: theme.shadows[3] }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
+                    Send Us a Message
+                  </Typography>
+                  <form onSubmit={handleSubmit(onSubmit)}>
+                    <Stack spacing={2.5}>
+                      <TextField
+                        fullWidth
+                        variant="outlined"
+                        label="First Name"
+                        {...register("firstName", {
+                          required: "First name is required",
+                          minLength: {
+                            value: 2,
+                            message: "First name must be at least 2 characters",
+                          },
+                        })}
+                        error={!!errors.firstName}
+                        helperText={errors.firstName?.message}
+                        sx={{
+                          '& .MuiInputBase-input': {
+                            fontSize: '1rem',
+                            minHeight: 48,
+                            padding: '14px',
+                          }
+                        }}
+                      />
+                      <TextField
+                        fullWidth
+                        variant="outlined"
+                        label="Last Name"
+                        {...register("lastName", {
+                          required: "Last name is required",
+                          minLength: {
+                            value: 2,
+                            message: "Last name must be at least 2 characters",
+                          },
+                        })}
+                        error={!!errors.lastName}
+                        helperText={errors.lastName?.message}
+                        sx={{
+                          '& .MuiInputBase-input': {
+                            fontSize: '1rem',
+                            minHeight: 48,
+                            padding: '14px',
+                          }
+                        }}
+                      />
+                      <EmailVerification
+                        value={email}
+                        onChange={setEmail}
+                        onVerificationChange={(isVerified, emailValue) => {
+                          setEmail(emailValue);
+                          setEmailVerified(isVerified);
+                        }}
+                        label="Email"
+                        helperText="We will send a verification code"
+                      />
+                      <PhoneVerification
+                        value={phone}
+                        onChange={setPhone}
+                        onVerificationChange={(isVerified, phoneValue) => {
+                          setPhone(phoneValue);
+                          setPhoneVerified(isVerified);
+                        }}
+                        label="Phone Number"
+                        helperText="We will send an OTP to verify"
+                      />
+                      <TextField
+                        fullWidth
+                        variant="outlined"
+                        label="Message"
+                        multiline
+                        rows={5}
+                        sx={{
+                          '& .MuiInputBase-input': {
+                            fontSize: '1rem',
+                            lineHeight: 1.6,
+                          }
+                        }}
+                        {...register("message", {
+                          required: "Message is required",
+                          minLength: {
+                            value: 10,
+                            message: "Message must be at least 10 characters",
+                          },
+                        })}
+                        error={!!errors.message}
+                        helperText={errors.message?.message}
+                      />
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        fullWidth
+                        startIcon={
+                          loading ? (
+                            <CircularProgress size={20} color="inherit" />
+                          ) : (
+                            <Send />
+                          )
+                        }
+                        disabled={loading}
+                        sx={{
+                          borderRadius: 3,
+                          py: 1.75,
+                          fontWeight: "bold",
+                          minHeight: 56,
+                          fontSize: '1.05rem',
+                          boxShadow: theme.shadows[4],
+                        }}
+                      >
+                        {loading ? "Sending..." : "Send Message"}
+                      </Button>
+                    </Stack>
+                  </form>
+                </CardContent>
+              </MotionCard>
+            </Stack>
+          ) : (
+            /* DESKTOP: Original side-by-side layout */
+            <>
+              <Box
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 3,
+                }}
+              >
+                {contactMethods.map((method, index) => (
+                  <MotionCard
+                    key={index}
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ y: -5, boxShadow: theme.shadows[10] }}
+                    sx={{
+                      width: { xs: "100%", sm: "calc(50% - 12px)" },
+                      textAlign: "center",
+                      p: 3,
+                      borderRadius: 3,
+                      boxShadow: theme.shadows[3],
+                    }}
+                  >
+                    <CardContent>
+                      <Avatar
+                        sx={{
+                          backgroundColor: "primary.light",
+                          width: 60,
+                          height: 60,
+                          mx: "auto",
+                          mb: 2,
+                        }}
+                      >
+                        {method.icon}
+                      </Avatar>
+                      <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+                        {method.title}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2, minHeight: 40 }}
+                      >
+                        {method.description}
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold" sx={{ mb: 3 }}>
+                        {method.contact}
+                      </Typography>
+                      <Button 
+                        variant="outlined" 
+                        size="small" 
+                        color="primary"
+                        component="a"
+                        href={method.href}
+                        sx={{
+                          minHeight: 44,
+                          minWidth: 120,
+                          fontSize: { xs: '0.9rem', sm: '0.875rem' },
+                        }}
+                      >
+                        {method.action}
+                      </Button>
+                    </CardContent>
+                  </MotionCard>
+                ))}
               </Box>
-            </form>
-          </MotionCard>
+
+              <MotionCard
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                sx={{ flex: 1, p: 4, borderRadius: 3, boxShadow: theme.shadows[3] }}
+              >
+                <Typography variant="h4" fontWeight="bold" sx={{ mb: 3 }}>
+                  Send Us a Message
+                </Typography>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        variant="outlined"
+                        label="First Name"
+                        {...register("firstName", {
+                          required: "First name is required",
+                          minLength: {
+                            value: 2,
+                            message: "First name must be at least 2 characters",
+                          },
+                        })}
+                        error={!!errors.firstName}
+                        helperText={errors.firstName?.message}
+                        sx={{
+                          '& .MuiInputBase-input': {
+                            fontSize: { xs: '1rem', sm: '0.95rem' },
+                            minHeight: 48,
+                            padding: { xs: '14px', sm: '16.5px 14px' },
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        variant="outlined"
+                        label="Last Name"
+                        {...register("lastName", {
+                          required: "Last name is required",
+                          minLength: {
+                            value: 2,
+                            message: "Last name must be at least 2 characters",
+                          },
+                        })}
+                        error={!!errors.lastName}
+                        helperText={errors.lastName?.message}
+                        sx={{
+                          '& .MuiInputBase-input': {
+                            fontSize: { xs: '1rem', sm: '0.95rem' },
+                            minHeight: 48,
+                            padding: { xs: '14px', sm: '16.5px 14px' },
+                          }
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Box sx={{ mt: 2 }}>
+                    <EmailVerification
+                      value={email}
+                      onChange={setEmail}
+                      onVerificationChange={(isVerified, emailValue) => {
+                        setEmail(emailValue);
+                        setEmailVerified(isVerified);
+                      }}
+                      label="Email"
+                      helperText="We will send a verification code"
+                    />
+                  </Box>
+                  <Box sx={{ mt: 2 }}>
+                    <PhoneVerification
+                      value={phone}
+                      onChange={setPhone}
+                      onVerificationChange={(isVerified, phoneValue) => {
+                        setPhone(phoneValue);
+                        setPhoneVerified(isVerified);
+                      }}
+                      label="Phone Number"
+                      helperText="We will send an OTP to verify"
+                    />
+                  </Box>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    label="Message"
+                    multiline
+                    rows={6}
+                    sx={{ 
+                      mt: 2,
+                      '& .MuiInputBase-input': {
+                        fontSize: { xs: '1rem', sm: '0.95rem' },
+                        lineHeight: 1.6,
+                      }
+                    }}
+                    {...register("message", {
+                      required: "Message is required",
+                      minLength: {
+                        value: 10,
+                        message: "Message must be at least 10 characters",
+                      },
+                    })}
+                    error={!!errors.message}
+                    helperText={errors.message?.message}
+                  />
+                  <Box sx={{ mt: 3, display: "flex", justifyContent: { xs: "center", sm: "flex-end" } }}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="large"
+                      startIcon={
+                        loading ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          <Send />
+                        )
+                      }
+                      disabled={loading}
+                      sx={{
+                        borderRadius: 25,
+                        px: 4,
+                        py: 1.5,
+                        fontWeight: "bold",
+                        minWidth: { xs: '100%', sm: 180 },
+                        minHeight: 48,
+                        fontSize: { xs: '1rem', sm: '0.95rem' },
+                      }}
+                    >
+                      {loading ? "Sending..." : "Send Message"}
+                    </Button>
+                  </Box>
+                </form>
+              </MotionCard>
+            </>
+          )}
         </Box>
 
         <MotionCard
