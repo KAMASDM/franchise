@@ -99,9 +99,11 @@ const BrandsModern = () => {
   const [itemsPerPage] = useState(12); // 12 brands per page
   const { trackVisit } = useGamification();
 
+  // Track visit only once when component mounts
   useEffect(() => {
     trackVisit();
-  }, [trackVisit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - only run on mount
 
   // Mobile version
   if (isMobile) {
