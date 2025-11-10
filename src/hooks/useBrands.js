@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { db } from "../firebase/firebase";
 import { collection, query, where, getDocs, limit as firestoreLimit } from "firebase/firestore";
 
@@ -7,8 +7,9 @@ export const useBrands = (user = null, options = {}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  const limitValue = options.limit;
-  const userId = user?.uid;
+  // Memoize these values to prevent unnecessary re-renders
+  const limitValue = useMemo(() => options?.limit, [options?.limit]);
+  const userId = useMemo(() => user?.uid, [user?.uid]);
 
   useEffect(() => {
     const fetchBrands = async () => {
