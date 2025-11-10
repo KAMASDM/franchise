@@ -176,12 +176,48 @@ export const useBlog = (identifier) => {
 
         // Try to fetch by ID first
         const blogRef = doc(db, 'blogs', identifier);
-        const blogSnap = await getDoc(blogRef);
+        let blogSnap = null;
 
-        if (blogSnap.exists()) {
+        try {
+          blogSnap = await getDoc(blogRef);
+        } catch (snapError) {
+          if (snapError?.code !== 'permission-denied') {
+            throw snapError;
+          }
+          // Permission denied on direct lookup (likely a draft); fall through to slug query.
+        }
+
+        if (blogSnap?.exists()) {
           const data = blogSnap.data();
+
+          if ((data.status || '').toLowerCase() === 'published') {
+            setBlog({
+              id: blogSnap.id,
+              ...data,
+              createdAt: data.createdAt?.toDate() || new Date(),
+              publishedAt: data.publishedAt?.toDate() || null,
+              updatedAt: data.updatedAt?.toDate() || new Date(),
+            });
+            setError(null);
+            return;
+          }
+        }
+
+        // Try to fetch by slug and ensure published status for public users
+        const blogsRef = collection(db, 'blogs');
+        const q = query(
+          blogsRef,
+          where('slug', '==', identifier),
+          where('status', '==', 'published'),
+          limit(1)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const doc = querySnapshot.docs[0];
+          const data = doc.data();
           setBlog({
-            id: blogSnap.id,
+            id: doc.id,
             ...data,
             createdAt: data.createdAt?.toDate() || new Date(),
             publishedAt: data.publishedAt?.toDate() || null,
@@ -189,30 +225,16 @@ export const useBlog = (identifier) => {
           });
           setError(null);
         } else {
-          // Try to fetch by slug
-          const blogsRef = collection(db, 'blogs');
-          const q = query(blogsRef, where('slug', '==', identifier), limit(1));
-          const querySnapshot = await getDocs(q);
-
-          if (!querySnapshot.empty) {
-            const doc = querySnapshot.docs[0];
-            const data = doc.data();
-            setBlog({
-              id: doc.id,
-              ...data,
-              createdAt: data.createdAt?.toDate() || new Date(),
-              publishedAt: data.publishedAt?.toDate() || null,
-              updatedAt: data.updatedAt?.toDate() || new Date(),
-            });
-            setError(null);
-          } else {
-            setBlog(null);
-            setError('Blog not found');
-          }
+          setBlog(null);
+          setError('Blog not found');
         }
       } catch (err) {
         console.error('Error fetching blog:', err);
-        setError(err.message);
+        if (err?.code === 'permission-denied') {
+          setError('Blog not found');
+        } else {
+          setError(err.message);
+        }
         setBlog(null);
       } finally {
         setLoading(false);
