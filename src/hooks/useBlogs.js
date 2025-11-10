@@ -36,20 +36,20 @@ export const useBlogs = (options = {}) => {
   useEffect(() => {
     try {
       const blogsRef = collection(db, 'blogs');
-      let q;
+      const baseConstraints = [];
 
-      // For admins (includeDrafts = true), order by createdAt only
-      // For public, we'll fetch all and filter client-side until index is ready
       if (includeDrafts) {
-        q = query(blogsRef, orderBy('createdAt', 'desc'));
+        baseConstraints.push(orderBy('createdAt', 'desc'));
       } else {
-        // Simple query - filter by status client-side to avoid needing index immediately
-        q = query(blogsRef, orderBy('createdAt', 'desc'));
+        baseConstraints.push(where('status', '==', 'published'));
+        baseConstraints.push(orderBy('publishedAt', 'desc'));
       }
 
       if (limitCount) {
-        q = query(q, limit(limitCount));
+        baseConstraints.push(limit(limitCount));
       }
+
+      let q = query(blogsRef, ...baseConstraints);
 
       const unsubscribe = onSnapshot(
         q,
@@ -63,17 +63,18 @@ export const useBlogs = (options = {}) => {
             updatedAt: doc.data().updatedAt?.toDate() || new Date(),
           }));
 
-          // Client-side filtering for status (until index is built)
-          if (!includeDrafts) {
-            blogsData = blogsData.filter(blog => blog.status === 'published');
+          if (includeDrafts) {
+            blogsData.sort((a, b) => b.createdAt - a.createdAt);
+          } else {
+            // Firestore already filters to published, but we still guard just in case metadata lags
+            blogsData = blogsData
+              .filter(blog => blog.status === 'published')
+              .sort((a, b) => {
+                const dateA = a.publishedAt || a.createdAt;
+                const dateB = b.publishedAt || b.createdAt;
+                return dateB - dateA;
+              });
           }
-
-          // Sort by publishedAt for published blogs, createdAt for drafts
-          blogsData.sort((a, b) => {
-            const dateA = a.publishedAt || a.createdAt;
-            const dateB = b.publishedAt || b.createdAt;
-            return dateB - dateA;
-          });
 
           // Client-side filtering for category
           if (category && category !== 'All') {
@@ -97,7 +98,47 @@ export const useBlogs = (options = {}) => {
         },
         (err) => {
           console.error('Error fetching blogs:', err);
-          setError(err.message);
+
+          if (!includeDrafts && err?.code === 'failed-precondition') {
+            // Fallback without Firestore index requirements
+            (async () => {
+              try {
+                const fallbackQuery = query(blogsRef, where('status', '==', 'published'));
+                const snapshot = await getDocs(fallbackQuery);
+                const fallbackBlogs = snapshot.docs.map(doc => ({
+                  id: doc.id,
+                  ...doc.data(),
+                  createdAt: doc.data().createdAt?.toDate() || new Date(),
+                  publishedAt: doc.data().publishedAt?.toDate() || null,
+                  updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+                }));
+
+                const sortedFallback = fallbackBlogs
+                  .filter(blog => blog.status === 'published')
+                  .sort((a, b) => {
+                    const dateA = a.publishedAt || a.createdAt;
+                    const dateB = b.publishedAt || b.createdAt;
+                    return dateB - dateA;
+                  });
+
+                setBlogs(limitCount ? sortedFallback.slice(0, limitCount) : sortedFallback);
+                setError(null);
+                setLoading(false);
+              } catch (fallbackError) {
+                console.error('Fallback blog fetch failed:', fallbackError);
+                setError(fallbackError.message);
+                setLoading(false);
+                setBlogs([]);
+              }
+            })();
+            return;
+          }
+
+          // Provide clearer feedback when security rules reject the query
+          const message = err?.code === 'permission-denied'
+            ? 'Insufficient permissions to load some blogs. Draft posts require admin access.'
+            : err.message;
+          setError(message);
           setLoading(false);
           setBlogs([]);
         }
