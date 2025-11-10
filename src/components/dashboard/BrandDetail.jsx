@@ -300,18 +300,18 @@ const BrandDetail = () => {
               <Box sx={{ mt: 1 }}>
                 <TextField
                   type="number"
-                  value={editedBrand.brandfoundedYear || ''}
-                  onChange={(e) => handleChange('brandfoundedYear', e.target.value)}
+                  value={editedBrand.foundedYear || editedBrand.brandfoundedYear || ''}
+                  onChange={(e) => handleChange('foundedYear', e.target.value)}
                   label="Founded Year"
                   sx={{ mr: 2 }}
                 />
                 <TextField
-                  value={editedBrand.brandOwnerInformation?.name || ''}
+                  value={editedBrand.brandOwnerInformation?.name || editedBrand.ownerInfo?.name || ''}
                   onChange={(e) => handleNestedChange('brandOwnerInformation', 'name', e.target.value)}
                   label="Owner Name"
                 />
               </Box>
-            ) : `Founded in ${editedBrand.brandfoundedYear} | Owner: ${editedBrand.brandOwnerInformation?.name}`}
+            ) : `Founded in ${editedBrand.foundedYear || editedBrand.brandfoundedYear} | Owner: ${editedBrand.brandOwnerInformation?.name || editedBrand.ownerInfo?.name}`}
           />
         <CardContent>
           {editMode ? (
@@ -330,8 +330,8 @@ const BrandDetail = () => {
                 fullWidth
                 multiline
                 rows={3}
-                value={editedBrand.brandVission || ''}
-                onChange={(e) => handleChange('brandVission', e.target.value)}
+                value={editedBrand.brandVision || editedBrand.brandVission || ''}
+                onChange={(e) => handleChange('brandVision', e.target.value)}
                 label="Brand Vision"
               />
             </>
@@ -340,7 +340,7 @@ const BrandDetail = () => {
               <Typography variant="h6" color="text.secondary">{editedBrand.brandMission}</Typography>
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6" fontWeight="bold">Brand Vision</Typography>
-              <Typography paragraph>{editedBrand.brandVission || "Not Provided"}</Typography>
+              <Typography paragraph>{editedBrand.brandVision || editedBrand.brandVission || "Not Provided"}</Typography>
             </>
           )}
         </CardContent>
@@ -458,8 +458,8 @@ const BrandDetail = () => {
                     fullWidth
                     label="Total Investment (₹)"
                     type="number"
-                    value={editedBrand.brandInvestment || editedBrand.totalInvestment || ''}
-                    onChange={(e) => handleChange('brandInvestment', e.target.value)}
+                    value={editedBrand.totalInvestment || editedBrand.brandInvestment || ''}
+                    onChange={(e) => handleChange('totalInvestment', e.target.value)}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -467,8 +467,8 @@ const BrandDetail = () => {
                     fullWidth
                     label="Franchise Fee (₹)"
                     type="number"
-                    value={editedBrand.franchiseFee || editedBrand.initialFranchiseFee || ''}
-                    onChange={(e) => handleChange('franchiseFee', e.target.value)}
+                    value={editedBrand.initialFranchiseFee || editedBrand.franchiseFee || ''}
+                    onChange={(e) => handleChange('initialFranchiseFee', e.target.value)}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -738,8 +738,8 @@ const BrandDetail = () => {
                   <TextField
                     fullWidth
                     label="Owner Name"
-                    value={editedBrand.brandOwnerInformation?.ownerName || editedBrand.brandOwnerInformation?.name || ''}
-                    onChange={(e) => handleNestedChange('brandOwnerInformation', 'ownerName', e.target.value)}
+                    value={editedBrand.ownerInfo?.name || editedBrand.brandOwnerInformation?.ownerName || editedBrand.brandOwnerInformation?.name || ''}
+                    onChange={(e) => handleNestedChange('ownerInfo', 'name', e.target.value)}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -747,48 +747,48 @@ const BrandDetail = () => {
                     fullWidth
                     label="Owner Email"
                     type="email"
-                    value={editedBrand.brandOwnerInformation?.ownerEmail || editedBrand.brandOwnerInformation?.email || ''}
-                    onChange={(e) => handleNestedChange('brandOwnerInformation', 'ownerEmail', e.target.value)}
+                    value={editedBrand.ownerInfo?.email || editedBrand.brandOwnerInformation?.ownerEmail || editedBrand.brandOwnerInformation?.email || ''}
+                    onChange={(e) => handleNestedChange('ownerInfo', 'email', e.target.value)}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Contact Number"
-                    value={editedBrand.brandOwnerInformation?.contactNumber || editedBrand.brandOwnerInformation?.phone || ''}
-                    onChange={(e) => handleNestedChange('brandOwnerInformation', 'contactNumber', e.target.value)}
+                    value={editedBrand.contactInfo?.phone || editedBrand.brandOwnerInformation?.contactNumber || editedBrand.brandOwnerInformation?.phone || ''}
+                    onChange={(e) => handleNestedChange('contactInfo', 'phone', e.target.value)}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Facebook URL"
-                    value={editedBrand.brandOwnerInformation?.facebookUrl || editedBrand.facebookUrl || ''}
-                    onChange={(e) => handleNestedChange('brandOwnerInformation', 'facebookUrl', e.target.value)}
+                    value={editedBrand.contactInfo?.socialMedia?.facebook || editedBrand.brandOwnerInformation?.facebookUrl || editedBrand.facebookUrl || ''}
+                    onChange={(e) => handleNestedChange('contactInfo', 'facebook', e.target.value)}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Instagram URL"
-                    value={editedBrand.brandOwnerInformation?.instagramUrl || editedBrand.instagramUrl || ''}
-                    onChange={(e) => handleNestedChange('brandOwnerInformation', 'instagramUrl', e.target.value)}
+                    value={editedBrand.contactInfo?.socialMedia?.instagram || editedBrand.brandOwnerInformation?.instagramUrl || editedBrand.instagramUrl || ''}
+                    onChange={(e) => handleNestedChange('contactInfo', 'instagram', e.target.value)}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Twitter URL"
-                    value={editedBrand.brandOwnerInformation?.twitterUrl || editedBrand.twitterUrl || ''}
-                    onChange={(e) => handleNestedChange('brandOwnerInformation', 'twitterUrl', e.target.value)}
+                    value={editedBrand.contactInfo?.socialMedia?.twitter || editedBrand.brandOwnerInformation?.twitterUrl || editedBrand.twitterUrl || ''}
+                    onChange={(e) => handleNestedChange('contactInfo', 'twitter', e.target.value)}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="LinkedIn URL"
-                    value={editedBrand.brandOwnerInformation?.linkedinUrl || editedBrand.linkedinUrl || ''}
-                    onChange={(e) => handleNestedChange('brandOwnerInformation', 'linkedinUrl', e.target.value)}
+                    value={editedBrand.contactInfo?.socialMedia?.linkedin || editedBrand.brandOwnerInformation?.linkedinUrl || editedBrand.linkedinUrl || ''}
+                    onChange={(e) => handleNestedChange('contactInfo', 'linkedin', e.target.value)}
                   />
                 </Grid>
               </Grid>

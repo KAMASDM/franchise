@@ -750,6 +750,121 @@ const BrandDetail = () => {
             </CardContent>
           </MotionCard>
 
+          {/* Space & Location Requirements */}
+          {(brand.spaceRequired || (brand.brandFranchiseLocations && brand.brandFranchiseLocations.length > 0)) && (
+            <MotionCard
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.18 }}
+              sx={{ mb: 4, boxShadow: 3 }}
+            >
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Space & Locations
+                </Typography>
+                
+                <Stack spacing={2} sx={{ mt: 2 }}>
+                  {brand.spaceRequired && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <CropLandscape sx={{ color: 'primary.main' }} />
+                        <Typography variant="subtitle1" fontWeight="600">
+                          Space Required
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
+                        {brand.spaceRequired} sq ft
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {brand.brandFranchiseLocations && brand.brandFranchiseLocations.length > 0 && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <LocationOn sx={{ color: 'success.main' }} />
+                        <Typography variant="subtitle1" fontWeight="600">
+                          Current Franchise Locations ({brand.brandFranchiseLocations.length})
+                        </Typography>
+                      </Box>
+                      <Box sx={{ pl: 4, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {brand.brandFranchiseLocations.map((location, index) => (
+                          <Chip 
+                            key={index}
+                            label={location}
+                            size="small"
+                            variant="outlined"
+                            color="success"
+                            icon={<LocationOn />}
+                          />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                </Stack>
+              </CardContent>
+            </MotionCard>
+          )}
+
+          {/* Legal & Terms */}
+          {(brand.transferConditions || brand.terminationConditions || brand.disputeResolution) && (
+            <MotionCard
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              sx={{ mb: 4, boxShadow: 3 }}
+            >
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Legal Terms & Conditions
+                </Typography>
+                
+                <Stack spacing={2.5} sx={{ mt: 2 }}>
+                  {brand.transferConditions && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <BusinessIcon sx={{ color: 'primary.main' }} />
+                        <Typography variant="subtitle1" fontWeight="600">
+                          Transfer Conditions
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
+                        {brand.transferConditions}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {brand.terminationConditions && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <BusinessCenter sx={{ color: 'error.main' }} />
+                        <Typography variant="subtitle1" fontWeight="600">
+                          Termination Conditions
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
+                        {brand.terminationConditions}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {brand.disputeResolution && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Support sx={{ color: 'info.main' }} />
+                        <Typography variant="subtitle1" fontWeight="600">
+                          Dispute Resolution
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
+                        {brand.disputeResolution}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+              </CardContent>
+            </MotionCard>
+          )}
+
           {/* Contact Information Card */}
           <MotionCard
             initial={{ opacity: 0, x: -50 }}
@@ -983,82 +1098,169 @@ const BrandDetail = () => {
 
         {/* Right Side */}
         <Box sx={{ flex: 2, minWidth: 0 }}>
-          {/* Key Advantages Card */}
-          <MotionCard
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            sx={{ mb: 4, boxShadow: 3 }}
-          >
-            <CardContent>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                Key Advantages
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                {[
-                  {
-                    condition: brand.uniqueSellingProposition,
-                    icon: <EmojiEvents color="primary" />,
-                    text: "Unique Selling Proposition",
-                  },
-                  {
-                    condition: brand.competitiveAdvantage,
-                    icon: <Star color="primary" />,
-                    text: "Competitive Advantage",
-                  },
-                  {
-                    condition: brand.territoryRights,
-                    icon: <CheckCircle color="primary" />,
-                    text: "Exclusive Territory Rights",
-                  },
-                  {
-                    condition: brand.nonCompeteRestrictions,
-                    icon: <BusinessCenter color="primary" />,
-                    text: "Non-Compete Restrictions",
-                  },
-                  {
-                    condition: brand.franchisorSupport,
-                    icon: <SupportAgent color="primary" />,
-                    text: "Franchisor Support",
-                  },
-                  {
-                    condition: brand.marketingSupport,
-                    icon: <BusinessIcon color="primary" />,
-                    text: "Marketing Support",
-                  },
-                ].map(
-                  (item, index) =>
-                    item.condition && (
-                      <Box
-                        key={index}
-                        sx={{
-                          flex: "1 1 calc(50% - 16px)",
-                          minWidth: 200,
-                          display: "flex",
-                          alignItems: "center",
-                          p: 2,
-                          border: "1px solid",
-                          borderColor: "divider",
-                          borderRadius: 2,
+          {/* Why Choose Us - Detailed Content */}
+          {(brand.uniqueSellingProposition || brand.competitiveAdvantage || brand.targetMarket) && (
+            <MotionCard
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+              sx={{ mb: 4, boxShadow: 3 }}
+            >
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Why Choose {brand.brandName}?
+                </Typography>
+                
+                <Stack spacing={3} sx={{ mt: 2 }}>
+                  {brand.uniqueSellingProposition && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <EmojiEvents sx={{ color: 'primary.main' }} />
+                        <Typography variant="h6" fontWeight="600" color="primary">
+                          Unique Selling Proposition
+                        </Typography>
+                      </Box>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'primary.50',
+                          borderLeft: '4px solid',
+                          borderColor: 'primary.main'
                         }}
                       >
-                        <Avatar
-                          sx={{
-                            mr: 2,
-                            bgcolor: "primary.50",
-                            width: 40,
-                            height: 40,
-                          }}
-                        >
-                          {item.icon}
-                        </Avatar>
-                        <Typography variant="body1">{item.text}</Typography>
+                        <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+                          {brand.uniqueSellingProposition}
+                        </Typography>
+                      </Paper>
+                    </Box>
+                  )}
+
+                  {brand.competitiveAdvantage && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Star sx={{ color: 'secondary.main' }} />
+                        <Typography variant="h6" fontWeight="600" color="secondary">
+                          Competitive Advantage
+                        </Typography>
                       </Box>
-                    )
-                )}
-              </Box>
-            </CardContent>
-          </MotionCard>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'secondary.50',
+                          borderLeft: '4px solid',
+                          borderColor: 'secondary.main'
+                        }}
+                      >
+                        <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+                          {brand.competitiveAdvantage}
+                        </Typography>
+                      </Paper>
+                    </Box>
+                  )}
+
+                  {brand.targetMarket && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Person sx={{ color: 'success.main' }} />
+                        <Typography variant="h6" fontWeight="600" color="success.main">
+                          Target Market
+                        </Typography>
+                      </Box>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'success.50',
+                          borderLeft: '4px solid',
+                          borderColor: 'success.main'
+                        }}
+                      >
+                        <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+                          {brand.targetMarket}
+                        </Typography>
+                      </Paper>
+                    </Box>
+                  )}
+                </Stack>
+              </CardContent>
+            </MotionCard>
+          )}
+
+          {/* Support & Benefits */}
+          {(brand.franchisorSupport || brand.marketingSupport || brand.territoryRights || brand.nonCompeteRestrictions) && (
+            <MotionCard
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.05 }}
+              sx={{ mb: 4, boxShadow: 3 }}
+            >
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Support & Benefits
+                </Typography>
+                
+                <Stack spacing={2.5} sx={{ mt: 2 }}>
+                  {brand.franchisorSupport && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <SupportAgent sx={{ color: 'primary.main' }} />
+                        <Typography variant="subtitle1" fontWeight="600">
+                          Franchisor Support
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
+                        {brand.franchisorSupport}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {brand.marketingSupport && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <TrendingUp sx={{ color: 'primary.main' }} />
+                        <Typography variant="subtitle1" fontWeight="600">
+                          Marketing Support
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
+                        {brand.marketingSupport}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {brand.territoryRights && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <LocationOn sx={{ color: 'primary.main' }} />
+                        <Typography variant="subtitle1" fontWeight="600">
+                          Territory Rights
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
+                        {brand.territoryRights}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {brand.nonCompeteRestrictions && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <BusinessCenter sx={{ color: 'warning.main' }} />
+                        <Typography variant="subtitle1" fontWeight="600">
+                          Non-Compete Clause
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
+                        {brand.nonCompeteRestrictions}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+              </CardContent>
+            </MotionCard>
+          )}
           <MotionCard
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -1300,6 +1502,193 @@ const BrandDetail = () => {
               </Box>
             </CardContent>
           </MotionCard>
+
+          {/* Financial Breakdown - Detailed */}
+          {(brand.securityDeposit || brand.workingCapital || brand.equipmentCosts || brand.realEstateCosts || 
+            brand.ebitdaMargin || brand.expectedRevenue || brand.minROI || brand.payBackPeriod) && (
+            <MotionCard
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.22 }}
+              sx={{ mb: 4, boxShadow: 3 }}
+            >
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Detailed Financial Breakdown
+                </Typography>
+                
+                <Grid container spacing={2} sx={{ mt: 1 }}>
+                  {brand.securityDeposit && (
+                    <Grid item xs={12} sm={6}>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'background.default',
+                          border: '1px solid',
+                          borderColor: 'divider'
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Security Deposit
+                        </Typography>
+                        <Typography variant="h6" fontWeight="600" color="primary">
+                          ₹{Number(brand.securityDeposit).toLocaleString()}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  )}
+
+                  {brand.workingCapital && (
+                    <Grid item xs={12} sm={6}>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'background.default',
+                          border: '1px solid',
+                          borderColor: 'divider'
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Working Capital
+                        </Typography>
+                        <Typography variant="h6" fontWeight="600" color="primary">
+                          ₹{Number(brand.workingCapital).toLocaleString()}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  )}
+
+                  {brand.equipmentCosts && (
+                    <Grid item xs={12} sm={6}>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'background.default',
+                          border: '1px solid',
+                          borderColor: 'divider'
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Equipment Costs
+                        </Typography>
+                        <Typography variant="h6" fontWeight="600" color="primary">
+                          ₹{Number(brand.equipmentCosts).toLocaleString()}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  )}
+
+                  {brand.realEstateCosts && (
+                    <Grid item xs={12} sm={6}>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'background.default',
+                          border: '1px solid',
+                          borderColor: 'divider'
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Real Estate Costs
+                        </Typography>
+                        <Typography variant="h6" fontWeight="600" color="primary">
+                          ₹{Number(brand.realEstateCosts).toLocaleString()}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  )}
+
+                  {brand.expectedRevenue && (
+                    <Grid item xs={12} sm={6}>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'success.50',
+                          border: '1px solid',
+                          borderColor: 'success.main'
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Expected Annual Revenue
+                        </Typography>
+                        <Typography variant="h6" fontWeight="600" color="success.dark">
+                          ₹{Number(brand.expectedRevenue).toLocaleString()}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  )}
+
+                  {brand.ebitdaMargin && (
+                    <Grid item xs={12} sm={6}>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'info.50',
+                          border: '1px solid',
+                          borderColor: 'info.main'
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          EBITDA Margin
+                        </Typography>
+                        <Typography variant="h6" fontWeight="600" color="info.dark">
+                          {brand.ebitdaMargin}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  )}
+
+                  {brand.minROI && (
+                    <Grid item xs={12} sm={6}>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'warning.50',
+                          border: '1px solid',
+                          borderColor: 'warning.main'
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Minimum ROI
+                        </Typography>
+                        <Typography variant="h6" fontWeight="600" color="warning.dark">
+                          {brand.minROI}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  )}
+
+                  {brand.payBackPeriod && (
+                    <Grid item xs={12} sm={6}>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: 'secondary.50',
+                          border: '1px solid',
+                          borderColor: 'secondary.main'
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Payback Period
+                        </Typography>
+                        <Typography variant="h6" fontWeight="600" color="secondary.dark">
+                          {brand.payBackPeriod}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  )}
+                </Grid>
+              </CardContent>
+            </MotionCard>
+          )}
 
           {/* Financial Performance Card */}
           {(brand.expectedROI || brand.paybackPeriod || brand.avgMonthlyRevenue || brand.profitMargins) && (
