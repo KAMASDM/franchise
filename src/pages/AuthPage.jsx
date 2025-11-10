@@ -3,6 +3,7 @@ import {
   Box,
   Container,
   Paper,
+  Card,
   Tabs,
   Tab,
   TextField,
@@ -469,9 +470,10 @@ const AuthPage = () => {
         display: 'flex',
         alignItems: 'center',
         py: 4,
+        px: isMobile ? 1 : 0,
       }}
     >
-      <Container maxWidth="sm">
+      <Container maxWidth="sm" sx={{ width: '100%' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -480,30 +482,56 @@ const AuthPage = () => {
           <Paper
             elevation={8}
             sx={{
-              p: 4,
+              p: isMobile ? 1 : 4,
               borderRadius: 3,
               position: 'relative',
+              overflow: 'visible',
             }}
           >
             {/* Back to Home Button */}
             <IconButton
               component={RouterLink}
               to="/"
-              sx={{ position: 'absolute', top: 16, left: 16 }}
+              sx={{ position: 'absolute', top: 16, left: 16, zIndex: 1 }}
             >
               <ArrowBack />
             </IconButton>
 
             {/* Logo/Brand */}
-            <Box sx={{ textAlign: 'center', mb: 4, mt: isMobile ? 1 : 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                <FranchiseHubLogo 
-                  width={isMobile ? 160 : 200} 
-                  height={isMobile ? 48 : 60} 
-                  variant="full"
-                  color="primary"
-                />
-              </Box>
+            <Box sx={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center', 
+              mb: 4, 
+              mt: isMobile ? 6 : 2, 
+              width: '100%',
+            }}>
+             <Card 
+  elevation={3}
+  sx={{ 
+    p: isMobile ? 2 : 3,
+    borderRadius: 2,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    bgcolor: 'background.default',
+    mb: 2,
+    width: '100%', // <-- THE FIX: Force the card to take up full width
+    maxWidth: '100%',
+    overflow: 'hidden',
+  }}
+>
+  {/* The inner Box is no longer needed */}
+  <FranchiseHubLogo 
+    width={isMobile ? 480 : 360} 
+    height={isMobile ? 104 : 108} 
+    variant="full"
+    color="primary"
+    
+  />
+</Card>
               <Typography 
                 variant={isMobile ? "body2" : "body1"} 
                 color="text.secondary"

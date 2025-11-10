@@ -116,15 +116,15 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
       {/* Top App Bar */}
       <AppBar 
         position="sticky" 
-        elevation={0}
+        elevation={2}
         sx={{ 
-          bgcolor: 'primary.main',
-          color: 'primary.contrastText',
+          bgcolor: 'background.paper',
+          color: 'text.primary',
           borderBottom: '1px solid',
-          borderColor: 'primary.dark',
+          borderColor: 'divider',
         }}
       >
-        <Toolbar sx={{ minHeight: 56, px: 1.5 }}>
+        <Toolbar sx={{ minHeight: 64, px: 2 }}>
           <Box 
             display="flex" 
             alignItems="center" 
@@ -133,10 +133,10 @@ const MobileAppLayout = ({ children, currentPage = 'home' }) => {
             sx={{ cursor: 'pointer' }}
           >
             <FranchiseHubLogo 
-              width={140} 
-              height={40} 
+              width={280} 
+              height={78} 
               variant="full"
-              color="white"
+              color="primary"
             />
           </Box>
 
