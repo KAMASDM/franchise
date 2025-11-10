@@ -38,6 +38,15 @@ const franchiseModelOptions = [
 const Brands = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Debug logging
+  React.useEffect(() => {
+    if (user) {
+      console.log("Dashboard Brands - Current user UID:", user.uid);
+      console.log("Dashboard Brands - Current user email:", user.email);
+    }
+  }, [user]);
+  
   const { brands, loading, error } = useBrands(user);
   const {
     brandViews,

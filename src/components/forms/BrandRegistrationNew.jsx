@@ -1370,6 +1370,9 @@ const BrandRegistrationNew = () => {
         status: "pending"
       };
 
+      console.log("Creating brand with userId:", user.uid);
+      console.log("User email:", user.email);
+
       // Remove undefined and null values to prevent Firestore errors
       Object.keys(submissionData).forEach(key => {
         if (submissionData[key] === undefined || submissionData[key] === null) {
@@ -1387,6 +1390,9 @@ const BrandRegistrationNew = () => {
 
       // Submit to Firestore
       const docRef = await addDoc(collection(db, "brands"), submissionData);
+      
+      console.log("Brand created successfully! ID:", docRef.id);
+      console.log("Saved with userId:", submissionData.userId);
       
       // Send admin notification
       await NotificationService.sendAdminNotification(
