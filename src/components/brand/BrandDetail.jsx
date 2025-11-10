@@ -173,6 +173,45 @@ const BrandDetail = () => {
     ],
   };
 
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined || value === "") return null;
+    if (typeof value === "number") {
+      return `₹${value.toLocaleString()}`;
+    }
+
+    const trimmed = String(value).trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith("₹")) return trimmed;
+
+    const numeric = Number(trimmed.replace(/,/g, ""));
+    if (!Number.isNaN(numeric)) {
+      return `₹${numeric.toLocaleString()}`;
+    }
+    return trimmed;
+  };
+
+  const formatPercentage = (value) => {
+    if (value === null || value === undefined || value === "") return null;
+    if (typeof value === "number") {
+      return `${value}%`;
+    }
+
+    const trimmed = String(value).trim();
+    if (!trimmed) return null;
+    return trimmed.endsWith("%") ? trimmed : `${trimmed}%`;
+  };
+
+  const asArray = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string" && value.trim()) {
+      return value
+        .split(/[\n,]/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+    return [];
+  };
+
   if (loading) {
     return (
       <Box
@@ -677,9 +716,24 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Investment Range"
-                    secondary={brand.investmentRange || "Investment range not specified"}
+                    secondary={
+                      brand.investmentRange ||
+                      formatCurrency(brand.brandInvestment) ||
+                      "Investment range not specified"
+                    }
                   />
                 </ListItem>
+                {brand.brandInvestment && brand.investmentRange && (
+                  <ListItem>
+                    <ListItemIcon>
+                      <AttachMoney color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Total Investment Required"
+                      secondary={formatCurrency(brand.brandInvestment)}
+                    />
+                  </ListItem>
+                )}
                 <ListItem>
                   <ListItemIcon>
                     <CropLandscape color="primary" />
@@ -689,6 +743,8 @@ const BrandDetail = () => {
                     secondary={
                       brand?.areaRequired?.min && brand?.areaRequired?.max && brand?.areaRequired?.unit
                         ? `${brand.areaRequired.min} - ${brand.areaRequired.max} ${brand.areaRequired.unit}`
+                        : brand.spaceRequired
+                        ? `${brand.spaceRequired} Sq.ft`
                         : "Area requirements not specified"
                     }
                   />
@@ -700,9 +756,8 @@ const BrandDetail = () => {
                   <ListItemText
                     primary="Initial Franchise Fee"
                     secondary={
-                      brand.initialFranchiseFee 
-                        ? `₹${brand.initialFranchiseFee.toLocaleString()}`
-                        : "Contact for franchise fee details"
+                      formatCurrency(brand.franchiseFee ?? brand.initialFranchiseFee) ||
+                      "Contact for franchise fee details"
                     }
                   />
                 </ListItem>
@@ -721,17 +776,22 @@ const BrandDetail = () => {
                   </ListItemIcon>
                   <ListItemText
                     primary="Royalty Fee"
-                    secondary={brand.royaltyFee ? `${brand.royaltyFee}%` : "Royalty fee not specified"}
+                    secondary={
+                      formatPercentage(brand.royaltyFee) || "Royalty fee not specified"
+                    }
                   />
                 </ListItem>
-                {brand.marketingFee && (
+                {(brand.marketingFee || brand.brandFee) && (
                   <ListItem>
                     <ListItemIcon>
                       <TrendingUp color="primary" />
                     </ListItemIcon>
                     <ListItemText
                       primary="Marketing Fee"
-                      secondary={`${brand.marketingFee}%`}
+                      secondary={
+                        formatPercentage(brand.marketingFee ?? brand.brandFee) ||
+                        "Marketing fee not specified"
+                      }
                     />
                   </ListItem>
                 )}
@@ -976,6 +1036,26 @@ const BrandDetail = () => {
                         }
                       />
                     </ListItem>
+                    {brand.brandOwnerInformation && (
+                      <ListItem>
+                        <ListItemIcon>
+                          <Person color="primary" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary="Brand Owner"
+                          secondary={(() => {
+                            const { ownerName, ownerEmail, contactNumber } = brand.brandOwnerInformation;
+                            const contactSummary = [ownerEmail, contactNumber]
+                              .map((value) => (value && typeof value === 'string' ? value.trim() : value))
+                              .filter(Boolean)
+                              .join(' • ');
+                            return [ownerName, contactSummary]
+                              .filter(Boolean)
+                              .join(' — ') || 'Owner details not available';
+                          })()}
+                        />
+                      </ListItem>
+                    )}
                   </List>
                   <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
                     {(() => {
@@ -1224,9 +1304,31 @@ const BrandDetail = () => {
                           Marketing Support
                         </Typography>
                       </Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
-                        {brand.marketingSupport}
-                      </Typography>
+                      {(() => {
+                        const marketingSupportList = asArray(brand.marketingSupport);
+                        if (marketingSupportList.length > 0) {
+                          return (
+                            <List sx={{ pl: 2 }}>
+                              {marketingSupportList.map((item, index) => (
+                                <ListItem key={index} sx={{ py: 0 }}>
+                                  <ListItemIcon sx={{ minWidth: 28 }}>
+                                    <TrendingUp fontSize="small" color="primary" />
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={item}
+                                    primaryTypographyProps={{ variant: "body2", color: 'text.secondary' }}
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          );
+                        }
+                        return (
+                          <Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
+                            {brand.marketingSupport}
+                          </Typography>
+                        );
+                      })()}
                     </Box>
                   )}
 

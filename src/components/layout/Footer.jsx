@@ -154,7 +154,7 @@ const Footer = () => {
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 <Email sx={{ color: "primary.main" }} />
-                <Typography variant="body2">info@ikama.in</Typography>
+                <Typography variant="body2">support@ikama.in</Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
                 <LocationOn sx={{ color: "primary.main", mt: 0.5 }} />

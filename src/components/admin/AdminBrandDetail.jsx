@@ -50,6 +50,175 @@ const AdminBrandDetail = () => {
   const [editedBrand, setEditedBrand] = useState({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  const normalizeBrandData = (rawBrand = {}) => {
+    const normalized = { ...rawBrand };
+
+    const ownerDetails = {
+      ownerName: rawBrand.brandOwnerInformation?.ownerName || rawBrand.ownerInfo?.name || "",
+      ownerEmail:
+        rawBrand.brandOwnerInformation?.ownerEmail ||
+        rawBrand.ownerInfo?.email ||
+        rawBrand.contactInfo?.email ||
+        "",
+      contactNumber:
+        rawBrand.brandOwnerInformation?.contactNumber ||
+        rawBrand.brandOwnerInformation?.ownerPhone ||
+        rawBrand.ownerInfo?.phone ||
+        rawBrand.contactInfo?.phone ||
+        "",
+      facebookUrl:
+        rawBrand.brandOwnerInformation?.facebookUrl ||
+        rawBrand.brandOwnerInformation?.facebookURl ||
+        rawBrand.contactInfo?.facebookUrl ||
+        rawBrand.contactInfo?.facebookURl ||
+        rawBrand.ownerInfo?.facebookUrl ||
+        "",
+      instagramUrl:
+        rawBrand.brandOwnerInformation?.instagramUrl ||
+        rawBrand.brandOwnerInformation?.instagramURl ||
+        rawBrand.contactInfo?.instagramUrl ||
+        rawBrand.contactInfo?.instagramURl ||
+        rawBrand.ownerInfo?.instagramUrl ||
+        "",
+      twitterUrl:
+        rawBrand.brandOwnerInformation?.twitterUrl ||
+        rawBrand.brandOwnerInformation?.twitterURl ||
+        rawBrand.contactInfo?.twitterUrl ||
+        rawBrand.contactInfo?.twitterURl ||
+        rawBrand.ownerInfo?.twitterUrl ||
+        "",
+      linkedinUrl:
+        rawBrand.brandOwnerInformation?.linkedinUrl ||
+        rawBrand.brandOwnerInformation?.linkedinURl ||
+        rawBrand.ownerInfo?.linkedinUrl ||
+        rawBrand.contactInfo?.linkedinUrl ||
+        rawBrand.contactInfo?.linkedinURl ||
+        ""
+    };
+
+    normalized.brandOwnerInformation = ownerDetails;
+
+    normalized.ownerInfo = {
+      ...(rawBrand.ownerInfo || {}),
+      name: ownerDetails.ownerName,
+      email: ownerDetails.ownerEmail || rawBrand.ownerInfo?.email || "",
+      phone: ownerDetails.contactNumber || rawBrand.ownerInfo?.phone || "",
+      linkedinUrl: rawBrand.ownerInfo?.linkedinUrl || ownerDetails.linkedinUrl || ""
+    };
+
+    const contactInfo = { ...(rawBrand.contactInfo || {}) };
+    if (!contactInfo.email && ownerDetails.ownerEmail) contactInfo.email = ownerDetails.ownerEmail;
+    if (!contactInfo.phone && ownerDetails.contactNumber) contactInfo.phone = ownerDetails.contactNumber;
+
+    const facebookLink = contactInfo.facebookUrl || contactInfo.facebookURl || ownerDetails.facebookUrl;
+    const instagramLink = contactInfo.instagramUrl || contactInfo.instagramURl || ownerDetails.instagramUrl;
+    const twitterLink = contactInfo.twitterUrl || contactInfo.twitterURl || ownerDetails.twitterUrl;
+    const linkedinLink = contactInfo.linkedinUrl || contactInfo.linkedinURl || ownerDetails.linkedinUrl;
+
+    if (facebookLink) {
+      contactInfo.facebookUrl = facebookLink;
+      contactInfo.facebookURl = facebookLink;
+    }
+    if (instagramLink) {
+      contactInfo.instagramUrl = instagramLink;
+      contactInfo.instagramURl = instagramLink;
+    }
+    if (twitterLink) {
+      contactInfo.twitterUrl = twitterLink;
+      contactInfo.twitterURl = twitterLink;
+    }
+    if (linkedinLink) {
+      contactInfo.linkedinUrl = linkedinLink;
+      contactInfo.linkedinURl = linkedinLink;
+    }
+
+    normalized.contactInfo = contactInfo;
+
+    if (!normalized.brandfoundedYear && normalized.foundedYear) {
+      normalized.brandfoundedYear = normalized.foundedYear;
+    }
+    if (!normalized.foundedYear && normalized.brandfoundedYear) {
+      normalized.foundedYear = normalized.brandfoundedYear;
+    }
+
+    if (!normalized.franchiseFee && normalized.initialFranchiseFee) {
+      normalized.franchiseFee = normalized.initialFranchiseFee;
+    }
+    if (!normalized.initialFranchiseFee && normalized.franchiseFee) {
+      normalized.initialFranchiseFee = normalized.franchiseFee;
+    }
+
+    if (!normalized.brandFee && normalized.marketingFee) {
+      normalized.brandFee = normalized.marketingFee;
+    }
+    if (!normalized.marketingFee && normalized.brandFee) {
+      normalized.marketingFee = normalized.brandFee;
+    }
+
+    const territoryValue = normalized.territoryRights || normalized.territorialRights;
+    if (territoryValue) {
+      normalized.territoryRights = territoryValue;
+      normalized.territorialRights = territoryValue;
+    }
+
+    const paybackValue = normalized.payBackPeriod || normalized.paybackPeriod;
+    if (paybackValue) {
+      normalized.payBackPeriod = paybackValue;
+      normalized.paybackPeriod = paybackValue;
+    }
+
+    const ensureStringArray = (value) => {
+      if (Array.isArray(value)) return value;
+      if (typeof value === "string" && value.trim()) {
+        return value
+          .split(/[\n,]/)
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+      return [];
+    };
+
+    normalized.supportTypes = ensureStringArray(normalized.supportTypes);
+    normalized.franchiseModels = ensureStringArray(normalized.franchiseModels);
+    normalized.industries = ensureStringArray(normalized.industries);
+    normalized.businessModels = ensureStringArray(normalized.businessModels);
+    normalized.marketingSupport = ensureStringArray(normalized.marketingSupport);
+
+    if (!normalized.brandFranchiseLocations || normalized.brandFranchiseLocations.length === 0) {
+      const mappedLocations = Array.isArray(rawBrand.franchiseLocations)
+        ? rawBrand.franchiseLocations
+            .map((location) => {
+              if (!location) return "";
+              const segments = [
+                location.address,
+                location.city,
+                location.state,
+                location.country
+              ]
+                .filter(Boolean)
+                .map((segment) => segment.trim());
+              return segments.join(", ");
+            })
+            .filter(Boolean)
+        : [];
+
+      if (mappedLocations.length > 0) {
+        normalized.brandFranchiseLocations = mappedLocations;
+      }
+    }
+
+    if (!normalized.locations || normalized.locations.length === 0) {
+      normalized.locations = normalized.brandFranchiseLocations || [];
+    }
+
+    if (!normalized.spaceRequired && normalized.areaRequired) {
+      const { max, min } = normalized.areaRequired;
+      normalized.spaceRequired = max || min || normalized.spaceRequired;
+    }
+
+    return normalized;
+  };
+
   useEffect(() => {
     const fetchBrand = async () => {
       setLoading(true);
@@ -61,8 +230,9 @@ const AdminBrandDetail = () => {
 
         if (docSnap.exists()) {
           const brandData = { id: docSnap.id, ...docSnap.data() };
-          setBrand(brandData);
-          setEditedBrand(brandData);
+          const normalizedBrand = normalizeBrandData(brandData);
+          setBrand(normalizedBrand);
+          setEditedBrand(normalizedBrand);
         } else {
           setError("Brand not found.");
         }
@@ -109,14 +279,16 @@ const AdminBrandDetail = () => {
     setSaving(true);
     try {
       const brandRef = doc(db, "brands", id);
-      const { id: _, ...updateData } = editedBrand;
+      const cleanedBrand = normalizeBrandData(editedBrand);
+      const { id: _, ...updateData } = cleanedBrand;
       
       await updateDoc(brandRef, {
         ...updateData,
         updatedAt: new Date().toISOString(),
       });
 
-      setBrand(editedBrand);
+      setBrand(cleanedBrand);
+      setEditedBrand(cleanedBrand);
       setEditMode(false);
       alert("Brand updated successfully!");
     } catch (err) {
@@ -660,8 +832,18 @@ const AdminBrandDetail = () => {
                   fullWidth
                   multiline
                   rows={2}
-                  value={editedBrand.marketingSupport || ""}
-                  onChange={(e) => handleChange("marketingSupport", e.target.value)}
+                  value={Array.isArray(editedBrand.marketingSupport)
+                    ? editedBrand.marketingSupport.join(", ")
+                    : editedBrand.marketingSupport || ""}
+                  onChange={(e) =>
+                    handleChange(
+                      "marketingSupport",
+                      e.target.value
+                        .split(/[\n,]/)
+                        .map((item) => item.trim())
+                        .filter(Boolean)
+                    )
+                  }
                   disabled={!editMode}
                 />
               </Grid>

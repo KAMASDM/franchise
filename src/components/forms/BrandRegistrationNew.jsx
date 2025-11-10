@@ -108,6 +108,7 @@ import QuickValueSelector from "./QuickValueSelector";
 import { BUSINESS_MODEL_CONFIG, BUSINESS_MODEL_TYPES } from "../../constants/businessModels";
 import { getBusinessModelFields, getFieldOptions } from "../../constants/businessModelFields";
 import { isFieldVisible } from "../../utils/conditionalFields";
+import { generateBrandSlug } from "../../utils/brandUtils";
 import * as analytics from "../../utils/analytics";
 
 const BrandRegistrationNew = () => {
@@ -1397,6 +1398,94 @@ const BrandRegistrationNew = () => {
 
       console.log("Final userId before save:", submissionData.userId);
       console.log("Final status before save:", submissionData.status);
+
+      // Ensure admin edit form fields stay in sync with registration payload
+      const normalizedOwnerInfo = {
+        ownerName: formData.ownerInfo?.name || "",
+        ownerEmail: formData.ownerInfo?.email || formData.contactInfo?.email || "",
+        contactNumber: formData.ownerInfo?.phone || formData.contactInfo?.phone || "",
+        facebookUrl: formData.contactInfo?.facebookUrl || "",
+        instagramUrl: formData.contactInfo?.instagramUrl || "",
+        twitterUrl: formData.contactInfo?.twitter || formData.contactInfo?.twitterUrl || "",
+        linkedinUrl: formData.contactInfo?.linkedinUrl || ""
+      };
+
+      submissionData.slug = generateBrandSlug(formData.brandName);
+      submissionData.brandOwnerInformation = normalizedOwnerInfo;
+
+      if (submissionData.contactInfo) {
+        const contactInfo = { ...submissionData.contactInfo };
+        if (contactInfo.facebookUrl && !contactInfo.facebookURl) {
+          contactInfo.facebookURl = contactInfo.facebookUrl;
+        }
+        if (contactInfo.instagramUrl && !contactInfo.instagramURl) {
+          contactInfo.instagramURl = contactInfo.instagramUrl;
+        }
+        if (contactInfo.twitterUrl && !contactInfo.twitterURl) {
+          contactInfo.twitterURl = contactInfo.twitterUrl;
+        }
+        if (contactInfo.linkedinUrl && !contactInfo.linkedinURl) {
+          contactInfo.linkedinURl = contactInfo.linkedinUrl;
+        }
+        submissionData.contactInfo = contactInfo;
+      }
+
+      if (formData.foundedYear) {
+        submissionData.brandfoundedYear = formData.foundedYear;
+      }
+
+      if (formData.initialFranchiseFee) {
+        submissionData.franchiseFee = formData.initialFranchiseFee;
+      }
+
+      if (formData.marketingFee) {
+        submissionData.brandFee = formData.marketingFee;
+      }
+
+      const computedPayback = formData.paybackPeriod || formData.payBackPeriod || "";
+      if (computedPayback) {
+        submissionData.payBackPeriod = computedPayback;
+        submissionData.paybackPeriod = computedPayback;
+      }
+
+      const normalizedTerritoryRights = formData.territoryRights || formData.territorialRights || "";
+      if (normalizedTerritoryRights) {
+        submissionData.territoryRights = normalizedTerritoryRights;
+        submissionData.territorialRights = normalizedTerritoryRights;
+      }
+
+      if (!submissionData.businessModel || submissionData.businessModel.length === 0) {
+        submissionData.businessModel = formData.businessModelType ? [formData.businessModelType] : [];
+      }
+
+      if (formData.businessModelType && !submissionData.businessModelLabel) {
+        submissionData.businessModelLabel = currentModelConfig?.label || formData.businessModelType;
+      }
+
+      if (formData.areaRequired && (formData.areaRequired.min || formData.areaRequired.max)) {
+        const { min, max } = formData.areaRequired;
+        const preferredValue = max || min;
+        if (preferredValue) {
+          submissionData.spaceRequired = preferredValue;
+        }
+      }
+
+      if (Array.isArray(formData.franchiseLocations) && formData.franchiseLocations.length > 0) {
+        const formattedLocations = formData.franchiseLocations
+          .map((location) => {
+            if (!location) return "";
+            const segments = [location.city, location.state, location.country]
+              .filter(Boolean)
+              .map((segment) => segment.trim());
+            return segments.join(", ");
+          })
+          .filter(Boolean);
+
+        if (formattedLocations.length > 0) {
+          submissionData.locations = formattedLocations;
+          submissionData.brandFranchiseLocations = formattedLocations;
+        }
+      }
 
       // Submit to Firestore
       const docRef = await addDoc(collection(db, "brands"), submissionData);
