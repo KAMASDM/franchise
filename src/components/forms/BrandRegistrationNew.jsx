@@ -1374,7 +1374,13 @@ const BrandRegistrationNew = () => {
       console.log("User email:", user.email);
 
       // Remove undefined and null values to prevent Firestore errors
+      // BUT keep important fields like userId, createdBy, createdAt, status
       Object.keys(submissionData).forEach(key => {
+        // Don't delete critical metadata fields
+        if (key === 'userId' || key === 'createdBy' || key === 'createdAt' || key === 'status') {
+          return; // Skip deletion for these fields
+        }
+        
         if (submissionData[key] === undefined || submissionData[key] === null) {
           delete submissionData[key];
         }
@@ -1387,6 +1393,9 @@ const BrandRegistrationNew = () => {
           });
         }
       });
+
+      console.log("Final userId before save:", submissionData.userId);
+      console.log("Final status before save:", submissionData.status);
 
       // Submit to Firestore
       const docRef = await addDoc(collection(db, "brands"), submissionData);
