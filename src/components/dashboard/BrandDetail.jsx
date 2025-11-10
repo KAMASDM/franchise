@@ -61,6 +61,7 @@ import { db } from "../../firebase/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { useBrand } from "../../hooks/useBrand";
 import logger from "../../utils/logger";
+import { sendBrandUpdatedEmail } from "../../services/emailServiceNew";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -200,6 +201,12 @@ const BrandDetail = () => {
     setIsSaving(true);
     try {
       const brandRef = doc(db, 'brands', brand.id);
+      
+      // Get list of updated fields for email
+      const updatedFields = Object.keys(editedBrand).filter(key => 
+        JSON.stringify(editedBrand[key]) !== JSON.stringify(brand[key])
+      );
+      
       await updateDoc(brandRef, {
         ...editedBrand,
         updatedAt: new Date().toISOString()
@@ -207,6 +214,22 @@ const BrandDetail = () => {
       setBrandLocally(editedBrand);
       setEditMode(false);
       alert('Brand updated successfully!');
+      
+      // Send brand updated email
+      if (updatedFields.length > 0 && user?.email) {
+        try {
+          await sendBrandUpdatedEmail({
+            brandOwnerEmail: user.email,
+            brandOwnerName: user.displayName || brand.brandOwnerInformation?.name || 'Brand Owner',
+            brandName: brand.brandName,
+            updatedFields: updatedFields.join(', '),
+          });
+          logger.info('Brand update confirmation email sent to:', user.email);
+        } catch (emailError) {
+          logger.error('Failed to send brand update email:', emailError);
+          // Don't block the save if email fails
+        }
+      }
     } catch (error) {
       logger.error("Error updating brand:", error);
       alert('Error updating brand. Please try again.');

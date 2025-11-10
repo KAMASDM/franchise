@@ -25,6 +25,7 @@ import { addDoc, collection } from "firebase/firestore";
 import logger from "../utils/logger";
 import PhoneVerification from "../components/verification/PhoneVerification";
 import EmailVerification from "../components/verification/EmailVerification";
+import { sendContactFormConfirmationEmail } from "../services/emailServiceNew";
 
 const MotionCard = motion(Card);
 
@@ -111,8 +112,26 @@ const Contact = () => {
 
     try {
       await addDoc(collection(db, "contactUs"), contactData);
+      
+      // Send confirmation email to user
+      try {
+        await sendContactFormConfirmationEmail({
+          email: email,
+          name: contactData.name,
+          message: data.message,
+        });
+        logger.info('Contact form confirmation email sent to:', email);
+      } catch (emailError) {
+        logger.error('Failed to send confirmation email:', emailError);
+        // Don't block form submission if email fails
+      }
+      
       setSubmitted(true);
       reset();
+      setEmail('');
+      setPhone('+91 ');
+      setEmailVerified(false);
+      setPhoneVerified(false);
     } catch (err) {
       logger.error("Error submitting form:", err);
       setError("Failed to submit form. Please try again later.");

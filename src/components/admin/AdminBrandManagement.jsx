@@ -10,7 +10,7 @@ import { Download, Search, Clear } from '@mui/icons-material';
 import NotificationService from '../../utils/NotificationService';
 import logger from '../../utils/logger';
 import { exportBrands } from '../../utils/exportUtils';
-import { sendBrandStatusUpdateEmail } from '../../services/emailServiceNew';
+import { sendBrandStatusUpdateEmail, sendBrandApprovedEmail, sendBrandRejectedEmail } from '../../services/emailServiceNew';
 import { getDoc } from 'firebase/firestore';
 
 const AdminBrandManagement = () => {
@@ -57,17 +57,25 @@ const AdminBrandManagement = () => {
                     const brandOwnerData = brandOwnerDoc.data();
                     
                     if (brandOwnerData?.email) {
-                        await sendBrandStatusUpdateEmail({
-                            brandOwnerEmail: brandOwnerData.email,
-                            brandOwnerName: brandOwnerData.displayName || brand.brandOwnerInformation?.name || 'Brand Owner',
-                            brandName: brand.brandName,
-                            status: newStatus === 'active' ? 'approved' : 'rejected',
-                            message: newStatus === 'active' 
-                                ? 'Your brand has been approved and is now live on our platform.'
-                                : 'Your brand status has been updated.',
-                            brandSlug: brand.slug || brand.brandName?.toLowerCase().replace(/\s+/g, '-'),
-                        });
-                        logger.info('Brand status update email sent to brand owner:', brandOwnerData.email);
+                        if (newStatus === 'active') {
+                            // Send brand approved email
+                            await sendBrandApprovedEmail({
+                                brandOwnerEmail: brandOwnerData.email,
+                                brandOwnerName: brandOwnerData.displayName || brand.brandOwnerInformation?.name || 'Brand Owner',
+                                brandName: brand.brandName,
+                                brandSlug: brand.slug || brand.brandName?.toLowerCase().replace(/\s+/g, '-'),
+                            });
+                            logger.info('Brand approved email sent to brand owner:', brandOwnerData.email);
+                        } else {
+                            // Send brand rejected email
+                            await sendBrandRejectedEmail({
+                                brandOwnerEmail: brandOwnerData.email,
+                                brandOwnerName: brandOwnerData.displayName || brand.brandOwnerInformation?.name || 'Brand Owner',
+                                brandName: brand.brandName,
+                                reason: 'Your brand listing did not meet our current requirements.',
+                            });
+                            logger.info('Brand rejected email sent to brand owner:', brandOwnerData.email);
+                        }
                     }
                 } catch (emailError) {
                     logger.error('Failed to send brand status update email:', emailError);

@@ -48,6 +48,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { compressImage } from "../../utils/imageUtils";
 import NotificationService from "../../utils/NotificationService";
 import logger from "../../utils/logger";
+import { sendBrandSubmittedEmail } from "../../services/emailServiceNew";
 import { 
   INVESTMENT_RANGES,
   INDUSTRIES,
@@ -735,6 +736,19 @@ const BrandRegistration = () => {
       } catch (notificationError) {
         // Don't fail the whole process if notification fails
         logger.warn("Admin notification failed (brand still created):", notificationError);
+      }
+
+      // Send brand submitted email to brand owner
+      try {
+        await sendBrandSubmittedEmail({
+          brandOwnerEmail: user.email,
+          brandOwnerName: user.displayName || formData.brandOwnerInformation?.name || 'Brand Owner',
+          brandName: formData.brandName,
+        });
+        logger.info('Brand submission confirmation email sent to:', user.email);
+      } catch (emailError) {
+        logger.error('Failed to send brand submission email:', emailError);
+        // Don't block the submission if email fails
       }
 
       setLoading(false);

@@ -19,8 +19,14 @@ import {
   sendPasswordResetEmail,
   sendPasswordChangedEmail,
   sendBrandSubmittedEmail,
-  sendEmailVerification
+  sendEmailVerification,
+  sendPhoneVerificationEmail,
+  sendNewDeviceLoginEmail,
+  sendContactFormConfirmationEmail,
+  sendBrandApprovedEmail,
+  sendBrandRejectedEmail
 } from '../../services/emailServiceNew';
+import engagementEmailService from '../../services/engagementEmailService';
 
 /**
  * Email Testing Component
@@ -120,6 +126,75 @@ const EmailTester = () => {
             name: testName,
             verificationLink: 'https://ikama.in/verify-email?token=sample-token-456',
           });
+          break;
+
+        // NEW EMAIL INTEGRATIONS
+        case 'phone-verification':
+          response = await sendPhoneVerificationEmail({
+            email: testEmail,
+            name: testName,
+            phoneNumber: '+91 9876543210',
+          });
+          break;
+
+        case 'new-device-login':
+          response = await sendNewDeviceLoginEmail({
+            email: testEmail,
+            name: testName,
+            deviceInfo: {
+              platform: 'MacIntel',
+              browser: 'Chrome',
+              location: 'Asia/Kolkata',
+              loginTime: new Date().toLocaleString('en-IN', {
+                dateStyle: 'long',
+                timeStyle: 'short',
+                timeZone: 'Asia/Kolkata'
+              })
+            }
+          });
+          break;
+
+        case 'contact-form':
+          response = await sendContactFormConfirmationEmail({
+            email: testEmail,
+            name: testName,
+            message: 'I would like to know more about franchise opportunities in my area.',
+          });
+          break;
+
+        case 'brand-approved':
+          response = await sendBrandApprovedEmail({
+            brandOwnerEmail: testEmail,
+            brandOwnerName: testName,
+            brandName: 'Test Brand - Coffee Shop',
+            brandSlug: 'test-brand-coffee-shop',
+          });
+          break;
+
+        case 'brand-rejected':
+          response = await sendBrandRejectedEmail({
+            brandOwnerEmail: testEmail,
+            brandOwnerName: testName,
+            brandName: 'Test Brand - Coffee Shop',
+            rejectionReason: 'Brand documentation needs to be updated with current financial statements.',
+          });
+          break;
+
+        // ENGAGEMENT EMAILS
+        case 'getting-started':
+          response = await engagementEmailService.testEngagementEmail('getting-started', testEmail, testName);
+          break;
+
+        case 'profile-completion':
+          response = await engagementEmailService.testEngagementEmail('profile-completion', testEmail, testName);
+          break;
+
+        case 'we-miss-you':
+          response = await engagementEmailService.testEngagementEmail('we-miss-you', testEmail, testName);
+          break;
+
+        case 'recommendations':
+          response = await engagementEmailService.testEngagementEmail('recommendations', testEmail, testName);
           break;
 
         default:
@@ -366,6 +441,261 @@ const EmailTester = () => {
               disabled={loading || !testEmail || !testName}
             >
               Test Email Verification
+            </Button>
+          </Paper>
+        </Grid>
+
+        {/* NEW EMAIL INTEGRATIONS - Authentication Related */}
+        <Grid item xs={12}>
+          <Typography variant="h5" sx={{ mb: 2, mt: 3, fontWeight: 'bold', color: 'primary.main' }}>
+            📱 New Email Integrations - Authentication
+          </Typography>
+        </Grid>
+
+        {/* Phone Verification Email Test */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              9. Phone Verification Confirmation
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Template: <code>HTML Template</code>
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Sent when: User successfully verifies phone number with OTP
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={loading ? <CircularProgress size={20} /> : <Send />}
+              onClick={() => handleTestEmail('phone-verification')}
+              disabled={loading || !testEmail || !testName}
+              color="primary"
+            >
+              Test Phone Verification
+            </Button>
+          </Paper>
+        </Grid>
+
+        {/* New Device Login Email Test */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              10. New Device Login Alert
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Template: <code>HTML Template</code>
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Sent when: User logs in from unrecognized device
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={loading ? <CircularProgress size={20} /> : <Send />}
+              onClick={() => handleTestEmail('new-device-login')}
+              disabled={loading || !testEmail || !testName}
+              color="primary"
+            >
+              Test New Device Login
+            </Button>
+          </Paper>
+        </Grid>
+
+        {/* BRAND MANAGEMENT EMAILS */}
+        <Grid item xs={12}>
+          <Typography variant="h5" sx={{ mb: 2, mt: 3, fontWeight: 'bold', color: 'success.main' }}>
+            🏢 Brand Management Emails
+          </Typography>
+        </Grid>
+
+        {/* Brand Approved Email Test */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              11. Brand Approved
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Template: <code>HTML Template</code>
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Sent when: Admin approves brand listing
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={loading ? <CircularProgress size={20} /> : <Send />}
+              onClick={() => handleTestEmail('brand-approved')}
+              disabled={loading || !testEmail || !testName}
+              color="success"
+            >
+              Test Brand Approved
+            </Button>
+          </Paper>
+        </Grid>
+
+        {/* Brand Rejected Email Test */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              12. Brand Rejected
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Template: <code>HTML Template</code>
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Sent when: Admin rejects brand listing
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={loading ? <CircularProgress size={20} /> : <Send />}
+              onClick={() => handleTestEmail('brand-rejected')}
+              disabled={loading || !testEmail || !testName}
+              color="error"
+            >
+              Test Brand Rejected
+            </Button>
+          </Paper>
+        </Grid>
+
+        {/* Contact Form Confirmation Email Test */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              13. Contact Form Confirmation
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Template: <code>HTML Template</code>
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Sent when: User submits contact form
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={loading ? <CircularProgress size={20} /> : <Send />}
+              onClick={() => handleTestEmail('contact-form')}
+              disabled={loading || !testEmail || !testName}
+              color="info"
+            >
+              Test Contact Form
+            </Button>
+          </Paper>
+        </Grid>
+
+        {/* ENGAGEMENT EMAILS */}
+        <Grid item xs={12}>
+          <Typography variant="h5" sx={{ mb: 2, mt: 3, fontWeight: 'bold', color: 'warning.main' }}>
+            🚀 Engagement & Retention Emails
+          </Typography>
+        </Grid>
+
+        {/* Getting Started Email Test */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              14. Getting Started Guide
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Template: <code>HTML Template</code>
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Sent when: 24 hours after user signup
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={loading ? <CircularProgress size={20} /> : <Send />}
+              onClick={() => handleTestEmail('getting-started')}
+              disabled={loading || !testEmail || !testName}
+              color="warning"
+            >
+              Test Getting Started
+            </Button>
+          </Paper>
+        </Grid>
+
+        {/* Profile Completion Email Test */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              15. Profile Completion Reminder
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Template: <code>HTML Template</code>
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Sent when: Profile completion &lt; 80%
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={loading ? <CircularProgress size={20} /> : <Send />}
+              onClick={() => handleTestEmail('profile-completion')}
+              disabled={loading || !testEmail || !testName}
+              color="warning"
+            >
+              Test Profile Completion
+            </Button>
+          </Paper>
+        </Grid>
+
+        {/* We Miss You Email Test */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              16. We Miss You
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Template: <code>HTML Template</code>
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Sent when: User inactive for 30+ days
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={loading ? <CircularProgress size={20} /> : <Send />}
+              onClick={() => handleTestEmail('we-miss-you')}
+              disabled={loading || !testEmail || !testName}
+              color="secondary"
+            >
+              Test We Miss You
+            </Button>
+          </Paper>
+        </Grid>
+
+        {/* Personalized Recommendations Email Test */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              17. Personalized Recommendations
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Template: <code>HTML Template</code>
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Sent when: AI-based franchise matching
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={loading ? <CircularProgress size={20} /> : <Send />}
+              onClick={() => handleTestEmail('recommendations')}
+              disabled={loading || !testEmail || !testName}
+              color="secondary"
+            >
+              Test Recommendations
             </Button>
           </Paper>
         </Grid>

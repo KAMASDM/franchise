@@ -78,6 +78,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { compressImage } from "../../utils/imageUtils";
 import NotificationService from "../../utils/NotificationService";
 import logger from "../../utils/logger";
+import { sendBrandSubmittedEmail } from "../../services/emailServiceNew";
 import { getEnhancedError, formatErrorMessage } from "../../utils/enhancedErrors";
 import DocumentOCRDialog from "./DocumentOCRDialog";
 import AIContentAssistant from "./AIContentAssistant";
@@ -1419,6 +1420,19 @@ const BrandRegistrationNew = () => {
       );
 
       logger.log("Brand registration successful:", docRef.id);
+      
+      // Send brand submitted email to brand owner
+      try {
+        await sendBrandSubmittedEmail({
+          brandOwnerEmail: user.email,
+          brandOwnerName: user.displayName || formData.brandOwnerInformation?.name || 'Brand Owner',
+          brandName: formData.brandName,
+        });
+        logger.info('Brand submission confirmation email sent to:', user.email);
+      } catch (emailError) {
+        logger.error('Failed to send brand submission email:', emailError);
+        // Don't block the submission if email fails
+      }
       
       // Track successful submission
       const totalTimeSpent = (Date.now() - startTime) / 1000;

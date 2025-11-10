@@ -126,10 +126,11 @@ const BrandsModern = () => {
 
     // Apply search
     if (searchQuery && searchQuery.trim()) {
-      results = enhancedSearch(results, searchQuery, {
+      const searchResult = enhancedSearch(results, searchQuery, {
         keys: ['brandName', 'industries', 'businessModel', 'brandStory', 'description'],
         threshold: 0.3,
       });
+      results = searchResult.results || [];
     }
 
     // Apply tag filters

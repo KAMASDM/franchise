@@ -13,7 +13,7 @@ import {
 } from 'firebase/auth';
 import { auth, provider, db } from '../firebase/firebase';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { sendWelcomeEmail, sendEmailVerification as sendVerificationEmail } from './emailServiceNew';
+import { sendWelcomeEmail, sendEmailVerification as sendVerificationEmail, sendPhoneVerificationEmail, sendNewDeviceLoginEmail } from './emailServiceNew';
 
 /**
  * Unified Authentication Service
@@ -102,6 +102,7 @@ class AuthService {
         createdAt: serverTimestamp(),
         lastLogin: serverTimestamp(),
         emailVerified: user.emailVerified,
+        loginDevices: [], // Track devices for new device login detection
         ...additionalData,
       });
 
@@ -118,6 +119,108 @@ class AuthService {
 
       return false; // Existing user
     }
+  }
+
+  /**
+   * Check for new device login and send notification if needed
+   */
+  async checkAndNotifyNewDevice(user) {
+    try {
+      // Generate a device fingerprint (simple implementation)
+      const deviceInfo = {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        screenResolution: `${screen.width}x${screen.height}`,
+        timestamp: Date.now()
+      };
+      
+      const deviceFingerprint = btoa(JSON.stringify({
+        userAgent: deviceInfo.userAgent.substring(0, 50), // Truncate for storage
+        platform: deviceInfo.platform,
+        timezone: deviceInfo.timezone
+      }));
+
+      const userRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const loginDevices = userData.loginDevices || [];
+        
+        // Check if this device fingerprint exists
+        const existingDevice = loginDevices.find(device => device.fingerprint === deviceFingerprint);
+        
+        if (!existingDevice) {
+          // New device detected - send email notification
+          if (userData.email) {
+            try {
+              await sendNewDeviceLoginEmail({
+                email: userData.email,
+                name: userData.displayName || 'User',
+                deviceInfo: {
+                  platform: deviceInfo.platform,
+                  browser: this.getBrowserName(deviceInfo.userAgent),
+                  location: deviceInfo.timezone,
+                  loginTime: new Date().toLocaleString('en-IN', {
+                    dateStyle: 'long',
+                    timeStyle: 'short',
+                    timeZone: 'Asia/Kolkata'
+                  })
+                }
+              });
+              console.log('New device login email sent to:', userData.email);
+            } catch (emailError) {
+              console.error('Failed to send new device login email:', emailError);
+              // Don't block login if email fails
+            }
+          }
+          
+          // Add new device to the list (keep only last 5 devices)
+          const newDevice = {
+            fingerprint: deviceFingerprint,
+            platform: deviceInfo.platform,
+            userAgent: deviceInfo.userAgent.substring(0, 100),
+            lastSeen: serverTimestamp(),
+            firstSeen: serverTimestamp()
+          };
+          
+          const updatedDevices = [newDevice, ...loginDevices].slice(0, 5);
+          
+          // Update user document with new device
+          await setDoc(userRef, {
+            loginDevices: updatedDevices
+          }, { merge: true });
+        } else {
+          // Update last seen for existing device
+          const updatedDevices = loginDevices.map(device => 
+            device.fingerprint === deviceFingerprint 
+              ? { ...device, lastSeen: serverTimestamp() }
+              : device
+          );
+          
+          await setDoc(userRef, {
+            loginDevices: updatedDevices
+          }, { merge: true });
+        }
+      }
+    } catch (error) {
+      console.error('Error in new device detection:', error);
+      // Don't throw - this is optional functionality
+    }
+  }
+
+  /**
+   * Get browser name from user agent (helper method)
+   */
+  getBrowserName(userAgent) {
+    if (userAgent.includes('Chrome')) return 'Chrome';
+    if (userAgent.includes('Firefox')) return 'Firefox';
+    if (userAgent.includes('Safari')) return 'Safari';
+    if (userAgent.includes('Edge')) return 'Edge';
+    if (userAgent.includes('Opera')) return 'Opera';
+    return 'Unknown Browser';
   }
 
   /**
@@ -174,8 +277,13 @@ class AuthService {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Update user document
-      await this.createUserDocument(user);
+      // Update user document (this also handles new vs existing user detection)
+      const isNewUser = await this.createUserDocument(user);
+
+      // Check for new device login (only for existing users)
+      if (!isNewUser) {
+        await this.checkAndNotifyNewDevice(user);
+      }
 
       if (!user.emailVerified) {
         return {
@@ -219,6 +327,9 @@ class AuthService {
         } catch (emailError) {
           console.error('Failed to send welcome email:', emailError);
         }
+      } else {
+        // Check for new device login (only for existing users)
+        await this.checkAndNotifyNewDevice(user);
       }
 
       return {
@@ -290,6 +401,23 @@ class AuthService {
           } catch (emailError) {
             console.error('Failed to send welcome email:', emailError);
           }
+        }
+      }
+
+      // Send phone verification confirmation email (for all users with email)
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userData = userDoc.data();
+      if (userData?.email) {
+        try {
+          await sendPhoneVerificationEmail({
+            email: userData.email,
+            name: userData.displayName || `${additionalData.firstName || ''} ${additionalData.lastName || ''}`.trim() || 'User',
+            phoneNumber: user.phoneNumber,
+          });
+          console.log('Phone verification confirmation email sent to:', userData.email);
+        } catch (emailError) {
+          console.error('Failed to send phone verification email:', emailError);
+          // Don't block the verification if email fails
         }
       }
 

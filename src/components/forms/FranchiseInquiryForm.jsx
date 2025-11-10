@@ -27,7 +27,7 @@ import {
 import NotificationService from "../../utils/NotificationService";
 import { INVESTMENT_RANGES, BUSINESS_EXPERIENCE_OPTIONS, TIMELINE_OPTIONS } from "../../constants";
 import logger from "../../utils/logger";
-import { sendNewLeadInquiryEmail } from "../../services/emailServiceNew";
+import { sendNewLeadInquiryEmail, sendInquirySentConfirmationEmail } from "../../services/emailServiceNew";
 import { doc, getDoc } from "firebase/firestore";
 import PhoneVerification from "../verification/PhoneVerification";
 import EmailVerification from "../verification/EmailVerification";
@@ -213,6 +213,20 @@ const FranchiseInquiryForm = ({ brand, onClose, onSuccess }) => {
         }
       } catch (emailError) {
         logger.error('Failed to send lead inquiry email:', emailError);
+        // Don't block the inquiry submission if email fails
+      }
+
+      // Send confirmation email to the user
+      try {
+        await sendInquirySentConfirmationEmail({
+          email: formData.email,
+          name: `${formData.firstName} ${formData.lastName}`,
+          brandName: brand.brandName,
+          brandSlug: slug,
+        });
+        logger.info('Inquiry confirmation email sent to user:', formData.email);
+      } catch (emailError) {
+        logger.error('Failed to send confirmation email to user:', emailError);
         // Don't block the inquiry submission if email fails
       }
 

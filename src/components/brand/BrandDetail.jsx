@@ -77,7 +77,7 @@ import { FIELD_OPTIONS } from "../../constants/businessModelFields";
 import Breadcrumbs from "../common/Breadcrumbs";
 import ShareButton from "../common/ShareButton";
 import QRCodeGenerator from "../common/QRCodeGenerator";
-import { StickyInquiryCTA, ScrollToTop } from "../common/StickyCTA";
+import { ScrollToTop } from "../common/StickyCTA";
 import RelatedBrands from "./RelatedBrands";
 import ROICalculator from "./ROICalculator";
 import FAQAccordion from "../common/FAQAccordion";
@@ -1819,11 +1819,7 @@ const BrandDetail = () => {
         />
       </Box>
 
-      {/* Sticky CTA and Scroll to Top */}
-      <StickyInquiryCTA 
-        onInquiryClick={() => setShowInquiryForm(true)}
-        brandName={brand.brandName}
-      />
+      {/* Scroll to Top */}
       <ScrollToTop />
 
       {/* Dialogs */}

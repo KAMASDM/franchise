@@ -307,14 +307,28 @@ const BrandsMobile = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                onClick={() => navigate(getBrandUrl(brand))}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate(getBrandUrl(brand));
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate(getBrandUrl(brand));
+                }}
                 sx={{
                   borderRadius: 2,
                   overflow: 'hidden',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
+                  userSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent',
                   '&:active': {
                     transform: 'scale(0.98)',
+                  },
+                  '& *': {
+                    pointerEvents: 'none', // Disable pointer events on all child elements
                   },
                 }}
               >

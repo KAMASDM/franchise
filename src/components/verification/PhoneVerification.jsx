@@ -17,6 +17,9 @@ import {
   Send as SendIcon
 } from '@mui/icons-material';
 import authService from '../../services/authService';
+import { sendPhoneVerificationEmail } from '../../services/emailServiceNew';
+import { useAuth } from '../../context/AuthContext';
+import logger from '../../utils/logger';
 
 /**
  * Reusable Phone Verification Component
@@ -37,6 +40,7 @@ const PhoneVerification = ({
   label = 'Phone Number',
   helperText = 'Enter your 10-digit mobile number'
 }) => {
+  const { user } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState(value);
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
@@ -138,6 +142,21 @@ const PhoneVerification = ({
       const result = await authService.verifyPhoneOTP(otp);
       setVerified(true);
       setSuccess('Phone number verified successfully!');
+      
+      // Send phone verification confirmation email
+      if (user?.email) {
+        try {
+          await sendPhoneVerificationEmail({
+            email: user.email,
+            name: user.displayName || 'User',
+            phoneNumber: phoneNumber,
+          });
+          logger.info('Phone verification confirmation email sent to:', user.email);
+        } catch (emailError) {
+          logger.error('Failed to send phone verification email:', emailError);
+          // Don't block the verification if email fails
+        }
+      }
       
       // Clean up reCAPTCHA
       authService.clearRecaptcha();
