@@ -39,12 +39,6 @@ const BrandCard = ({ brand, index = 0 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  const handleLearnMore = (e) => {
-    e.preventDefault();
-    trackView();
-    navigate(getBrandUrl(brand));
-  };
-
   const trackView = async () => {
     try {
       const viewRef = doc(db, "brandViews", brand.id);
@@ -61,6 +55,14 @@ const BrandCard = ({ brand, index = 0 }) => {
     } catch (error) {
       logger.error("Error tracking view:", error);
     }
+  };
+
+  const handleLearnMore = (e) => {
+    // Don't prevent default - let the click through
+    // Track view asynchronously (fire and forget)
+    trackView();
+    // Navigate immediately
+    navigate(getBrandUrl(brand));
   };
 
   const investment = brand.investmentRange?.min || brand.initialInvestment || brand.investmentRequired || 0;

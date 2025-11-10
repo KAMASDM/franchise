@@ -16,6 +16,11 @@
   
   # Enable modern build features and handle peer dependency conflicts
   NPM_FLAGS = "--legacy-peer-deps --production=false"
+  
+  # EmailJS Configuration (Public keys - safe to expose)
+  VITE_EMAILJS_PUBLIC_KEY = "g8Tjw7vpnhq_5p3hB"
+  VITE_EMAILJS_SERVICE_ID = "service_9km8z6q"
+  VITE_EMAILJS_TEMPLATE_GENERIC = "template_uhlqmu9"
 
 # Redirect rules (same as _redirects file, but in TOML format)
 [[redirects]]

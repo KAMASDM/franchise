@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db } from "../firebase/firebase";
 import { collection, query, where, getDocs, limit as firestoreLimit } from "firebase/firestore";
 
@@ -6,8 +6,18 @@ export const useBrands = (user = null, options = {}) => {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Use refs to track if we've already fetched to prevent double fetching
+  const hasFetched = useRef(false);
+  const limitValue = options.limit;
+  const userId = user?.uid;
 
   useEffect(() => {
+    // Skip if already fetched on initial mount
+    if (hasFetched.current && !userId && !limitValue) {
+      return;
+    }
+
     const fetchBrands = async () => {
       setLoading(true);
       setError(null);
@@ -18,14 +28,14 @@ export const useBrands = (user = null, options = {}) => {
 
         // If user is provided, show all their brands (any status)
         // If no user, only show active brands (public view)
-        if (user && user.uid) {
-          queryConstraints.push(where("userId", "==", user.uid));
+        if (userId) {
+          queryConstraints.push(where("userId", "==", userId));
         } else {
           queryConstraints.push(where("status", "==", "active"));
         }
 
-        if (options.limit) {
-          queryConstraints.push(firestoreLimit(options.limit));
+        if (limitValue) {
+          queryConstraints.push(firestoreLimit(limitValue));
         }
         
         const q = query(brandsCollection, ...queryConstraints);
@@ -37,6 +47,7 @@ export const useBrands = (user = null, options = {}) => {
         }));
 
         setBrands(brandsData);
+        hasFetched.current = true;
       } catch (err) {
         console.error("Error fetching brands:", err);
         setError("Failed to load brands. Please try again later.");
@@ -46,7 +57,7 @@ export const useBrands = (user = null, options = {}) => {
     };
 
     fetchBrands();
-  }, [user?.uid, options.limit]);
+  }, [userId, limitValue]);
 
   return { brands, loading, error };
 };
