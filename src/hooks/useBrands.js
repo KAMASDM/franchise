@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { db } from "../firebase/firebase";
 import { collection, query, where, getDocs, limit as firestoreLimit } from "firebase/firestore";
 
@@ -7,17 +7,10 @@ export const useBrands = (user = null, options = {}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Use refs to track if we've already fetched to prevent double fetching
-  const hasFetched = useRef(false);
   const limitValue = options.limit;
   const userId = user?.uid;
 
   useEffect(() => {
-    // Skip if already fetched on initial mount
-    if (hasFetched.current && !userId && !limitValue) {
-      return;
-    }
-
     const fetchBrands = async () => {
       setLoading(true);
       setError(null);
@@ -30,8 +23,10 @@ export const useBrands = (user = null, options = {}) => {
         // If no user, only show active brands (public view)
         if (userId) {
           queryConstraints.push(where("userId", "==", userId));
+          console.log("Fetching brands for user:", userId);
         } else {
           queryConstraints.push(where("status", "==", "active"));
+          console.log("Fetching active brands (public view)");
         }
 
         if (limitValue) {
@@ -46,8 +41,8 @@ export const useBrands = (user = null, options = {}) => {
           ...doc.data(),
         }));
 
+        console.log(`Found ${brandsData.length} brands`, userId ? `for user ${userId}` : '(public)');
         setBrands(brandsData);
-        hasFetched.current = true;
       } catch (err) {
         console.error("Error fetching brands:", err);
         setError("Failed to load brands. Please try again later.");
