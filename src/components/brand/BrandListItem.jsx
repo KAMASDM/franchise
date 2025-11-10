@@ -37,12 +37,6 @@ const BrandListItem = ({ brand, index = 0 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  const handleClick = (e) => {
-    e.preventDefault();
-    trackView();
-    navigate(getBrandUrl(brand));
-  };
-
   const trackView = async () => {
     try {
       const viewRef = doc(db, "brandViews", brand.id);
@@ -59,6 +53,13 @@ const BrandListItem = ({ brand, index = 0 }) => {
     } catch (error) {
       logger.error("Error tracking view:", error);
     }
+  };
+
+  const handleClick = () => {
+    // Track view asynchronously
+    trackView();
+    // Navigate immediately
+    navigate(getBrandUrl(brand));
   };
 
   const investment = brand.investmentRange?.min || brand.initialInvestment || 0;

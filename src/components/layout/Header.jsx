@@ -225,8 +225,9 @@ const Header = () => {
           <MenuItem
             key="dashboard"
             onClick={() => {
-              navigate("/dashboard");
               handleCloseUserMenu();
+              // Use replace to force navigation even if already on dashboard
+              navigate("/dashboard", { replace: true });
             }}
           >
             <ListItemIcon>

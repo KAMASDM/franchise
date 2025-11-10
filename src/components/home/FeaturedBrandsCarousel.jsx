@@ -276,13 +276,16 @@ const FeaturedBrandsCarousel = () => {
 
   const featuredBrands = getFeaturedBrands();
 
+  // Adjust slides to show based on number of brands
+  const slidesToShow = Math.min(4, featuredBrands.length);
+
   const sliderSettings = {
     dots: true,
-    infinite: true,
+    infinite: featuredBrands.length > 1,
     speed: 600,
-    slidesToShow: 4,
+    slidesToShow: slidesToShow,
     slidesToScroll: 1,
-    autoplay: true,
+    autoplay: featuredBrands.length > 1,
     autoplaySpeed: 3000,
     pauseOnHover: true,
     prevArrow: <PrevArrow />,
@@ -291,19 +294,19 @@ const FeaturedBrandsCarousel = () => {
       {
         breakpoint: 1536,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: Math.min(3, featuredBrands.length),
         },
       },
       {
         breakpoint: 1200,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: Math.min(3, featuredBrands.length),
         },
       },
       {
         breakpoint: 900,
         settings: {
-          slidesToShow: 2,
+          slidesToShow: Math.min(2, featuredBrands.length),
           arrows: false,
         },
       },

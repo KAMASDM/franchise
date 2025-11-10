@@ -938,12 +938,6 @@ const BrandDetail = () => {
                       <Typography color="text.secondary">
                         {[location.city, location.state, location.zipCode].filter(Boolean).join(', ') || 'Location details not provided'}
                       </Typography>
-                      {location.phone && (
-                        <Typography sx={{ mt: 1 }}>
-                          <Phone fontSize="small" sx={{ mr: 1 }} />
-                          {location.phone}
-                        </Typography>
-                      )}
                       {location.googleMapsURl && (
                         <Button
                           variant="outlined"
