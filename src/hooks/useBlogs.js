@@ -13,7 +13,8 @@ import {
   updateDoc,
   deleteDoc,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  increment
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../firebase/firebase';
@@ -374,14 +375,9 @@ export const deleteBlog = async (blogId, imageUrl) => {
 export const incrementBlogViews = async (blogId) => {
   try {
     const blogRef = doc(db, 'blogs', blogId);
-    const blogSnap = await getDoc(blogRef);
-    
-    if (blogSnap.exists()) {
-      const currentViews = blogSnap.data().views || 0;
-      await updateDoc(blogRef, {
-        views: currentViews + 1
-      });
-    }
+    await updateDoc(blogRef, {
+      views: increment(1)
+    });
   } catch (error) {
     console.error('Error incrementing blog views:', error);
     // Don't throw - view count failure shouldn't affect user experience

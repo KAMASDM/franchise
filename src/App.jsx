@@ -11,6 +11,7 @@ import Chatbot from "./components/chat/Chatbot";
 import LiveChat from "./components/chat/LiveChat";
 import InstallPrompt from "./components/common/InstallPrompt";
 import OfflineIndicator from "./components/common/OfflineIndicator";
+import PWAUpdatePrompt from "./components/common/PWAUpdatePrompt";
 import ComparisonBar from "./components/brand/ComparisonBar";
 import { useAdminStatus } from "./hooks/useAdminStatus";
 import { useDevice } from "./hooks/useDevice";
@@ -211,6 +212,7 @@ function App() {
           <LiveChat />
           <InstallPrompt />
           <OfflineIndicator />
+          <PWAUpdatePrompt />
           <ComparisonBar />
         </Box>
       </AuthContextProvider>

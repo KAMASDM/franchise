@@ -36,6 +36,11 @@ import { useAllBrands } from '../hooks/useAllBrands';
 import { useVideoTestimonials } from '../hooks/useVideoTestimonials';
 import { getBrandUrl } from '../utils/brandUtils';
 import VideoTestimonialCarousel from '../components/common/VideoTestimonialCarousel';
+// New sections for mobile
+import IndustryInsights from '../components/home/IndustryInsights';
+import PopularCategories from '../components/home/PopularCategories';
+import InvestmentGuide from '../components/home/InvestmentGuide';
+import FinancingOptions from '../components/home/FinancingOptions';
 
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
@@ -506,6 +511,12 @@ const HomeMobile = () => {
           </Button>
         </Box>
       </Box>
+
+      {/* New Informative Sections */}
+      <IndustryInsights />
+      <PopularCategories />
+      <InvestmentGuide />
+      <FinancingOptions />
 
       {/* Bottom Spacing for Nav */}
       <Box sx={{ height: 24 }} />

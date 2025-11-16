@@ -13,6 +13,15 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
+
+    function currentViews() {
+      return resource.data.views == null ? 0 : resource.data.views;
+    }
+
+    function isBlogViewIncrement() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(['views'])
+        && request.resource.data.views == currentViews() + 1;
+    }
     
     // --- Collection Rules ---
     
@@ -95,7 +104,8 @@ service cloud.firestore {
     match /blogs/{blogId} {
       allow read: if resource.data.status == 'published' || isAdmin();
       allow list: if true; // Public can list (client filters by status)
-      allow create, update, delete: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || isBlogViewIncrement();
     }
     
     // Settings collection - public read, admin write

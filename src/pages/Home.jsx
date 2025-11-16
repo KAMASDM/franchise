@@ -9,6 +9,11 @@ import FeaturedBrandsCarousel from "../components/home/FeaturedBrandsCarousel";
 import ModernTestimonials from "../components/home/ModernTestimonials";
 import VideoTestimonialCarousel from "../components/common/VideoTestimonialCarousel";
 import SEO from "../components/common/SEO";
+// New Informative Sections
+import IndustryInsights from "../components/home/IndustryInsights";
+import PopularCategories from "../components/home/PopularCategories";
+import InvestmentGuide from "../components/home/InvestmentGuide";
+import FinancingOptions from "../components/home/FinancingOptions";
 // Original Components (keeping as fallback)
 import WhyChooseUs from "../components/home/WhyChooseUs";
 
@@ -53,8 +58,12 @@ const Home = () => {
         keywords="franchise opportunities, franchise business, franchise investment, business opportunities, franchising, brand partnerships, franchise portal"
       />
       <EnhancedHero />
+      <IndustryInsights />
       <FeaturedBrandsCarousel />
+      <PopularCategories />
       <InteractiveHomepageElements />
+      <InvestmentGuide />
+      <FinancingOptions />
       <WhyChooseUs />
       {!testimonialsLoading && testimonials.length > 0 && (
         <VideoTestimonialCarousel testimonials={testimonials} />

@@ -6,9 +6,56 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      registerType: 'prompt',
+      includeAssets: ['ikama-logo-icon.svg', 'ikama-logo-full.svg'],
       manifest: {
+        name: 'ikama - Franchise Hub | Find Your Perfect Franchise',
+        short_name: 'ikama',
+        description: 'Discover and connect with franchise opportunities across industries',
+        theme_color: '#5a76a9',
+        background_color: '#f0f4ff',
+        display: 'standalone',
+        scope: '/',
+        start_url: '/',
+        orientation: 'portrait-primary',
+        icons: [
+          {
+            src: 'ikama-logo-icon.svg',
+            sizes: '192x192',
+            type: 'image/svg+xml',
+            purpose: 'any'
+          },
+          {
+            src: 'ikama-logo-icon.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'any'
+          },
+          {
+            src: 'ikama-logo-icon.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'maskable'
+          }
+        ],
+        screenshots: [
+          {
+            src: '/screenshot-wide.png',
+            sizes: '1280x720',
+            type: 'image/png',
+            form_factor: 'wide'
+          },
+          {
+            src: '/screenshot-mobile.png',
+            sizes: '750x1334',
+            type: 'image/png',
+            form_factor: 'narrow'
+          }
+        ]
+      },
+      workbox: {
+        skipWaiting: false,
+        clientsClaim: false,
         name: 'ikama - Franchise Hub | Find Your Perfect Franchise',
         short_name: 'ikama',
         description: 'Discover and connect with franchise opportunities across industries',
