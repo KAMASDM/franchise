@@ -33,6 +33,7 @@ import {
   Reviews as ReviewsIcon,
   Quiz as QuizIcon,
   PictureAsPdf as MarketingIcon,
+  TravelExplore as LocationAnalysisIcon,
 } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import {
@@ -59,6 +60,7 @@ import Review from "../components/dashboard/Review";
 import FAQs from "../components/dashboard/FAQs";
 import MarketingMaterials from "../components/dashboard/MarketingMaterials";
 import { useAdminStatus } from "../hooks/useAdminStatus";
+import DashboardMobile from "../components/dashboard/DashboardMobile";
 
 const drawerWidth = 240;
 
@@ -121,6 +123,12 @@ const Dashboard = () => {
       text: "Locations",
       path: "/dashboard/locations",
       icon: <MyLocationIcon />,
+    },
+    {
+      text: "Location Finder",
+      path: "/location-analysis-enhanced",
+      icon: <LocationAnalysisIcon />,
+      badge: "AI",
     },
     {
       text: "Leads Acquired",
@@ -232,6 +240,12 @@ const Dashboard = () => {
     );
   }
 
+  // Use mobile dashboard component on mobile devices
+  if (isMobile) {
+    return <DashboardMobile />;
+  }
+
+  // Desktop version
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.50" }}>
       <CssBaseline />

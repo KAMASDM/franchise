@@ -55,7 +55,7 @@ const ForgotPasswordPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Paper elevation={24} sx={{ p: 4, borderRadius: 3, position: 'relative' }}>
+          <Paper elevation={8} sx={{ p: 4, borderRadius: 3, position: 'relative' }}>
             {/* Back Button */}
             <IconButton
               component={RouterLink}

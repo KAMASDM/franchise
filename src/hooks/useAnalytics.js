@@ -30,7 +30,7 @@ export const useAnalytics = (dateRange = 30) => {
   // Fetch all data
   const { leads: allLeads = [], loading: leadsLoading } = useAllLeads();
   const { brands = [], loading: brandsLoading } = useAllBrands();
-  const { views: allViews = [], loading: viewsLoading } = useAllBrandViews();
+  const { brandViews: allViews = [], loading: viewsLoading } = useAllBrandViews();
   const { leads: chatLeads = [], loading: chatLoading } = useChatLeads();
 
   const loading = leadsLoading || brandsLoading || viewsLoading || chatLoading;

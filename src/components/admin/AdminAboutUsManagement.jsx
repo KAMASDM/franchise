@@ -71,7 +71,7 @@ const AdminAboutUsManagement = () => {
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
-        setAboutData({ ...aboutData, ...docSnap.data() });
+        setAboutData(prev => ({ ...prev, ...docSnap.data() }));
       }
     } catch (error) {
       logger.error('Error fetching about data:', error);
@@ -119,7 +119,7 @@ const AdminAboutUsManagement = () => {
         },
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          setAboutData({ ...aboutData, heroImage: downloadURL });
+          setAboutData(prev => ({ ...prev, heroImage: downloadURL }));
           toast.success('Image uploaded successfully');
           setUploading(false);
         }

@@ -1,5 +1,6 @@
 import { getDatabase, ref, push, set, onValue, off, update, query, orderByChild, limitToLast, serverTimestamp, onDisconnect } from 'firebase/database';
 import { auth } from '../firebase/firebase';
+import logger from './logger';
 
 /**
  * ChatService - Real-time chat service using Firebase Realtime Database
@@ -18,10 +19,10 @@ class ChatService {
     initialize() {
         try {
             this.db = getDatabase();
-            console.log('ChatService initialized');
+            logger.log('ChatService initialized');
             return true;
         } catch (error) {
-            console.error('Failed to initialize ChatService:', error);
+            logger.error('Failed to initialize ChatService:', error);
             return false;
         }
     }
@@ -74,7 +75,7 @@ class ChatService {
 
             return newMessageRef.key;
         } catch (error) {
-            console.error('Error sending message:', error);
+            logger.error('Error sending message:', error);
             throw error;
         }
     }
@@ -100,7 +101,7 @@ class ChatService {
                 updatedAt: serverTimestamp()
             });
         } catch (error) {
-            console.error('Error updating chat room metadata:', error);
+            logger.error('Error updating chat room metadata:', error);
         }
     }
 
@@ -140,7 +141,7 @@ class ChatService {
 
             return roomId;
         } catch (error) {
-            console.error('Error initializing chat room:', error);
+            logger.error('Error initializing chat room:', error);
             throw error;
         }
     }
@@ -174,7 +175,7 @@ class ChatService {
 
             return unsubscribe;
         } catch (error) {
-            console.error('Error listening to messages:', error);
+            logger.error('Error listening to messages:', error);
             return null;
         }
     }
@@ -200,7 +201,7 @@ class ChatService {
 
             return unsubscribe;
         } catch (error) {
-            console.error('Error listening to typing:', error);
+            logger.error('Error listening to typing:', error);
             return null;
         }
     }
@@ -240,7 +241,7 @@ class ChatService {
                 }
             }
         } catch (error) {
-            console.error('Error setting typing indicator:', error);
+            logger.error('Error setting typing indicator:', error);
         }
     }
 
@@ -270,7 +271,7 @@ class ChatService {
                 await update(messagesRef, updates);
             }
         } catch (error) {
-            console.error('Error marking messages as read:', error);
+            logger.error('Error marking messages as read:', error);
         }
     }
 
@@ -308,7 +309,7 @@ class ChatService {
 
             return unsubscribe;
         } catch (error) {
-            console.error('Error listening to unread count:', error);
+            logger.error('Error listening to unread count:', error);
             return null;
         }
     }
@@ -352,7 +353,7 @@ class ChatService {
 
             return unsubscribe;
         } catch (error) {
-            console.error('Error listening to user chats:', error);
+            logger.error('Error listening to user chats:', error);
             return null;
         }
     }
@@ -382,7 +383,7 @@ class ChatService {
                 });
             }
         } catch (error) {
-            console.error('Error setting online status:', error);
+            logger.error('Error setting online status:', error);
         }
     }
 
@@ -406,7 +407,7 @@ class ChatService {
 
             return unsubscribe;
         } catch (error) {
-            console.error('Error listening to user status:', error);
+            logger.error('Error listening to user status:', error);
             return null;
         }
     }
@@ -423,7 +424,7 @@ class ChatService {
             const messageRef = ref(this.db, `chats/${roomId}/messages/${messageId}`);
             await set(messageRef, null);
         } catch (error) {
-            console.error('Error deleting message:', error);
+            logger.error('Error deleting message:', error);
             throw error;
         }
     }

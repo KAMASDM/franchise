@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, query, orderBy, limit, getDocs, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
+import { db, auth } from '../firebase/firebase';
 import logger from '../utils/logger';
 
 /**
@@ -19,15 +19,9 @@ export const useLiveActivity = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch recent franchise inquiries
-        const inquiriesRef = collection(db, 'brandfranchiseInquiry');
-        const inquiriesQuery = query(
-          inquiriesRef,
-          orderBy('createdAt', 'desc'),
-          limit(10)
-        );
+        const isSignedIn = !!auth.currentUser;
 
-        // Fetch recent brand registrations
+        // Fetch recent brand registrations (publicly readable)
         const brandsRef = collection(db, 'brands');
         const brandsQuery = query(
           brandsRef,
@@ -35,24 +29,23 @@ export const useLiveActivity = () => {
           limit(10)
         );
 
-        const [inquiriesSnapshot, brandsSnapshot] = await Promise.all([
-          getDocs(inquiriesQuery),
-          getDocs(brandsQuery)
-        ]);
+        const promises = [getDocs(brandsQuery)];
 
-        // Process inquiries
-        const inquiryActivities = inquiriesSnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: `inquiry-${doc.id}`,
-            type: 'registration',
-            user: data.fullName || data.name || 'Someone',
-            brand: data.brandName || 'a franchise',
-            location: data.city || data.location || null,
-            timestamp: data.createdAt?.toDate() || new Date(),
-            color: 'success'
-          };
-        });
+        // Only fetch inquiry data for authenticated users
+        let inquiriesSnapshot = null;
+        if (isSignedIn) {
+          const inquiriesRef = collection(db, 'brandfranchiseInquiry');
+          const inquiriesQuery = query(
+            inquiriesRef,
+            orderBy('createdAt', 'desc'),
+            limit(10)
+          );
+          promises.unshift(getDocs(inquiriesQuery));
+        }
+
+        const results = await Promise.all(promises);
+        const brandsSnapshot = isSignedIn ? results[1] : results[0];
+        if (isSignedIn) inquiriesSnapshot = results[0];
 
         // Process brand registrations
         const brandActivities = brandsSnapshot.docs.map(doc => {
@@ -68,18 +61,31 @@ export const useLiveActivity = () => {
           };
         });
 
-        // Combine and sort by timestamp
+        // Process inquiries (authenticated only)
+        const inquiryActivities = inquiriesSnapshot
+          ? inquiriesSnapshot.docs.map(doc => {
+              const data = doc.data();
+              return {
+                id: `inquiry-${doc.id}`,
+                type: 'registration',
+                user: data.fullName || data.name || 'Someone',
+                brand: data.brandName || 'a franchise',
+                location: data.city || data.location || null,
+                timestamp: data.createdAt?.toDate() || new Date(),
+                color: 'success'
+              };
+            })
+          : [];
+
+        // Combine and sort
         const allActivities = [...inquiryActivities, ...brandActivities]
           .sort((a, b) => b.timestamp - a.timestamp)
-          .slice(0, 10); // Keep only 10 most recent
+          .slice(0, 10);
 
-        console.log('✅ Fetched live activities:', allActivities.length);
         setActivities(allActivities);
       } catch (err) {
-        console.error('❌ Error fetching live activities:', err);
         logger.error('Error fetching live activities:', err);
         setError('Failed to load live activities');
-        // Set some default activities on error
         setActivities([]);
       } finally {
         setLoading(false);
@@ -88,8 +94,9 @@ export const useLiveActivity = () => {
 
     fetchActivities();
 
-    // Optional: Set up real-time listener for new activities
-    // This will update the feed in real-time when new inquiries/brands are added
+    // Real-time listener — only subscribe when authenticated (brandfranchiseInquiry requires auth)
+    if (!auth.currentUser) return;
+
     const inquiriesRef = collection(db, 'brandfranchiseInquiry');
     const inquiriesQuery = query(
       inquiriesRef,
@@ -119,7 +126,7 @@ export const useLiveActivity = () => {
           .slice(0, 10);
       });
     }, (err) => {
-      console.error('Error in real-time listener:', err);
+      logger.error('Error in real-time listener:', err);
     });
 
     return () => unsubscribe();

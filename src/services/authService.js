@@ -14,6 +14,7 @@ import {
 import { auth, provider, db } from '../firebase/firebase';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { sendWelcomeEmail, sendEmailVerification as sendVerificationEmail, sendPhoneVerificationEmail, sendNewDeviceLoginEmail } from './emailServiceNew';
+import logger from '../utils/logger';
 
 /**
  * Unified Authentication Service
@@ -41,21 +42,19 @@ class AuthService {
 
         this.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
           size: 'invisible',
-          callback: (response) => {
-            console.log('reCAPTCHA verified successfully');
+          callback: () => {
+            logger.log('reCAPTCHA verified');
           },
           'expired-callback': () => {
-            console.log('reCAPTCHA expired, please verify again');
+            logger.warn('reCAPTCHA expired');
             this.clearRecaptcha();
           },
         });
-        
-        // Render the invisible reCAPTCHA
+
         await this.recaptchaVerifier.render();
-        console.log('Invisible reCAPTCHA initialized and rendered');
+        logger.log('Invisible reCAPTCHA initialized');
       } catch (error) {
-        console.error('Error initializing reCAPTCHA:', error);
-        // Clear on error to allow retry
+        logger.error('Error initializing reCAPTCHA:', error.code || error.message);
         this.clearRecaptcha();
         throw new Error('Failed to initialize reCAPTCHA. Please refresh the page.');
       }
@@ -71,7 +70,7 @@ class AuthService {
       try {
         this.recaptchaVerifier.clear();
       } catch (error) {
-        console.log('Error clearing reCAPTCHA:', error);
+        logger.warn('Error clearing reCAPTCHA:', error.code || error.message);
       }
       this.recaptchaVerifier = null;
     }
@@ -170,20 +169,21 @@ class AuthService {
                   })
                 }
               });
-              console.log('New device login email sent to:', userData.email);
+              logger.log('New device login email sent to:', userData.email);
             } catch (emailError) {
-              console.error('Failed to send new device login email:', emailError);
+              logger.error('Failed to send new device login email:', emailError);
               // Don't block login if email fails
             }
           }
           
           // Add new device to the list (keep only last 5 devices)
+          const currentTime = new Date().toISOString();
           const newDevice = {
             fingerprint: deviceFingerprint,
             platform: deviceInfo.platform,
             userAgent: deviceInfo.userAgent.substring(0, 100),
-            lastSeen: serverTimestamp(),
-            firstSeen: serverTimestamp()
+            lastSeen: currentTime,
+            firstSeen: currentTime
           };
           
           const updatedDevices = [newDevice, ...loginDevices].slice(0, 5);
@@ -194,9 +194,10 @@ class AuthService {
           }, { merge: true });
         } else {
           // Update last seen for existing device
+          const currentTime = new Date().toISOString();
           const updatedDevices = loginDevices.map(device => 
             device.fingerprint === deviceFingerprint 
-              ? { ...device, lastSeen: serverTimestamp() }
+              ? { ...device, lastSeen: currentTime }
               : device
           );
           
@@ -206,7 +207,7 @@ class AuthService {
         }
       }
     } catch (error) {
-      console.error('Error in new device detection:', error);
+      logger.error('Error in new device detection:', error);
       // Don't throw - this is optional functionality
     }
   }
@@ -255,7 +256,7 @@ class AuthService {
           verificationLink: user.emailVerificationLink || window.location.origin,
         });
       } catch (emailError) {
-        console.error('Failed to send verification email:', emailError);
+        logger.error('Failed to send verification email:', emailError);
       }
 
       return {
@@ -264,7 +265,7 @@ class AuthService {
         message: 'Account created! Please check your email to verify your account.',
       };
     } catch (error) {
-      console.error('Email registration error:', error);
+      logger.error('Email registration error:', error);
       throw this.handleAuthError(error);
     }
   }
@@ -299,7 +300,7 @@ class AuthService {
         message: 'Successfully signed in!',
       };
     } catch (error) {
-      console.error('Email sign-in error:', error);
+      logger.error('Email sign-in error:', error);
       throw this.handleAuthError(error);
     }
   }
@@ -325,7 +326,7 @@ class AuthService {
             name: user.displayName || 'User',
           });
         } catch (emailError) {
-          console.error('Failed to send welcome email:', emailError);
+          logger.error('Failed to send welcome email:', emailError);
         }
       } else {
         // Check for new device login (only for existing users)
@@ -339,7 +340,7 @@ class AuthService {
         message: isNewUser ? 'Welcome! Your account has been created.' : 'Welcome back!',
       };
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      logger.error('Google sign-in error:', error);
       throw this.handleAuthError(error);
     }
   }
@@ -360,7 +361,7 @@ class AuthService {
         message: 'OTP sent to your phone number!',
       };
     } catch (error) {
-      console.error('Phone OTP error:', error);
+      logger.error('Phone OTP error:', error);
       this.clearRecaptcha(); // Properly clear reCAPTCHA on error
       throw this.handleAuthError(error);
     }
@@ -399,7 +400,7 @@ class AuthService {
               name: `${additionalData.firstName} ${additionalData.lastName || ''}`,
             });
           } catch (emailError) {
-            console.error('Failed to send welcome email:', emailError);
+            logger.error('Failed to send welcome email:', emailError);
           }
         }
       }
@@ -414,9 +415,9 @@ class AuthService {
             name: userData.displayName || `${additionalData.firstName || ''} ${additionalData.lastName || ''}`.trim() || 'User',
             phoneNumber: user.phoneNumber,
           });
-          console.log('Phone verification confirmation email sent to:', userData.email);
+          logger.log('Phone verification confirmation email sent to:', userData.email);
         } catch (emailError) {
-          console.error('Failed to send phone verification email:', emailError);
+          logger.error('Failed to send phone verification email:', emailError);
           // Don't block the verification if email fails
         }
       }
@@ -432,7 +433,7 @@ class AuthService {
         message: isNewUser ? 'Account created successfully!' : 'Successfully signed in!',
       };
     } catch (error) {
-      console.error('OTP verification error:', error);
+      logger.error('OTP verification error:', error);
       throw this.handleAuthError(error);
     }
   }
@@ -449,7 +450,7 @@ class AuthService {
         message: 'Password reset link sent to your email!',
       };
     } catch (error) {
-      console.error('Password reset error:', error);
+      logger.error('Password reset error:', error);
       throw this.handleAuthError(error);
     }
   }
@@ -477,7 +478,7 @@ class AuthService {
         message: 'Password updated successfully!',
       };
     } catch (error) {
-      console.error('Change password error:', error);
+      logger.error('Change password error:', error);
       throw this.handleAuthError(error);
     }
   }
@@ -507,7 +508,7 @@ class AuthService {
         message: 'Verification email sent!',
       };
     } catch (error) {
-      console.error('Resend verification error:', error);
+      logger.error('Resend verification error:', error);
       throw this.handleAuthError(error);
     }
   }
@@ -547,7 +548,7 @@ class AuthService {
       await auth.signOut();
       return { success: true, message: 'Signed out successfully!' };
     } catch (error) {
-      console.error('Sign out error:', error);
+      logger.error('Sign out error:', error);
       throw new Error('Failed to sign out. Please try again.');
     }
   }

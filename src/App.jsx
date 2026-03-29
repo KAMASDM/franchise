@@ -38,6 +38,9 @@ const FavoritesPage = React.lazy(() => import("./components/favorites/FavoritesP
 const ChatHistoryPage = React.lazy(() => import("./components/chat/ChatHistoryViewer"));
 const AuthPage = React.lazy(() => import("./pages/AuthPage"));
 const ForgotPasswordPage = React.lazy(() => import("./pages/ForgotPasswordPage"));
+const LocationAnalysis = React.lazy(() => import("./pages/LocationAnalysis"));
+const LocationFinderGuide = React.lazy(() => import("./components/location/LocationFinderGuide"));
+const LocationAnalysisEnhanced = React.lazy(() => import("./pages/LocationAnalysisEnhanced"));
 
 // Only load debug component in development
 const FirestoreTest = import.meta.env.DEV 
@@ -127,8 +130,33 @@ function App() {
       {/* Brand Registration */}
       <Route path="/create-brand-profile" element={<CreateBrandProfile />} />
       
-      {/* Debug Route - Remove in production */}
-      <Route path="/debug-brands" element={<BrandDebugger />} />
+      {/* Location Analysis */}
+      <Route 
+        path="/location-analysis" 
+        element={
+          <ProtectedRoute>
+            <LocationAnalysis />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Location Analysis Enhanced (New) */}
+      <Route 
+        path="/location-analysis-enhanced" 
+        element={
+          <ProtectedRoute>
+            <LocationAnalysisEnhanced />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Location Finder Guide */}
+      <Route path="/location-finder-guide" element={<LocationFinderGuide />} />
+      
+      {/* Debug Route - dev only */}
+      {import.meta.env.DEV && (
+        <Route path="/debug-brands" element={<BrandDebugger />} />
+      )}
       
       {/* Debug route - only available in development */}
       {import.meta.env.DEV && FirestoreTest && (

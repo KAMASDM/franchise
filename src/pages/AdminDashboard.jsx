@@ -1,11 +1,15 @@
 import React, { Suspense, lazy } from 'react';
-import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme, CircularProgress, useMediaQuery } from '@mui/material';
+import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme, CircularProgress, useMediaQuery, Badge } from '@mui/material';
+
+// Generate default shadows so all elevation levels are defined
+const _defaultShadows = createTheme().shadows;
 import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom';
 import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart, Email, Chat as ChatIcon, VideoLibrary, Info, Article, Videocam, Settings } from '@mui/icons-material';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
 import { useDevice } from '../hooks/useDevice';
+import { useAdminBadges } from '../hooks/useAdminBadges';
 
 import AdminOverview from '../components/admin/AdminOverview';
 import AdminBrandManagement from '../components/admin/AdminBrandManagement';
@@ -47,6 +51,7 @@ const adminTheme = createTheme({
   shape: {
     borderRadius: 12,
   },
+  shadows: _defaultShadows,
 });
 
 const drawerWidth = 240;
@@ -55,6 +60,7 @@ const AdminDashboard = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { isMobile } = useDevice();
+    const badges = useAdminBadges();
 
     const handleLogout = async () => {
         await signOut(auth);
@@ -63,10 +69,10 @@ const AdminDashboard = () => {
 
     const navItems = [
         { text: 'Overview', path: '/admin', icon: <Dashboard /> },
-        { text: 'Brand Management', path: '/admin/brands', icon: <Store /> },
-        { text: 'Franchise Leads', path: '/admin/leads', icon: <Leaderboard /> },
-        { text: 'Chat Leads', path: '/admin/chat-leads', icon: <ChatIcon /> },
-        { text: 'Contact Messages', path: '/admin/messages', icon: <Email /> },
+        { text: 'Brand Management', path: '/admin/brands', icon: <Store />, badge: badges.pendingBrands },
+        { text: 'Franchise Leads', path: '/admin/leads', icon: <Leaderboard />, badge: badges.newLeads },
+        { text: 'Chat Leads', path: '/admin/chat-leads', icon: <ChatIcon />, badge: badges.newChatLeads },
+        { text: 'Contact Messages', path: '/admin/messages', icon: <Email />, badge: badges.newMessages },
         { text: 'Blog Management', path: '/admin/blogs', icon: <Article /> },
         { text: 'Video Testimonials', path: '/admin/testimonials', icon: <VideoLibrary /> },
         { text: 'Demo Video', path: '/admin/demo-video', icon: <Videocam /> },
@@ -122,7 +128,13 @@ const AdminDashboard = () => {
             <List>
                 {navItems.map((item) => (
                     <ListItemButton key={item.text} component={RouterLink} to={item.path} selected={location.pathname === item.path}>
-                        <ListItemIcon sx={{color: 'white'}}>{item.icon}</ListItemIcon>
+                        <ListItemIcon sx={{color: 'white'}}>
+                            {item.badge ? (
+                                <Badge badgeContent={item.badge} color="error" max={99}>
+                                    {item.icon}
+                                </Badge>
+                            ) : item.icon}
+                        </ListItemIcon>
                         <ListItemText primary={item.text} />
                     </ListItemButton>
                 ))}

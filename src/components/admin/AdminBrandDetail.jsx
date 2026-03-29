@@ -21,6 +21,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Snackbar,
 } from "@mui/material";
 import {
   ArrowBack,
@@ -33,7 +34,7 @@ import {
   ExpandMore,
 } from "@mui/icons-material";
 import { db } from "../../firebase/firebase";
-import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import logger from "../../utils/logger";
 import NotificationService from "../../utils/NotificationService";
 import BrandBrochureManager from "../brand/BrandBrochureManager";
@@ -49,6 +50,8 @@ const AdminBrandDetail = () => {
   const [saving, setSaving] = useState(false);
   const [editedBrand, setEditedBrand] = useState({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const showSnack = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
 
   const normalizeBrandData = (rawBrand = {}) => {
     const normalized = { ...rawBrand };
@@ -284,16 +287,16 @@ const AdminBrandDetail = () => {
       
       await updateDoc(brandRef, {
         ...updateData,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
       });
 
       setBrand(cleanedBrand);
       setEditedBrand(cleanedBrand);
       setEditMode(false);
-      alert("Brand updated successfully!");
+      showSnack('Brand updated successfully!');
     } catch (err) {
       logger.error("Error updating brand:", err);
-      alert("Failed to update brand. Please try again.");
+      showSnack('Failed to update brand. Please try again.', 'error');
     } finally {
       setSaving(false);
     }
@@ -304,7 +307,7 @@ const AdminBrandDetail = () => {
       const brandRef = doc(db, "brands", id);
       await updateDoc(brandRef, { 
         status: newStatus,
-        updatedAt: new Date().toISOString(),
+        updatedAt: serverTimestamp(),
       });
 
       // Send notification to brand owner
@@ -318,21 +321,21 @@ const AdminBrandDetail = () => {
 
       setBrand((prev) => ({ ...prev, status: newStatus }));
       setEditedBrand((prev) => ({ ...prev, status: newStatus }));
-      alert(`Brand ${newStatus === "active" ? "approved" : "deactivated"} successfully!`);
+      showSnack(`Brand ${newStatus === "active" ? "approved" : "deactivated"} successfully!`);
     } catch (err) {
       logger.error("Error updating status:", err);
-      alert("Failed to update status. Please try again.");
+      showSnack('Failed to update status. Please try again.', 'error');
     }
   };
 
   const handleDelete = async () => {
     try {
       await deleteDoc(doc(db, "brands", id));
-      alert("Brand deleted successfully!");
+      showSnack('Brand deleted successfully!');
       navigate("/admin/brands");
     } catch (err) {
       logger.error("Error deleting brand:", err);
-      alert("Failed to delete brand. Please try again.");
+      showSnack('Failed to delete brand. Please try again.', 'error');
     }
     setDeleteDialogOpen(false);
   };
@@ -1165,6 +1168,17 @@ const AdminBrandDetail = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={() => setSnackbar(s => ({ ...s, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

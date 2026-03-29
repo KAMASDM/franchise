@@ -231,19 +231,23 @@ const AdminTestimonialManagement = () => {
       // Delete from Firestore
       await deleteDoc(doc(db, 'videoTestimonials', testimonial.id));
 
-      // Optional: Delete files from storage
-      // Note: You may want to keep files for backup purposes
-      // Uncomment if you want to delete files immediately
-      /*
-      if (testimonial.videoUrl) {
-        const videoRef = ref(storage, testimonial.videoUrl);
-        await deleteObject(videoRef).catch(() => {});
-      }
-      if (testimonial.thumbnailUrl) {
-        const thumbnailRef = ref(storage, testimonial.thumbnailUrl);
-        await deleteObject(thumbnailRef).catch(() => {});
-      }
-      */
+      // Delete associated files from Storage to avoid orphaned files
+      const deleteStorageFile = async (url) => {
+        if (!url) return;
+        try {
+          // Firebase Storage download URLs contain the encoded path after /o/
+          const pathMatch = decodeURIComponent(url).match(/\/o\/(.+?)\?/);
+          if (pathMatch) {
+            await deleteObject(ref(storage, pathMatch[1]));
+          }
+        } catch {
+          // File may already be gone — ignore
+        }
+      };
+      await Promise.all([
+        deleteStorageFile(testimonial.videoUrl),
+        deleteStorageFile(testimonial.thumbnailUrl),
+      ]);
 
       toast.success('Testimonial deleted successfully');
       fetchTestimonials();

@@ -1,8 +1,12 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL
+
+if (!API_BASE_URL) {
+  console.warn('VITE_API_URL is not set. API calls will fail.')
+}
 
 class ApiService {
   constructor() {
-    this.baseURL = API_BASE_URL
+    this.baseURL = API_BASE_URL || ''
   }
 
   async request(endpoint, options = {}) {

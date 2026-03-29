@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Typography, TextField, Button, CircularProgress, Alert } from '@mui/material';
 import { db } from '../../firebase/firebase';
-import { collection, writeBatch, getDocs, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch, getDocs, serverTimestamp } from 'firebase/firestore';
 import { Send } from '@mui/icons-material';
 import logger from '../../utils/logger';
 

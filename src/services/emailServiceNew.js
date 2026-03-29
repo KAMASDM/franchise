@@ -35,27 +35,15 @@ const sendEmailHTML = async (to_email, to_name, subject, htmlContent) => {
       return { success: false, error: 'Email service not configured' };
     }
 
-    console.log(`🔵 Attempting to send email...`);
-    console.log(`  To: ${to_email}`);
-    console.log(`  Name: ${to_name}`);
-    console.log(`  Subject: ${subject}`);
-    console.log(`  Template ID: ${EMAILJS_GENERIC_TEMPLATE}`);
-    console.log(`  Service ID: ${EMAILJS_SERVICE_ID}`);
-    console.log(`  HTML Length: ${htmlContent?.length || 0} characters`);
-
-    // EmailJS template parameters
-    // Note: EmailJS uses these exact field names in the template
     const templateParams = {
-      to_email: to_email,           // Recipient email
-      to_name: to_name,             // Recipient name
-      from_name: 'ikama',           // Sender name
-      reply_to: 'support@ikama.in', // Reply-to email
-      subject: subject,             // Email subject
-      message: htmlContent,         // Try 'message' field (common in EmailJS)
-      html_content: htmlContent,    // Also include html_content
+      to_email: to_email,
+      to_name: to_name,
+      from_name: 'ikama',
+      reply_to: 'support@ikama.in',
+      subject: subject,
+      message: htmlContent,
+      html_content: htmlContent,
     };
-
-    console.log('📤 Template params:', templateParams);
 
     const response = await emailjs.send(
       EMAILJS_SERVICE_ID,
@@ -63,33 +51,22 @@ const sendEmailHTML = async (to_email, to_name, subject, htmlContent) => {
       templateParams
     );
 
-    console.log('✅ Email sent successfully:', response);
-    
-    // Log email activity
+    // Log email activity (no PII in status)
     await logEmailActivity({
-      to_email,
-      to_name,
       subject,
       status: 'sent',
       timestamp: new Date().toISOString(),
     });
-    
+
     return { success: true, response };
   } catch (error) {
-    console.error('❌ Error sending email:', error);
-    console.error('Error details:', {
-      message: error.message,
-      text: error.text,
-      status: error.status,
-    });
+    console.error('Error sending email:', error.status || error.message);
     
-    // Log failed email
+    // Log failed email (no PII)
     await logEmailActivity({
-      to_email,
-      to_name,
       subject,
       status: 'failed',
-      error: error.text || error.message,
+      error: error.status ? `HTTP ${error.status}` : 'Send failed',
       timestamp: new Date().toISOString(),
     });
     

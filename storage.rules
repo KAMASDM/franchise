@@ -1,46 +1,81 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow authenticated users to upload and read brand logos
+
+    // --- Helper functions ---
+
+    // Check whether the uploader is an admin by reading the Firestore admins collection
+    function isAdmin() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid));
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Allow only common image types
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|jpg|png|webp|gif|svg\\+xml)');
+    }
+
+    // Allow only video types
+    function isVideo() {
+      return request.resource.contentType.matches('video/(mp4|webm|ogg|quicktime)');
+    }
+
+    // Max file sizes
+    function isUnder5MB() {
+      return request.resource.size <= 5 * 1024 * 1024;
+    }
+
+    function isUnder50MB() {
+      return request.resource.size <= 50 * 1024 * 1024;
+    }
+
+    // Brand logos — authenticated brand owners; images only under 5 MB
     match /brand-logos/{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if isSignedIn() && isImage() && isUnder5MB();
     }
-    
-    // Allow authenticated users to upload and read brand images
+
+    // Brand images — authenticated brand owners; images only under 5 MB
     match /brand-images/{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if isSignedIn() && isImage() && isUnder5MB();
     }
-    
-    // Allow authenticated users to upload and read franchise images
+
+    // Franchise images — authenticated users; images only under 5 MB
     match /franchise-images/{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read: if true;
+      allow write: if isSignedIn() && isImage() && isUnder5MB();
     }
-    
-    // Allow public read for approved brand assets
+
+    // Public assets — public read, any authenticated write under 5 MB
     match /public/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isSignedIn() && isUnder5MB();
     }
-    
-    // Video testimonials - public read, admin write
+
+    // Video testimonials — public read, admin-only write under 50 MB
     match /testimonials/{allPaths=**} {
-      allow read: if true; // Public can view videos
-      allow write: if request.auth != null; // Only authenticated admins can upload
+      allow read: if true;
+      allow write: if isAdmin() && isVideo() && isUnder50MB();
     }
-    
-    // About Us images - public read, admin write
+
+    // About Us images — public read, admin-only write under 5 MB
     match /aboutUs/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin() && isImage() && isUnder5MB();
     }
-    
-    // Blog images - public read, admin write
+
+    // Blog images — public read, admin-only write under 5 MB
     match /blogs/{allPaths=**} {
-      allow read: if true; // Public can view blog images
-      allow write: if request.auth != null; // Only authenticated admins can upload
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && isUnder5MB();
     }
-    
-    // Default deny for other paths
+
+    // Default deny everything else
     match /{allPaths=**} {
       allow read, write: if false;
     }
