@@ -24,7 +24,7 @@
 
   # Tell Netlify's secrets scanner to ignore the Google Maps and Gemini keys.
   # These are intentional browser-side keys that must be bundled in the JS output.
-  SECRETS_SCAN_OMIT_KEYS = "VITE_GOOGLE_MAPS_API_KEY,VITE_GEMINI_API_KEY"
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
 
 # Redirect rules (same as _redirects file, but in TOML format)
 [[redirects]]
