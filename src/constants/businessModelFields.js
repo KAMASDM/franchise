@@ -457,7 +457,7 @@ export const FIELD_OPTIONS = {
 
   // Generic revenue models for payment structure (how franchisee pays franchisor)
   revenueModels: [
-    { label: 'Royalty Based', value: 'royalty', subtitle: '% of revenue', color: '#1976d2' },
+    { label: 'Royalty Based', value: 'royalty', subtitle: '% of revenue', color: '#5a76a9' },
     { label: 'Flat Fee', value: 'flat_fee', subtitle: 'Fixed monthly/yearly', color: '#388e3c' },
     { label: 'Margin Based', value: 'margin', subtitle: '% of profit', color: '#f57c00' },
     { label: 'Commission Based', value: 'commission', subtitle: '% of sales', color: '#7b1fa2' },

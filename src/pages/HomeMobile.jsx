@@ -59,22 +59,28 @@ const HomeMobile = () => {
   const featuredBrands = brands?.slice(0, 10) || [];
   const topInvestments = brands?.sort((a, b) => (b.brandInvestment || 0) - (a.brandInvestment || 0)).slice(0, 5) || [];
 
-  // Quick stats
+  // Quick stats — real numbers derived from live brand data
+  const industryCount = new Set((brands || []).map((b) => b.brandCategory).filter(Boolean)).size;
+  const totalOutlets = (brands || []).reduce((sum, b) => {
+    const units = Number(b.totalUnits);
+    return Number.isFinite(units) ? sum + units : sum;
+  }, 0);
   const stats = [
-    { label: 'Brands', value: '500+', icon: <Business />, color: 'primary' },
-    { label: 'Placements', value: '5K+', icon: <TrendingUp />, color: 'success' },
-    { label: 'Success Rate', value: '95%', icon: <Star />, color: 'warning' },
-    { label: 'ROI', value: '25%+', icon: <AttachMoney />, color: 'secondary' },
-  ];
+    { label: 'Brands', value: `${brands?.length || 0}`, icon: <Business />, color: 'primary' },
+    { label: 'Industries', value: `${industryCount}`, icon: <TrendingUp />, color: 'success' },
+    { label: 'Outlets', value: totalOutlets > 0 ? `${totalOutlets}+` : '—', icon: <Star />, color: 'warning' },
+  ].filter((stat) => stat.value !== '0' && stat.value !== '—');
 
-  // Categories with icons
+  // Categories with icons — counts computed from live brand data
+  const categoryCount = (name) =>
+    (brands || []).filter((b) => (b.brandCategory || '').toLowerCase().includes(name.toLowerCase())).length;
   const categories = [
-    { name: 'Food & Beverage', icon: <Restaurant />, color: '#FF6B6B', count: 120 },
-    { name: 'Retail', icon: <ShoppingCart />, color: '#4ECDC4', count: 85 },
-    { name: 'Fitness', icon: <FitnessCenter />, color: '#FFE66D', count: 45 },
-    { name: 'Education', icon: <School />, color: '#95E1D3', count: 60 },
-    { name: 'Logistics', icon: <LocalShipping />, color: '#F38181', count: 38 },
-  ];
+    { name: 'Food & Beverage', icon: <Restaurant />, color: '#FF6B6B' },
+    { name: 'Retail', icon: <ShoppingCart />, color: '#4ECDC4' },
+    { name: 'Fitness', icon: <FitnessCenter />, color: '#FFE66D' },
+    { name: 'Education', icon: <School />, color: '#95E1D3' },
+    { name: 'Logistics', icon: <LocalShipping />, color: '#F38181' },
+  ].map((category) => ({ ...category, count: categoryCount(category.name) }));
 
   const features = [
     {
@@ -134,7 +140,7 @@ const HomeMobile = () => {
             Franchise 🚀
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.95, mb: 3 }}>
-            Discover 500+ verified franchise opportunities
+            Discover verified franchise opportunities
           </Typography>
 
           {/* Search Bar */}
@@ -281,15 +287,17 @@ const HomeMobile = () => {
                 <Typography variant="caption" fontWeight="600" display="block" gutterBottom>
                   {category.name}
                 </Typography>
-                <Chip 
-                  label={`${category.count}+`} 
-                  size="small" 
-                  sx={{ 
-                    height: 20,
-                    fontSize: '0.65rem',
-                    bgcolor: 'action.hover',
-                  }}
-                />
+                {category.count > 0 && (
+                  <Chip
+                    label={category.count}
+                    size="small"
+                    sx={{
+                      height: 20,
+                      fontSize: '0.65rem',
+                      bgcolor: 'action.hover',
+                    }}
+                  />
+                )}
               </Card>
             </MotionBox>
           ))}

@@ -20,7 +20,7 @@ import {
   MenuItem,
   Tooltip,
 } from "@mui/material";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Menu as MenuIcon,
   Home as HomeIcon,
@@ -35,6 +35,7 @@ import {
   Dashboard as DashboardIcon,
   Login as LoginIcon,
   TrendingUp as InvestorIcon,
+  Search as SearchIcon,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { signInWithPopup, signOut } from "firebase/auth";
@@ -45,7 +46,6 @@ import DarkModeToggleIcon from "../common/DarkModeToggle";
 import LanguageSelector from "../common/LanguageSelector";
 import FranchiseHubLogo from "../common/FranchiseHubLogo";
 import logger from "../../utils/logger";
-import { pushNotifications } from "../../utils/pushNotifications";
 import { sendWelcomeEmail } from "../../services/emailServiceNew";
 
 const MotionButton = (props) => (
@@ -54,13 +54,20 @@ const MotionButton = (props) => (
   </motion.div>
 );
 
+// Desktop nav: tight, product-first. Home lives on the logo;
+// Investors is the standalone CTA button, not a nav item.
 const navItems = [
-  { text: "Home", path: "/", icon: <HomeIcon /> },
-  { text: "About", path: "/about", icon: <AboutIcon /> },
   { text: "Brands", path: "/brands", icon: <BrandsIcon /> },
   { text: "Blog", path: "/blogs", icon: <BlogIcon /> },
-  { text: "Contact", path: "/contact", icon: <ContactIcon /> },
+  { text: "About", path: "/about", icon: <AboutIcon /> },
   { text: "FAQs", path: "/faq", icon: <FaqIcon /> },
+  { text: "Contact", path: "/contact", icon: <ContactIcon /> },
+];
+
+// Mobile drawer keeps the full list, including Home and Investors
+const drawerNavItems = [
+  { text: "Home", path: "/", icon: <HomeIcon /> },
+  ...navItems,
   { text: "Investors", path: "/investors", icon: <InvestorIcon /> },
 ];
 
@@ -68,7 +75,15 @@ const Header = () => {
   const theme = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const isActivePath = (path) =>
+    path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
+
+  const openCommandPalette = () => {
+    window.dispatchEvent(new CustomEvent("open-command-palette"));
+  };
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
@@ -121,22 +136,6 @@ const Header = () => {
         }
       }
       
-      // Request push notification permission (don't block if user denies)
-      setTimeout(async () => {
-        if (pushNotifications.isNotificationSupported()) {
-          const currentPermission = pushNotifications.getPermissionStatus();
-          // Only request if not already granted or denied
-          if (currentPermission === 'default') {
-            try {
-              await pushNotifications.requestPermission();
-            } catch (error) {
-              logger.error('Failed to request push notification permission:', error);
-              // Don't show error to user, they can enable it later in settings
-            }
-          }
-        }
-      }, 2000); // Wait 2 seconds after sign-in to avoid overwhelming the user
-      
       navigate("/dashboard/register-brand");
     } catch (error) {
       logger.error("Google Sign-In Failed:", error);
@@ -164,11 +163,12 @@ const Header = () => {
       </Box>
       <Divider />
       <List>
-        {navItems.map(({ text, path, icon }) => (
+        {drawerNavItems.map(({ text, path, icon }) => (
           <ListItem key={text} disablePadding>
-            <ListItemButton 
-              component={RouterLink} 
+            <ListItemButton
+              component={RouterLink}
               to={path}
+              selected={isActivePath(path)}
               sx={{ minHeight: 48 }} // WCAG touch target minimum
             >
               <ListItemIcon>{icon}</ListItemIcon>
@@ -287,30 +287,65 @@ const Header = () => {
               gap: 1,
             }}
           >
-            <FranchiseHubLogo 
-              variant="full" 
-              width={isMobile ? 140 : 220} 
-              height={isMobile ? 40 : 60} 
+            <FranchiseHubLogo
+              variant="full"
+              width={isMobile ? 130 : 170}
+              height={isMobile ? 36 : 46}
             />
           </Box>
 
           {/* Desktop Navigation */}
           {!isMobile && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              {navItems.map(({ text, path }) => (
-                <MotionButton
-                  key={text}
-                  component={RouterLink}
-                  to={path}
-                  color="inherit"
-                >
-                  {text}
-                </MotionButton>
-              ))}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              {navItems.map(({ text, path }) => {
+                const active = isActivePath(path);
+                return (
+                  <Button
+                    key={text}
+                    component={RouterLink}
+                    to={path}
+                    color="inherit"
+                    aria-current={active ? "page" : undefined}
+                    sx={{
+                      position: "relative",
+                      fontWeight: active ? 700 : 500,
+                      color: active ? "primary.main" : "text.primary",
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        left: 12,
+                        right: 12,
+                        bottom: 4,
+                        height: 2,
+                        borderRadius: 1,
+                        bgcolor: "primary.main",
+                        opacity: active ? 1 : 0,
+                        transition: "opacity 150ms ease",
+                      },
+                      "&:hover::after": {
+                        opacity: 0.4,
+                      },
+                    }}
+                  >
+                    {text}
+                  </Button>
+                );
+              })}
             </Box>
           )}
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            {/* Global search / command palette */}
+            <Tooltip title="Search (Ctrl+K)">
+              <IconButton
+                onClick={openCommandPalette}
+                aria-label="Open search"
+                sx={{ color: "text.secondary" }}
+              >
+                <SearchIcon />
+              </IconButton>
+            </Tooltip>
+
             {/* Language Selector */}
             <LanguageSelector />
             

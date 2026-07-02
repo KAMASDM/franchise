@@ -144,7 +144,7 @@ const EmailJSChecker = () => {
             <strong>⚠️ TEMPLATE MUST BE CONFIGURED IN EMAILJS DASHBOARD!</strong>
           </Typography>
           <Typography variant="body2" component="div">
-            Go to: <a href="https://dashboard.emailjs.com/admin/templates" target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2' }}>
+            Go to: <a href="https://dashboard.emailjs.com/admin/templates" target="_blank" rel="noopener noreferrer" style={{ color: '#5a76a9' }}>
               https://dashboard.emailjs.com/admin/templates
             </a>
             <br /><br />

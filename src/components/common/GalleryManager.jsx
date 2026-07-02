@@ -141,7 +141,7 @@ const GalleryManager = ({
                 ref={provided.innerRef}
                 {...provided.droppableProps}
                 sx={{
-                  bgcolor: snapshot.isDraggingOver ? alpha('#1976d2', 0.05) : 'transparent',
+                  bgcolor: snapshot.isDraggingOver ? alpha('#5a76a9', 0.05) : 'transparent',
                   borderRadius: 1,
                   p: snapshot.isDraggingOver ? 1 : 0,
                   transition: 'all 0.2s ease'

@@ -28,6 +28,10 @@ export {
 export { getEnhancedThemeOptions, getComponentOverrides, mergeWithExistingTheme } from './themeConfig';
 
 // Default export with all design tokens
+import { typography } from './typography';
+import { colors } from './colors';
+import { spacing, borderRadius, shadows, zIndex, breakpoints, transitions } from './spacing';
+
 export default {
   typography,
   colors,

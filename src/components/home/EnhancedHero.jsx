@@ -32,6 +32,7 @@ import {
 import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDemoVideo } from '../../hooks/useDemoVideo';
+import { usePlatformStats } from '../../hooks/usePlatformStats';
 
 const MotionBox = motion(Box);
 const MotionTypography = motion(Typography);
@@ -73,16 +74,22 @@ const AnimatedCounter = ({ end, duration = 2, suffix = '', prefix = '' }) => {
 
 /**
  * Stats Ticker Component
+ * Shows real platform numbers from Firestore — no fabricated claims.
  */
 const StatsTicker = () => {
   const theme = useTheme();
-  
+  const { stats: platformStats, loading } = usePlatformStats();
+
+  // Nothing real to show yet — hide the ticker rather than fake it
+  if (loading || !platformStats || platformStats.activeBrands === 0) {
+    return null;
+  }
+
   const stats = [
-    { label: 'Active Brands', value: 1234, icon: <BusinessCenter fontSize="small" />, suffix: '+' },
-    { label: 'Success Rate', value: 94, icon: <TrendingUp fontSize="small" />, suffix: '%' },
-    { label: 'Happy Investors', value: 5678, icon: <People fontSize="small" />, suffix: '+' },
-    { label: 'Avg Rating', value: 4.8, icon: <Star fontSize="small" />, suffix: '/5' },
-  ];
+    { label: 'Active Brands', value: platformStats.activeBrands, icon: <BusinessCenter fontSize="small" /> },
+    { label: 'Industries Covered', value: platformStats.industries, icon: <TrendingUp fontSize="small" /> },
+    { label: 'Franchise Outlets', value: platformStats.totalOutlets, icon: <People fontSize="small" />, suffix: '+' },
+  ].filter((stat) => stat.value > 0);
 
   return (
     <MotionBox
@@ -101,7 +108,7 @@ const StatsTicker = () => {
     >
       <Grid container spacing={3}>
         {stats.map((stat, index) => (
-          <Grid item xs={6} md={3} key={index}>
+          <Grid item xs={12 / Math.min(stats.length, 2)} md={12 / stats.length} key={index}>
             <Box sx={{ textAlign: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mb: 0.5 }}>
                 <Box sx={{ color: 'primary.main' }}>{stat.icon}</Box>
@@ -125,10 +132,10 @@ const StatsTicker = () => {
  */
 const TrustBadges = () => {
   const badges = [
-    '🏆 Top Rated Platform',
     '✓ Verified Listings',
     '🔒 Secure Process',
-    '⚡ Fast Approval',
+    '🌐 Available in 5 Languages',
+    '💬 Free Expert Guidance',
   ];
 
   return (

@@ -52,6 +52,20 @@ export const getComponentOverrides = (mode) => ({
       '*::-webkit-scrollbar-thumb:hover': {
         background: mode === 'dark' ? '#64748b' : '#94a3b8',
       },
+      // Respect OS-level reduced-motion preference for CSS animations/transitions
+      '@media (prefers-reduced-motion: reduce)': {
+        '*, *::before, *::after': {
+          animationDuration: '0.01ms !important',
+          animationIterationCount: '1 !important',
+          transitionDuration: '0.01ms !important',
+          scrollBehavior: 'auto !important',
+        },
+      },
+      // Visible focus indicator for keyboard navigation
+      ':focus-visible': {
+        outline: `2px solid ${mode === 'dark' ? '#60a5fa' : '#3a5483'}`,
+        outlineOffset: '2px',
+      },
     },
   },
 

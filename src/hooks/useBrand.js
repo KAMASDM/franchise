@@ -35,37 +35,33 @@ export const useBrand = ({ brandName, slug, id }, user = null) => {
             setError("Brand not found with the provided ID.");
           }
         } else if (slug) {
-          // If a slug is provided, fetch all brands and find matching slug
+          // Slugs aren't stored on documents (derived from brandName), so we
+          // scan — the user's own brands first (owners can view their pending
+          // brands), then active brands (all the public can see anyway).
+          // TODO: denormalize a `slug` field at write time to make this a
+          // single-document query.
           const brandsRef = collection(db, "brands");
-          const querySnapshot = await getDocs(brandsRef);
-          
-          console.log(`[useBrand] Searching for slug: "${slug}"`);
-          console.log(`[useBrand] Found ${querySnapshot.docs.length} total brands in database`);
-          
+          const scans = [query(brandsRef, where("status", "==", "active"))];
+          if (user?.uid) {
+            scans.unshift(query(brandsRef, where("userId", "==", user.uid)));
+          }
+
           let foundBrand = null;
-          const availableSlugsMissed = [];
-          
-          querySnapshot.forEach((doc) => {
-            const brandData = doc.data();
-            const brandSlug = generateBrandSlug(brandData.brandName);
-            availableSlugsMissed.push({ 
-              brandName: brandData.brandName, 
-              generatedSlug: brandSlug,
-              docId: doc.id
+          for (const scanQuery of scans) {
+            const querySnapshot = await getDocs(scanQuery);
+            querySnapshot.forEach((docSnap) => {
+              const brandData = docSnap.data();
+              if (!foundBrand && generateBrandSlug(brandData.brandName) === slug) {
+                foundBrand = { id: docSnap.id, ...brandData };
+              }
             });
-            
-            if (brandSlug === slug) {
-              foundBrand = { id: doc.id, ...brandData };
-              console.log(`[useBrand] Found matching brand: ${brandData.brandName}`);
-            }
-          });
+            if (foundBrand) break;
+          }
 
           if (foundBrand) {
             setBrand(foundBrand);
           } else {
-            console.log(`[useBrand] No match found for slug "${slug}"`);
-            console.log(`[useBrand] Available brands and their slugs:`, availableSlugsMissed);
-            setError(`Brand not found with the provided slug "${slug}". Available brands: ${availableSlugsMissed.length}`);
+            setError("Brand not found");
           }
         } else if (brandName) {
           // If a brandName is provided, query the collection

@@ -1,10 +1,12 @@
 import React, { Suspense, useEffect } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AuthContextProvider, useAuth } from "./context/AuthContext";
 import { DarkModeProvider } from "./context/DarkModeContext";
-import { Box, CircularProgress } from "@mui/material";
+import { Box, Container, Grid, Skeleton } from "@mui/material";
 import { Toaster } from 'react-hot-toast';
+import { MotionConfig } from "framer-motion";
 import Header from "./components/layout/Header";
+import CommandPalette from "./components/common/CommandPalette";
 import Footer from "./components/layout/Footer";
 import MobileAppLayout from "./components/layout/MobileAppLayout";
 import Chatbot from "./components/chat/Chatbot";
@@ -41,6 +43,7 @@ const ForgotPasswordPage = React.lazy(() => import("./pages/ForgotPasswordPage")
 const LocationAnalysis = React.lazy(() => import("./pages/LocationAnalysis"));
 const LocationFinderGuide = React.lazy(() => import("./components/location/LocationFinderGuide"));
 const LocationAnalysisEnhanced = React.lazy(() => import("./pages/LocationAnalysisEnhanced"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 // Only load debug component in development
 const FirestoreTest = import.meta.env.DEV 
@@ -51,27 +54,42 @@ const TestimonialDebugger = import.meta.env.DEV
   ? React.lazy(() => import("./components/debug/TestimonialDebugger"))
   : null;
 
+// Content-shaped skeleton shell — feels faster than a blank page with a spinner
 const LoadingFallback = () => (
-  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-    <CircularProgress />
-  </Box>
+  <Container maxWidth="lg" sx={{ py: 4 }} aria-busy="true" aria-label="Loading page">
+    <Skeleton variant="text" width="40%" height={48} sx={{ mb: 1 }} />
+    <Skeleton variant="text" width="65%" height={24} sx={{ mb: 3 }} />
+    <Skeleton variant="rounded" height={220} sx={{ mb: 3 }} />
+    <Grid container spacing={2}>
+      {[...Array(3)].map((_, i) => (
+        <Grid item xs={12} sm={4} key={i}>
+          <Skeleton variant="rounded" height={140} />
+        </Grid>
+      ))}
+    </Grid>
+  </Container>
 );
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/");
-    }
-  }, [user, loading, navigate]);
+  const location = useLocation();
 
   if (loading) {
     return <LoadingFallback />;
   }
 
-  return user ? children : null;
+  if (!user) {
+    // Send to login and remember where the user was headed
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
+    );
+  }
+
+  return children;
 };
 
 const AdminRoute = ({ children }) => {
@@ -167,12 +185,17 @@ function App() {
       {import.meta.env.DEV && TestimonialDebugger && (
         <Route path="/debug-testimonials" element={<TestimonialDebugger />} />
       )}
+
+      {/* Catch-all 404 */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 
   return (
     <DarkModeProvider>
       <AuthContextProvider>
+        {/* Respect the user's OS-level reduced-motion preference for all framer-motion animations */}
+        <MotionConfig reducedMotion="user">
         <Toaster
           position="top-right"
           toastOptions={{
@@ -242,7 +265,9 @@ function App() {
           <OfflineIndicator />
           <PWAUpdatePrompt />
           <ComparisonBar />
+          <CommandPalette />
         </Box>
+        </MotionConfig>
       </AuthContextProvider>
     </DarkModeProvider>
   );

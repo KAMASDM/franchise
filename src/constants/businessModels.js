@@ -24,7 +24,7 @@ export const BUSINESS_MODEL_CONFIG = {
     pluralLabel: 'Franchises',
     description: 'Complete business format with brand licensing, operational support, and ongoing royalties',
     icon: 'Store',
-    color: '#1976d2',
+    color: '#5a76a9',
     features: [
       'Brand licensing',
       'Complete operational manual',
@@ -62,7 +62,7 @@ export const BUSINESS_MODEL_CONFIG = {
     pluralLabel: 'Area Franchises',
     description: 'Rights to open multiple units in a specific geographic area',
     icon: 'Map',
-    color: '#1565c0',
+    color: '#3a5483',
     features: [
       'Multiple unit rights',
       'Area exclusivity',

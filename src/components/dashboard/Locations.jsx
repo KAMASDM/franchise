@@ -49,7 +49,12 @@ import AddFranchiseLocation from "../forms/AddFranchiseLocation";
 const Locations = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { brands, loading, error } = useBrands(user);
+  const { brands: fetchedBrands, loading, error } = useBrands(user);
+  // Local copy so location add/edit can update the list without a refetch
+  const [brands, setBrands] = useState([]);
+  React.useEffect(() => {
+    setBrands(fetchedBrands || []);
+  }, [fetchedBrands]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: "brandName",

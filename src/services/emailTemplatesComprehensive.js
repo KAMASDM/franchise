@@ -49,7 +49,7 @@ const getBaseTemplate = ({ title, headerIcon, headerColor, bodyContent, footerCo
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
     <!-- Header -->
-    <div style="background: linear-gradient(135deg, ${headerColor || '#1976d2'} 0%, ${headerColor || '#1565c0'} 100%); padding: 30px 20px; text-align: center;">
+    <div style="background: linear-gradient(135deg, ${headerColor || '#5a76a9'} 0%, ${headerColor || '#3a5483'} 100%); padding: 30px 20px; text-align: center;">
       <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">ikama</h1>
       <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Franchise Hub</p>
     </div>
@@ -57,7 +57,7 @@ const getBaseTemplate = ({ title, headerIcon, headerColor, bodyContent, footerCo
     ${headerIcon ? `
     <!-- Icon -->
     <div style="text-align: center; margin: -30px 0 20px 0;">
-      <div style="width: 60px; height: 60px; background-color: ${headerColor || '#1976d2'}; border-radius: 50%; margin: 0 auto; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+      <div style="width: 60px; height: 60px; background-color: ${headerColor || '#5a76a9'}; border-radius: 50%; margin: 0 auto; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
         ${headerIcon}
       </div>
     </div>
@@ -73,9 +73,9 @@ const getBaseTemplate = ({ title, headerIcon, headerColor, bodyContent, footerCo
       ${footerContent || `
         <p style="font-size: 12px; color: #999999; margin: 5px 0;">© 2025 ikama. All rights reserved.</p>
         <p style="font-size: 12px; color: #999999; margin: 10px 0;">
-          <a href="https://ikama.in" style="color: #1976d2; text-decoration: none;">Website</a> | 
-          <a href="mailto:support@ikama.in" style="color: #1976d2; text-decoration: none;">Support</a> | 
-          <a href="https://ikama.in/privacy" style="color: #1976d2; text-decoration: none;">Privacy</a>
+          <a href="https://ikama.in" style="color: #5a76a9; text-decoration: none;">Website</a> | 
+          <a href="mailto:support@ikama.in" style="color: #5a76a9; text-decoration: none;">Support</a> | 
+          <a href="https://ikama.in/privacy" style="color: #5a76a9; text-decoration: none;">Privacy</a>
         </p>
         <p style="font-size: 11px; color: #aaa; margin: 10px 0;">
           1C Satyam Appt, Vishwas Colony, Alkapuri, Vadodara, Gujarat 390007
@@ -91,7 +91,7 @@ const getBaseTemplate = ({ title, headerIcon, headerColor, bodyContent, footerCo
  * Reusable Components
  */
 const components = {
-  button: (text, url, color = '#1976d2') => `
+  button: (text, url, color = '#5a76a9') => `
     <div style="text-align: center; margin: 30px 0;">
       <a href="${url}" style="display: inline-block; padding: 14px 32px; background-color: ${color}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
         ${text}
@@ -99,7 +99,7 @@ const components = {
     </div>
   `,
   
-  infoBox: (content, color = '#1976d2') => `
+  infoBox: (content, color = '#5a76a9') => `
     <div style="background-color: ${color}15; border-left: 4px solid ${color}; padding: 15px 20px; margin: 20px 0; border-radius: 4px;">
       ${content}
     </div>
@@ -121,7 +121,7 @@ const components = {
 // 1. Welcome Email
 export const getWelcomeEmail = (data) => {
   const body = `
-    <h2 style="font-size: 24px; color: #1976d2; margin-bottom: 20px;">Welcome to ikama! 🎉</h2>
+    <h2 style="font-size: 24px; color: #5a76a9; margin-bottom: 20px;">Welcome to ikama! 🎉</h2>
     <p style="font-size: 16px; color: #555555; line-height: 1.6;">Hello <strong>${data.to_name}</strong>,</p>
     <p style="font-size: 16px; color: #555555; line-height: 1.6;">
       Welcome to ikama Franchise Hub! We're thrilled to have you join our community of entrepreneurs and franchise enthusiasts.
@@ -144,14 +144,14 @@ export const getWelcomeEmail = (data) => {
     ${components.button('Explore Franchises', data.login_url || 'https://ikama.in')}
     ${components.divider()}
     <p style="font-size: 14px; color: #777777;">
-      Questions? Our support team is here to help at <a href="mailto:support@ikama.in" style="color: #1976d2;">support@ikama.in</a>
+      Questions? Our support team is here to help at <a href="mailto:support@ikama.in" style="color: #5a76a9;">support@ikama.in</a>
     </p>
   `;
   
   return getBaseTemplate({
     title: 'Welcome to ikama',
     headerIcon: '🎉',
-    headerColor: '#1976d2',
+    headerColor: '#5a76a9',
     bodyContent: body
   });
 };
@@ -159,7 +159,7 @@ export const getWelcomeEmail = (data) => {
 // 2. Email Verification
 export const getEmailVerificationEmail = (data) => {
   const body = `
-    <h2 style="font-size: 24px; color: #1976d2; margin-bottom: 20px;">Verify Your Email</h2>
+    <h2 style="font-size: 24px; color: #5a76a9; margin-bottom: 20px;">Verify Your Email</h2>
     <p style="font-size: 16px; color: #555555; line-height: 1.6;">Hello <strong>${data.to_name}</strong>,</p>
     <p style="font-size: 16px; color: #555555; line-height: 1.6;">
       Thanks for signing up! Please verify your email address to activate your account.
@@ -167,7 +167,7 @@ export const getEmailVerificationEmail = (data) => {
     ${components.infoBox(`
       <p style="margin: 0; font-size: 14px; color: #555555;">
         <strong>Verification Code:</strong><br>
-        <span style="font-size: 32px; font-weight: bold; color: #1976d2; letter-spacing: 4px;">${data.otp || data.verification_code}</span>
+        <span style="font-size: 32px; font-weight: bold; color: #5a76a9; letter-spacing: 4px;">${data.otp || data.verification_code}</span>
       </p>
     `)}
     <p style="font-size: 14px; color: #777777; line-height: 1.6;">
@@ -179,7 +179,7 @@ export const getEmailVerificationEmail = (data) => {
   return getBaseTemplate({
     title: 'Verify Your Email',
     headerIcon: '📧',
-    headerColor: '#1976d2',
+    headerColor: '#5a76a9',
     bodyContent: body
   });
 };
@@ -187,7 +187,7 @@ export const getEmailVerificationEmail = (data) => {
 // 3. Phone Verification
 export const getPhoneVerificationEmail = (data) => {
   const body = `
-    <h2 style="font-size: 24px; color: #1976d2; margin-bottom: 20px;">Phone Verification</h2>
+    <h2 style="font-size: 24px; color: #5a76a9; margin-bottom: 20px;">Phone Verification</h2>
     <p style="font-size: 16px; color: #555555; line-height: 1.6;">Hello <strong>${data.to_name}</strong>,</p>
     <p style="font-size: 16px; color: #555555; line-height: 1.6;">
       We sent an OTP to <strong>${data.phone_number}</strong>. This email is for your records.
@@ -195,7 +195,7 @@ export const getPhoneVerificationEmail = (data) => {
     ${components.infoBox(`
       <p style="margin: 0; font-size: 14px; color: #555555;">
         <strong>OTP Code:</strong><br>
-        <span style="font-size: 32px; font-weight: bold; color: #1976d2; letter-spacing: 4px;">${data.otp}</span>
+        <span style="font-size: 32px; font-weight: bold; color: #5a76a9; letter-spacing: 4px;">${data.otp}</span>
       </p>
     `, '#4caf50')}
     <p style="font-size: 14px; color: #777777;">
@@ -304,7 +304,7 @@ export const getEmailTemplate = (templateName, data) => {
  */
 const getGenericTemplate = (data) => {
   const body = `
-    <h2 style="font-size: 24px; color: #1976d2; margin-bottom: 20px;">${data.title || 'Notification'}</h2>
+    <h2 style="font-size: 24px; color: #5a76a9; margin-bottom: 20px;">${data.title || 'Notification'}</h2>
     <p style="font-size: 16px; color: #555555; line-height: 1.6;">Hello <strong>${data.to_name}</strong>,</p>
     <div style="font-size: 16px; color: #555555; line-height: 1.6;">
       ${data.message || ''}

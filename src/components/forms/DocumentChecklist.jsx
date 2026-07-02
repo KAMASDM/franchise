@@ -42,7 +42,7 @@ const DocumentChecklist = ({ open, onClose, onContinue }) => {
       id: 'branding',
       title: 'Branding Materials',
       icon: <ImageIcon />,
-      color: '#1976d2',
+      color: '#5a76a9',
       items: [
         {
           id: 'logo',

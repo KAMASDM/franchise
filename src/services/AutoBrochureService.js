@@ -244,38 +244,6 @@ export class AutoBrochureService {
   }
 
   /**
-   * Get brochure statistics and metadata
-   * @param {string} brandId - Brand document ID
-   * @returns {Object} Brochure stats including existence, URL, size, etc.
-   */
-  static async getBrochureStats(brandId) {
-    try {
-      const brochureRef = ref(storage, `brochures/${brandId}.pdf`);
-      const metadata = await getMetadata(brochureRef);
-      const url = await getDownloadURL(brochureRef);
-      
-      return {
-        exists: true,
-        url: url,
-        size: metadata.size,
-        generatedAt: metadata.timeCreated ? new Date(metadata.timeCreated) : null,
-        contentType: metadata.contentType
-      };
-    } catch (error) {
-      if (error.code === 'storage/object-not-found') {
-        return {
-          exists: false,
-          url: null,
-          size: 0,
-          generatedAt: null,
-          contentType: null
-        };
-      }
-      throw error;
-    }
-  }
-
-  /**
    * Helper method to get brochure URL if it exists
    * @param {string} brandId - Brand document ID
    * @returns {string|null} Download URL or null if not found

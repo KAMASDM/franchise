@@ -168,6 +168,11 @@ export default defineConfig({
       }
     })
   ],
+  esbuild: {
+    // Strip debug logging from production bundles (dev builds keep them).
+    // console.error/warn are preserved for production diagnostics.
+    pure: ['console.log', 'console.debug', 'console.info', 'console.trace'],
+  },
   build: {
     // Optimize build output
     rollupOptions: {

@@ -3,7 +3,7 @@
  * Complete redesign with advanced filtering, sorting, and visualization
  */
 
-import React, { useState, useEffect, lazy, Suspense, useMemo } from "react";
+import React, { useState, useEffect, useCallback, lazy, Suspense, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Container,
@@ -61,7 +61,7 @@ import { useDevice } from "../hooks/useDevice";
 import { useDebounce } from "../hooks/useDebounce";
 import { enhancedSearch } from "../utils/fuzzySearch";
 import { useGamification } from "../hooks/useGamification";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const BrandsMobile = lazy(() => import("./BrandsMobile"));
 
@@ -83,6 +83,9 @@ const VIEW_MODES = [
   { value: 'list', label: 'List', icon: <ListViewIcon /> },
 ];
 
+// Filter keys persisted in the URL query string
+const FILTER_KEYS = ['brandCategory', 'businessModel', 'industries', 'locations', 'investmentRange'];
+
 const BrandsModern = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -92,15 +95,54 @@ const BrandsModern = () => {
   // Data loading without excessive logging
   const { brands, loading, error } = useBrands(null, { limit: 100 });
   
-  const [filters, setFilters] = useState({});
-  const [searchQuery, setSearchQuery] = useState("");
+  // All marketplace state lives in the URL, so every search is shareable,
+  // survives refresh, and plays well with back/forward navigation.
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const searchQuery = searchParams.get('q') || '';
+  const sortBy = searchParams.get('sort') || 'recommended';
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+  const selectedTags = useMemo(
+    () => searchParams.get('tags')?.split(',').filter(Boolean) || [],
+    [searchParams]
+  );
+  const filters = useMemo(() => {
+    const result = {};
+    FILTER_KEYS.forEach((key) => {
+      const value = searchParams.get(key);
+      if (value) result[key] = value.split(',').filter(Boolean);
+    });
+    return result;
+  }, [searchParams]);
+
+  const updateParams = useCallback((updates) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      Object.entries(updates).forEach(([key, value]) => {
+        if (
+          value === null ||
+          value === undefined ||
+          value === '' ||
+          (Array.isArray(value) && value.length === 0)
+        ) {
+          next.delete(key);
+        } else {
+          next.set(key, Array.isArray(value) ? value.join(',') : String(value));
+        }
+      });
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  // Any change to search/sort/filters resets pagination
+  const setSearchQuery = (q) => updateParams({ q, page: null });
+  const setSelectedTags = (tags) => updateParams({ tags, page: null });
+  const setSortBy = (sort) => updateParams({ sort: sort === 'recommended' ? null : sort, page: null });
+
   const debouncedSearchQuery = useDebounce(searchQuery, 300); // 300ms debounce
-  const [selectedTags, setSelectedTags] = useState([]);
   const [viewMode, setViewMode] = useState('list'); // Default to list view
-  const [sortBy, setSortBy] = useState('recommended');
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [page, setPage] = useState(1);
-  const [itemsPerPage] = useState(12); // 12 brands per page
+  const itemsPerPage = 12; // 12 brands per page
   const { trackVisit } = useGamification();
 
   // Track visit only once when component mounts
@@ -108,21 +150,6 @@ const BrandsModern = () => {
     trackVisit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run on mount
-
-  // Mobile version
-  if (isMobile) {
-    return (
-      <Suspense
-        fallback={
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-            <CircularProgress />
-          </Box>
-        }
-      >
-        <BrandsMobile />
-      </Suspense>
-    );
-  }
 
   // Filter and search brands - optimized with single-pass filtering
   const filteredBrands = useMemo(() => {
@@ -255,36 +282,34 @@ const BrandsModern = () => {
     return result;
   }, [filteredBrands, sortBy]);
 
-  // Pagination logic - optimized
+  // Pagination logic - optimized. Clamp so a stale ?page= in a shared URL
+  // never lands on an empty page.
   const totalPages = Math.ceil(sortedBrands.length / itemsPerPage);
+  const safePage = Math.min(page, Math.max(totalPages, 1));
   const paginatedBrands = useMemo(() => {
-    const startIndex = (page - 1) * itemsPerPage;
+    const startIndex = (safePage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return sortedBrands.slice(startIndex, endIndex);
-  }, [sortedBrands, page, itemsPerPage]);
-
-  // Reset page when filters change
-  useEffect(() => {
-    setPage(1);
-  }, [filters, debouncedSearchQuery, selectedTags, sortBy]);
+  }, [sortedBrands, safePage, itemsPerPage]);
 
   const handlePageChange = (event, value) => {
-    setPage(value);
+    updateParams({ page: value > 1 ? value : null });
     // Scroll to top of results
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleFilterChange = (filterKey, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterKey]: value
-    }));
+    updateParams({ [filterKey]: value, page: null });
   };
 
   const handleClearFilters = () => {
-  setFilters({});
-  setSearchQuery('');
-  setSelectedTags([]);
+    updateParams({
+      q: null,
+      tags: null,
+      sort: null,
+      page: null,
+      ...Object.fromEntries(FILTER_KEYS.map((key) => [key, null])),
+    });
   };
 
   const activeFilterCount = useMemo(() => {
@@ -293,6 +318,22 @@ const BrandsModern = () => {
       return count;
     }, 0) + selectedTags.length;
   }, [filters, selectedTags]);
+
+  // Mobile version — must come after all hooks so hook order stays
+  // stable when the viewport crosses the mobile breakpoint
+  if (isMobile) {
+    return (
+      <Suspense
+        fallback={
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+            <CircularProgress />
+          </Box>
+        }
+      >
+        <BrandsMobile />
+      </Suspense>
+    );
+  }
 
   if (loading) {
     return (
@@ -684,7 +725,7 @@ const BrandsModern = () => {
                       <Stack spacing={2} alignItems="center">
                         <Pagination
                           count={totalPages}
-                          page={page}
+                          page={safePage}
                           onChange={handlePageChange}
                           color="primary"
                           size="large"
@@ -698,7 +739,7 @@ const BrandsModern = () => {
                           }}
                         />
                         <Typography variant="body2" color="text.secondary">
-                          Showing {((page - 1) * itemsPerPage) + 1} - {Math.min(page * itemsPerPage, sortedBrands.length)} of {sortedBrands.length} brands
+                          Showing {((safePage - 1) * itemsPerPage) + 1} - {Math.min(safePage * itemsPerPage, sortedBrands.length)} of {sortedBrands.length} brands
                         </Typography>
                       </Stack>
                     </Box>

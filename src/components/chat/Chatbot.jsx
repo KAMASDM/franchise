@@ -717,7 +717,7 @@ const Chatbot = () => {
             alignItems: "center",
             justifyContent: "space-between",
             pb: 1,
-            background: "linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)",
+            background: "linear-gradient(135deg, #5a76a9 0%, #93c5fd 100%)",
             color: "white"
           }}
         >
@@ -873,13 +873,13 @@ const Chatbot = () => {
                                   transform: "translateY(-3px)",
                                   boxShadow: 6 
                                 },
-                                border: index === 0 ? "2px solid #1976d2" : "1px solid #e0e0e0"
+                                border: index === 0 ? "2px solid #5a76a9" : "1px solid #e0e0e0"
                               }}
                               onClick={() => handleBrandClick(brand)}
                             >
                               {index === 0 && (
                                 <Box sx={{ 
-                                  background: "linear-gradient(135deg, #1976d2, #42a5f5)",
+                                  background: "linear-gradient(135deg, #5a76a9, #93c5fd)",
                                   color: "white",
                                   px: 2,
                                   py: 0.5,

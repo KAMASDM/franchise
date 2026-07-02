@@ -1,8 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, ThemeProvider, createTheme, CircularProgress, useMediaQuery, Badge } from '@mui/material';
-
-// Generate default shadows so all elevation levels are defined
-const _defaultShadows = createTheme().shadows;
+import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider, CssBaseline, AppBar, CircularProgress, Badge } from '@mui/material';
 import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom';
 import { Dashboard, Store, People, Notifications as NotificationsIcon, ExitToApp, Leaderboard, BarChart, Email, Chat as ChatIcon, VideoLibrary, Info, Article, Videocam, Settings } from '@mui/icons-material';
 import { signOut } from 'firebase/auth';
@@ -29,30 +26,6 @@ import EmailJSChecker from '../components/admin/EmailJSChecker';
 
 // Lazy load mobile layout
 const AdminDashboardMobile = lazy(() => import('../components/admin/AdminDashboardMobile'));
-
-const adminTheme = createTheme({
-  palette: {
-    primary: {
-      50: "#f0f4ff", main: "#5a76a9", dark: "#3a5483", contrastText: "#ffffff",
-    },
-    secondary: {
-      50: "#f0faf7", main: "#92baac", light: "#a5cdbf", dark: "#6c9486",
-    },
-    background: {
-      default: "#f0f4ff", paper: "#ffffff",
-    },
-    text: {
-      primary: "#1a325d", secondary: "#3a5483",
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-  },
-  shape: {
-    borderRadius: 12,
-  },
-  shadows: _defaultShadows,
-});
 
 const drawerWidth = 240;
 
@@ -87,7 +60,6 @@ const AdminDashboard = () => {
     // Render mobile version
     if (isMobile) {
         return (
-            <ThemeProvider theme={adminTheme}>
                 <Suspense fallback={
                     <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
                         <CircularProgress />
@@ -114,7 +86,6 @@ const AdminDashboard = () => {
                         </Box>
                     </AdminDashboardMobile>
                 </Suspense>
-            </ThemeProvider>
         );
     }
 
@@ -150,7 +121,6 @@ const AdminDashboard = () => {
     );
 
     return (
-        <ThemeProvider theme={adminTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
                 <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: 'primary.dark' }}>
@@ -197,7 +167,6 @@ const AdminDashboard = () => {
                     </Routes>
                 </Box>
             </Box>
-        </ThemeProvider>
     );
 };
 

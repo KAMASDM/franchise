@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { generateBrandSlug } from "../../utils/brandUtils";
 import {
   Box,
   Typography,
@@ -222,7 +223,7 @@ const FranchiseInquiryForm = ({ brand, onClose, onSuccess }) => {
           email: formData.email,
           name: `${formData.firstName} ${formData.lastName}`,
           brandName: brand.brandName,
-          brandSlug: slug,
+          brandSlug: generateBrandSlug(brand.brandName),
         });
         logger.info('Inquiry confirmation email sent to user:', formData.email);
       } catch (emailError) {

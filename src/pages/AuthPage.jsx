@@ -25,7 +25,7 @@ import {
   Google,
   ArrowBack,
 } from '@mui/icons-material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import authService from '../services/authService';
 import { useAuth } from '../context/AuthContext';
@@ -38,14 +38,17 @@ import { useDevice } from '../hooks/useDevice';
  */
 const AuthPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { isMobile } = useDevice();
   const [activeTab, setActiveTab] = useState(0); // 0 = Login, 1 = Register
+  // Where to send the user after auth (set by ProtectedRoute when it redirects here)
+  const from = location.state?.from || '/';
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate(from, { replace: true });
     }
   }, [user, navigate]);
 
@@ -112,7 +115,7 @@ const AuthPage = () => {
         
         // Redirect after successful login
         setTimeout(() => {
-          navigate('/');
+          navigate(from, { replace: true });
         }, 1500);
       } else {
         // Register
@@ -139,7 +142,7 @@ const AuthPage = () => {
         
         // Redirect after successful registration
         setTimeout(() => {
-          navigate('/');
+          navigate(from, { replace: true });
         }, 2000);
       }
     } catch (err) {
@@ -193,7 +196,7 @@ const AuthPage = () => {
         
         // Redirect after successful verification
         setTimeout(() => {
-          navigate('/');
+          navigate(from, { replace: true });
         }, 1500);
       }
     } catch (err) {
@@ -218,7 +221,7 @@ const AuthPage = () => {
       
       // Redirect after successful sign-in
       setTimeout(() => {
-        navigate('/');
+        navigate(from, { replace: true });
       }, 1500);
     } catch (err) {
       setError(err.message);
@@ -466,7 +469,8 @@ const AuthPage = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: (t) =>
+          `linear-gradient(135deg, ${t.palette.primary.dark} 0%, ${t.palette.primary.main} 60%, ${t.palette.secondary.dark} 100%)`,
         display: 'flex',
         alignItems: 'center',
         py: 4,

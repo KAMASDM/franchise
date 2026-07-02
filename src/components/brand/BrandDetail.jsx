@@ -29,6 +29,7 @@ import {
   Link, // Import Link
   Stack,
   Tooltip,
+  Skeleton,
 } from "@mui/material";
 import {
   LocationOn,
@@ -136,14 +137,6 @@ const BrandDetail = () => {
     }
   };
 
-  // Debug logging
-  console.log('BrandDetail Debug:', {
-    slug,
-    loading,
-    error,
-    brand: brand ? { brandName: brand.brandName, id: brand.id } : null
-  });
-
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -213,60 +206,47 @@ const BrandDetail = () => {
   };
 
   if (loading) {
+    // Profile-shaped skeleton: hero banner, then title/meta and content columns
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="80vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
-        <Typography variant="h4" color="error" sx={{ mb: 2 }}>
-          {error}
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Looking for slug: "{slug}"
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button variant="contained" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-          <Button variant="outlined" onClick={() => navigate("/brands")}>
-            View All Brands
-          </Button>
+      <Container maxWidth="lg" sx={{ py: 4 }} aria-busy="true" aria-label="Loading brand profile">
+        <Skeleton variant="rounded" height={280} sx={{ mb: 3 }} />
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3 }}>
+          <Skeleton variant="circular" width={72} height={72} />
+          <Box sx={{ flex: 1 }}>
+            <Skeleton variant="text" width="40%" height={40} />
+            <Skeleton variant="text" width="25%" height={24} />
+          </Box>
+          <Skeleton variant="rounded" width={140} height={44} />
         </Box>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Skeleton variant="rounded" height={180} sx={{ mb: 2 }} />
+            <Skeleton variant="rounded" height={240} />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Skeleton variant="rounded" height={320} />
+          </Grid>
+        </Grid>
       </Container>
     );
   }
 
-  if (!brand) {
+  if (error || !brand) {
     return (
-      <Container maxWidth="lg" sx={{ py: 8, textAlign: "center" }}>
-        <Typography variant="h4" color="text.secondary">
+      <Container maxWidth="sm" sx={{ py: 10, textAlign: "center" }}>
+        <Typography variant="h4" sx={{ mb: 1.5, fontWeight: 700 }}>
           Brand not found
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mt: 2, mb: 3 }}>
-          Slug: "{slug}" | Error: {error || "No error"} | Loading: {loading ? "Yes" : "No"}
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          This brand may have been removed or the link may be out of date.
+          Explore our full catalogue to find similar opportunities.
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Button
-            variant="contained"
-            onClick={() => navigate("/brands")}
-          >
-            Back to Brands
+          <Button variant="contained" size="large" onClick={() => navigate("/brands")}>
+            Browse All Brands
           </Button>
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/debug-brands")}
-          >
-            Debug Brands
+          <Button variant="outlined" size="large" onClick={() => navigate(-1)}>
+            Go Back
           </Button>
         </Box>
       </Container>

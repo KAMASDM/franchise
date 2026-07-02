@@ -24,15 +24,6 @@ const Home = () => {
   const { isMobile } = useDevice();
   const { testimonials, loading: testimonialsLoading } = useVideoTestimonials();
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log('Video Testimonials:', { 
-      count: testimonials?.length || 0, 
-      loading: testimonialsLoading,
-      testimonials: testimonials 
-    });
-  }, [testimonials, testimonialsLoading]);
-
   // Mobile version
   if (isMobile) {
     return (

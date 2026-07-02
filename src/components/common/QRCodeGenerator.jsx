@@ -13,6 +13,7 @@ import {
 import { QrCode2, Download, Close } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
 import { showToast } from '../../utils/toastUtils';
+import { brandColors } from '../../theme/colors';
 
 /**
  * QR Code Generator Component with Branding
@@ -74,12 +75,12 @@ const QRCodeGenerator = ({
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
       // Draw decorative border
-      ctx.strokeStyle = '#1976d2';
+      ctx.strokeStyle = brandColors.primary[500];
       ctx.lineWidth = 8;
       ctx.strokeRect(20, 20, canvasWidth - 40, canvasHeight - 40);
 
       // Inner border
-      ctx.strokeStyle = '#42a5f5';
+      ctx.strokeStyle = brandColors.primary[300];
       ctx.lineWidth = 2;
       ctx.strokeRect(30, 30, canvasWidth - 60, canvasHeight - 60);
 
@@ -105,7 +106,7 @@ const QRCodeGenerator = ({
               ctx.restore();
               
               // Draw circle border around logo
-              ctx.strokeStyle = '#1976d2';
+              ctx.strokeStyle = brandColors.primary[500];
               ctx.lineWidth = 3;
               ctx.beginPath();
               ctx.arc(canvasWidth / 2, yOffset + logoSize / 2, logoSize / 2 + 2, 0, Math.PI * 2);
@@ -167,7 +168,7 @@ const QRCodeGenerator = ({
           ctx.drawImage(qrImg, padding, yOffset, size, size);
           
           // Draw QR code border
-          ctx.strokeStyle = '#1976d2';
+          ctx.strokeStyle = brandColors.primary[500];
           ctx.lineWidth = 3;
           ctx.strokeRect(
             padding - qrPadding,
@@ -189,7 +190,7 @@ const QRCodeGenerator = ({
       yOffset += size + 40;
 
       // Draw footer text
-      ctx.fillStyle = '#1976d2';
+      ctx.fillStyle = brandColors.primary[500];
       ctx.font = 'bold 18px Arial, sans-serif';
       ctx.fillText('Franchise Opportunity', canvasWidth / 2, yOffset);
       
