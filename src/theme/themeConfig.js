@@ -17,6 +17,23 @@ import {
 } from './spacing';
 
 /**
+ * MUI requires exactly 25 shadow levels (elevation 0–24). Spread our token
+ * scale across it so every elevation resolves — including Dialog's default
+ * 24 — and semantic/inset shadows never leak into the elevation scale.
+ */
+const buildMuiShadows = (tokens) => [
+  'none',                                                       // 0
+  tokens.xs,                                                    // 1
+  tokens.sm, tokens.sm,                                         // 2–3
+  tokens.md, tokens.md, tokens.md, tokens.md,                   // 4–7
+  tokens.lg, tokens.lg, tokens.lg, tokens.lg, tokens.lg,        // 8–12
+  tokens.xl, tokens.xl, tokens.xl, tokens.xl,                   // 13–16
+  tokens.xl, tokens.xl, tokens.xl,                              // 17–19
+  tokens['2xl'], tokens['2xl'], tokens['2xl'],                  // 20–22
+  tokens['2xl'], tokens['2xl'],                                 // 23–24
+];
+
+/**
  * Component style overrides
  * Applies design system tokens to MUI components
  */
@@ -277,9 +294,7 @@ export const getEnhancedThemeOptions = (mode) => ({
     easing: transitions.easing,
   },
 
-  shadows: mode === 'dark' 
-    ? Object.values(darkShadows) 
-    : Object.values(shadows),
+  shadows: buildMuiShadows(mode === 'dark' ? darkShadows : shadows),
 
   components: getComponentOverrides(mode),
 });
