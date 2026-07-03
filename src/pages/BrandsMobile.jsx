@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -47,7 +47,18 @@ const BrandsMobile = () => {
   const navigate = useNavigate();
   const { brands, loading, error } = useBrands();
   const [filteredBrands, setFilteredBrands] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  // Search query lives in the URL (?q=) so links shared from desktop —
+  // where all marketplace state is URL-synced — work on mobile too.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
+  const setSearchQuery = (q) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (q) next.set('q', q);
+      else next.delete('q');
+      return next;
+    }, { replace: true });
+  };
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [filters, setFilters] = useState({
     industries: [],

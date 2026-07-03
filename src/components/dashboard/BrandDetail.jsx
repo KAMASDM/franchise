@@ -62,6 +62,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { useBrand } from "../../hooks/useBrand";
 import logger from "../../utils/logger";
 import { sendBrandUpdatedEmail } from "../../services/emailServiceNew";
+import { withBrandSlug } from "../../utils/brandUtils";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -208,7 +209,7 @@ const BrandDetail = () => {
       );
       
       await updateDoc(brandRef, {
-        ...editedBrand,
+        ...withBrandSlug(editedBrand),
         updatedAt: new Date().toISOString()
       });
       setBrandLocally(editedBrand);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, limit as firestoreLimit } from "firebase/firestore";
 import { generateBrandSlug } from "../utils/brandUtils";
 
 // The hook now accepts an object with either a brandName, slug, or an id
@@ -35,27 +35,39 @@ export const useBrand = ({ brandName, slug, id }, user = null) => {
             setError("Brand not found with the provided ID.");
           }
         } else if (slug) {
-          // Slugs aren't stored on documents (derived from brandName), so we
-          // scan — the user's own brands first (owners can view their pending
-          // brands), then active brands (all the public can see anyway).
-          // TODO: denormalize a `slug` field at write time to make this a
-          // single-document query.
           const brandsRef = collection(db, "brands");
-          const scans = [query(brandsRef, where("status", "==", "active"))];
-          if (user?.uid) {
-            scans.unshift(query(brandsRef, where("userId", "==", user.uid)));
+          let foundBrand = null;
+
+          // Fast path: brands created/updated since the slug field was
+          // denormalized resolve with a single-document query.
+          const slugSnapshot = await getDocs(
+            query(brandsRef, where("slug", "==", slug), firestoreLimit(1))
+          );
+          if (!slugSnapshot.empty) {
+            const docSnap = slugSnapshot.docs[0];
+            foundBrand = { id: docSnap.id, ...docSnap.data() };
           }
 
-          let foundBrand = null;
-          for (const scanQuery of scans) {
-            const querySnapshot = await getDocs(scanQuery);
-            querySnapshot.forEach((docSnap) => {
-              const brandData = docSnap.data();
-              if (!foundBrand && generateBrandSlug(brandData.brandName) === slug) {
-                foundBrand = { id: docSnap.id, ...brandData };
-              }
-            });
-            if (foundBrand) break;
+          // Legacy fallback: older docs have no slug field, so derive it from
+          // brandName — the user's own brands first (owners can view their
+          // pending brands), then active brands (all the public can see).
+          // Run scripts/backfill-brand-slugs.mjs to retire this path.
+          if (!foundBrand) {
+            const scans = [query(brandsRef, where("status", "==", "active"))];
+            if (user?.uid) {
+              scans.unshift(query(brandsRef, where("userId", "==", user.uid)));
+            }
+
+            for (const scanQuery of scans) {
+              const querySnapshot = await getDocs(scanQuery);
+              querySnapshot.forEach((docSnap) => {
+                const brandData = docSnap.data();
+                if (!foundBrand && generateBrandSlug(brandData.brandName) === slug) {
+                  foundBrand = { id: docSnap.id, ...brandData };
+                }
+              });
+              if (foundBrand) break;
+            }
           }
 
           if (foundBrand) {

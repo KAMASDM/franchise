@@ -220,7 +220,7 @@ const PopularCategories = () => {
                 }}
               >
                 <CardActionArea
-                  onClick={() => navigate(`/brands?category=${encodeURIComponent(category.name)}`)}
+                  onClick={() => navigate(`/brands?brandCategory=${encodeURIComponent(category.name)}`)}
                   sx={{ height: '100%' }}
                 >
                   <Box

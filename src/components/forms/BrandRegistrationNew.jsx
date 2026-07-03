@@ -108,7 +108,7 @@ import QuickValueSelector from "./QuickValueSelector";
 import { BUSINESS_MODEL_CONFIG, BUSINESS_MODEL_TYPES } from "../../constants/businessModels";
 import { getBusinessModelFields, getFieldOptions } from "../../constants/businessModelFields";
 import { isFieldVisible } from "../../utils/conditionalFields";
-import { generateBrandSlug } from "../../utils/brandUtils";
+import { generateBrandSlug, withBrandSlug } from "../../utils/brandUtils";
 import * as analytics from "../../utils/analytics";
 
 const BrandRegistrationNew = () => {
@@ -1488,7 +1488,7 @@ const BrandRegistrationNew = () => {
       }
 
       // Submit to Firestore
-      const docRef = await addDoc(collection(db, "brands"), submissionData);
+      const docRef = await addDoc(collection(db, "brands"), withBrandSlug(submissionData));
       
       console.log("Brand created successfully! ID:", docRef.id);
       console.log("Saved with userId:", submissionData.userId);

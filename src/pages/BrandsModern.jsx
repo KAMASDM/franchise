@@ -29,6 +29,9 @@ import {
   LinearProgress,
   Badge,
   Pagination,
+  Menu,
+  MenuItem,
+  ListItemText,
 } from "@mui/material";
 import {
   ViewList as ListViewIcon,
@@ -61,6 +64,8 @@ import { useDevice } from "../hooks/useDevice";
 import { useDebounce } from "../hooks/useDebounce";
 import { enhancedSearch } from "../utils/fuzzySearch";
 import { useGamification } from "../hooks/useGamification";
+import { useSavedSearches } from "../hooks/useSavedSearches";
+import { showToast } from "../utils/toastUtils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const BrandsMobile = lazy(() => import("./BrandsMobile"));
@@ -144,6 +149,33 @@ const BrandsModern = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const itemsPerPage = 12; // 12 brands per page
   const { trackVisit } = useGamification();
+
+  // Saved searches: current URL state (minus pagination) under a readable name
+  const { savedSearches, saveSearch, removeSearch } = useSavedSearches();
+  const [savedMenuAnchor, setSavedMenuAnchor] = useState(null);
+  const hasActiveSearch = Boolean(
+    searchQuery || selectedTags.length > 0 || sortBy !== 'recommended' ||
+    FILTER_KEYS.some((key) => searchParams.get(key))
+  );
+
+  const handleSaveCurrentSearch = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete('page');
+    const nameParts = [
+      searchQuery,
+      ...FILTER_KEYS.flatMap((key) => (params.get(key) || '').split(',').filter(Boolean)),
+      sortBy !== 'recommended' ? SORT_OPTIONS.find((o) => o.value === sortBy)?.label : null,
+    ].filter(Boolean);
+    const name = nameParts.join(' · ') || 'All brands';
+    saveSearch(name, params.toString());
+    setSavedMenuAnchor(null);
+    showToast.success(`Saved "${name}"`);
+  };
+
+  const handleOpenSavedSearch = (search) => {
+    setSavedMenuAnchor(null);
+    setSearchParams(new URLSearchParams(search.queryString), { replace: false });
+  };
 
   // Track visit only once when component mounts
   useEffect(() => {
@@ -566,6 +598,63 @@ const BrandsModern = () => {
                   ))}
                 </ToggleButtonGroup>
               </Box>
+
+              {/* Saved Searches */}
+              <Tooltip title="Saved searches">
+                <IconButton
+                  onClick={(e) => setSavedMenuAnchor(e.currentTarget)}
+                  aria-label="Saved searches"
+                >
+                  <Badge badgeContent={savedSearches.length} color="secondary" max={9}>
+                    <BookmarkBorder />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
+              <Menu
+                anchorEl={savedMenuAnchor}
+                open={Boolean(savedMenuAnchor)}
+                onClose={() => setSavedMenuAnchor(null)}
+                slotProps={{ paper: { sx: { minWidth: 280, maxWidth: 360 } } }}
+              >
+                {hasActiveSearch && (
+                  <MenuItem onClick={handleSaveCurrentSearch}>
+                    <Bookmark fontSize="small" sx={{ mr: 1.5, color: 'primary.main' }} />
+                    <ListItemText
+                      primary="Save current search"
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </MenuItem>
+                )}
+                {hasActiveSearch && savedSearches.length > 0 && <Divider />}
+                {!hasActiveSearch && savedSearches.length === 0 && (
+                  <MenuItem disabled>
+                    <ListItemText
+                      primary="No saved searches yet"
+                      secondary="Apply filters or search, then save it here"
+                    />
+                  </MenuItem>
+                )}
+                {savedSearches.map((search) => (
+                  <MenuItem key={search.id} onClick={() => handleOpenSavedSearch(search)}>
+                    <SearchIcon fontSize="small" sx={{ mr: 1.5, color: 'text.secondary' }} />
+                    <ListItemText
+                      primary={search.name}
+                      primaryTypographyProps={{ noWrap: true }}
+                    />
+                    <IconButton
+                      size="small"
+                      edge="end"
+                      aria-label={`Delete saved search ${search.name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeSearch(search.id);
+                      }}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </MenuItem>
+                ))}
+              </Menu>
 
               {/* Clear Filters */}
               {activeFilterCount > 0 && (

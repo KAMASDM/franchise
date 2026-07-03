@@ -37,6 +37,7 @@ import { db } from "../../firebase/firebase";
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import logger from "../../utils/logger";
 import NotificationService from "../../utils/NotificationService";
+import { withBrandSlug } from "../../utils/brandUtils";
 import BrandBrochureManager from "../brand/BrandBrochureManager";
 import AutoBrochureService from "../../services/AutoBrochureService";
 
@@ -286,7 +287,7 @@ const AdminBrandDetail = () => {
       const { id: _, ...updateData } = cleanedBrand;
       
       await updateDoc(brandRef, {
-        ...updateData,
+        ...withBrandSlug(updateData),
         updatedAt: serverTimestamp(),
       });
 

@@ -105,7 +105,7 @@ const HomeMobile = () => {
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      navigate(`/brands?search=${encodeURIComponent(searchQuery)}`);
+      navigate(`/brands?q=${encodeURIComponent(searchQuery)}`);
     } else {
       navigate('/brands');
     }
@@ -256,7 +256,7 @@ const HomeMobile = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: idx * 0.05 }}
-              onClick={() => navigate(`/brands?industry=${encodeURIComponent(category.name)}`)}
+              onClick={() => navigate(`/brands?q=${encodeURIComponent(category.name)}`)}
               sx={{ cursor: 'pointer' }}
             >
               <Card

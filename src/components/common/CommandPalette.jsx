@@ -30,11 +30,13 @@ import {
   Login as LoginIcon,
   Business as BrandIcon,
   TravelExplore as LocationIcon,
+  Bookmark as BookmarkIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useDarkMode } from "../../context/DarkModeContext";
 import { useBrands } from "../../hooks/useBrands";
+import { useSavedSearches } from "../../hooks/useSavedSearches";
 import { enhancedSearch } from "../../utils/fuzzySearch";
 import { generateBrandSlug } from "../../utils/brandUtils";
 
@@ -61,6 +63,7 @@ const PaletteContent = ({ onClose }) => {
   const { user } = useAuth();
   const { mode, toggleTheme } = useDarkMode();
   const { brands, loading: brandsLoading } = useBrands(null, { limit: 100 });
+  const { savedSearches } = useSavedSearches();
 
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -91,6 +94,11 @@ const PaletteContent = ({ onClose }) => {
       ? actions.filter((a) => a.label.toLowerCase().includes(q))
       : actions;
 
+    const matchedSaved = (q
+      ? savedSearches.filter((s) => s.name.toLowerCase().includes(q))
+      : savedSearches
+    ).slice(0, 4);
+
     let matchedBrands = [];
     if (q && brands?.length) {
       const searchResult = enhancedSearch(brands, query, {
@@ -107,6 +115,12 @@ const PaletteContent = ({ onClose }) => {
         icon: p.icon,
         run: () => navigate(p.path),
       })),
+      ...matchedSaved.map((s) => ({
+        type: "saved",
+        label: s.name,
+        icon: <BookmarkIcon fontSize="small" />,
+        run: () => navigate(`/brands?${s.queryString}`),
+      })),
       ...matchedActions.map((a) => ({ type: "action", ...a })),
       ...matchedBrands.map((b) => ({
         type: "brand",
@@ -117,7 +131,7 @@ const PaletteContent = ({ onClose }) => {
       })),
     ];
     return items;
-  }, [query, actions, brands, navigate]);
+  }, [query, actions, brands, savedSearches, navigate]);
 
   // Keep selection in range when results change
   useEffect(() => {
@@ -154,6 +168,7 @@ const PaletteContent = ({ onClose }) => {
 
   const sections = [
     { key: "page", title: "Pages" },
+    { key: "saved", title: "Saved Searches" },
     { key: "action", title: "Actions" },
     { key: "brand", title: "Brands" },
   ];

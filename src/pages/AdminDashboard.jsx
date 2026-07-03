@@ -57,6 +57,27 @@ const AdminDashboard = () => {
         { text: 'Send Notifications', path: '/admin/notifications', icon: <NotificationsIcon /> },
     ];
 
+    // Content routes — defined once, shared by mobile and desktop layouts
+    const adminRoutes = (
+        <Routes>
+            <Route path="/" element={<AdminOverview />} />
+            <Route path="brands" element={<AdminBrandManagement />} />
+            <Route path="brands/:id" element={<AdminBrandDetail />} />
+            <Route path="leads" element={<AdminLeadManagement />} />
+            <Route path="chat-leads" element={<AdminChatLeads />} />
+            <Route path="messages" element={<AdminContactMessages />} />
+            <Route path="blogs" element={<BlogManagement />} />
+            <Route path="testimonials" element={<AdminTestimonialManagement />} />
+            <Route path="demo-video" element={<DemoVideoManagement />} />
+            <Route path="about-us" element={<AdminAboutUsManagement />} />
+            <Route path="email-tester" element={<EmailTester />} />
+            <Route path="email-config" element={<EmailJSChecker />} />
+            <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="users" element={<AdminUserManagement />} />
+            <Route path="notifications" element={<AdminNotifications />} />
+        </Routes>
+    );
+
     // Render mobile version
     if (isMobile) {
         return (
@@ -67,22 +88,7 @@ const AdminDashboard = () => {
                 }>
                     <AdminDashboardMobile>
                         <Box sx={{ p: 2 }}>
-                            <Routes>
-                                <Route path="/" element={<AdminOverview />} />
-                                <Route path="/brands" element={<AdminBrandManagement />} />
-                                <Route path="/brands/:id" element={<AdminBrandDetail />} />
-                                <Route path="/leads" element={<AdminLeadManagement />} />
-                                <Route path="/chat-leads" element={<AdminChatLeads />} />
-                                <Route path="/messages" element={<AdminContactMessages />} />
-                                <Route path="/blogs" element={<BlogManagement />} />
-                                <Route path="/testimonials" element={<AdminTestimonialManagement />} />
-                                <Route path="/about-us" element={<AdminAboutUsManagement />} />
-                                <Route path="/email-tester" element={<EmailTester />} />
-                                <Route path="/email-config" element={<EmailJSChecker />} />
-                                <Route path="/analytics" element={<AdminAnalytics />} />
-                                <Route path="/users" element={<AdminUserManagement />} />
-                                <Route path="/notifications" element={<AdminNotifications />} />
-                            </Routes>
+                            {adminRoutes}
                         </Box>
                     </AdminDashboardMobile>
                 </Suspense>
@@ -148,23 +154,7 @@ const AdminDashboard = () => {
                 </Drawer>
                 <Box component="main" sx={{ flexGrow: 1, p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
                     <Toolbar />
-                    <Routes>
-                        <Route path="/" element={<AdminOverview />} />
-                        <Route path="brands" element={<AdminBrandManagement />} />
-                        <Route path="brands/:id" element={<AdminBrandDetail />} />
-                        <Route path="leads" element={<AdminLeadManagement />} />
-                        <Route path="chat-leads" element={<AdminChatLeads />} />
-                        <Route path="messages" element={<AdminContactMessages />} />
-                        <Route path="blogs" element={<BlogManagement />} />
-                        <Route path="testimonials" element={<AdminTestimonialManagement />} />
-                        <Route path="demo-video" element={<DemoVideoManagement />} />
-                        <Route path="about-us" element={<AdminAboutUsManagement />} />
-                        <Route path="email-tester" element={<EmailTester />} />
-                        <Route path="email-config" element={<EmailJSChecker />} />
-                        <Route path="analytics" element={<AdminAnalytics />} />
-                        <Route path="users" element={<AdminUserManagement />} />
-                        <Route path="notifications" element={<AdminNotifications />} />
-                    </Routes>
+                    {adminRoutes}
                 </Box>
             </Box>
     );

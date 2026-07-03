@@ -70,6 +70,16 @@ const LoadingFallback = () => (
   </Container>
 );
 
+// Scroll to top when the route (not just query params) changes —
+// without this, every navigation lands mid-page at the old scroll position.
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -196,6 +206,7 @@ function App() {
       <AuthContextProvider>
         {/* Respect the user's OS-level reduced-motion preference for all framer-motion animations */}
         <MotionConfig reducedMotion="user">
+        <ScrollToTop />
         <Toaster
           position="top-right"
           toastOptions={{

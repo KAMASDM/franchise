@@ -9,6 +9,7 @@ import FeaturedBrandsCarousel from "../components/home/FeaturedBrandsCarousel";
 import ModernTestimonials from "../components/home/ModernTestimonials";
 import VideoTestimonialCarousel from "../components/common/VideoTestimonialCarousel";
 import SEO from "../components/common/SEO";
+import WelcomeTour from "../components/common/WelcomeTour";
 // New Informative Sections
 import IndustryInsights from "../components/home/IndustryInsights";
 import PopularCategories from "../components/home/PopularCategories";
@@ -36,6 +37,7 @@ const Home = () => {
       >
         <SEO />
         <HomeMobile />
+        <WelcomeTour />
       </Suspense>
     );
   }
@@ -60,6 +62,7 @@ const Home = () => {
         <VideoTestimonialCarousel testimonials={testimonials} />
       )}
       <ModernTestimonials />
+      <WelcomeTour />
     </>
   );
 };

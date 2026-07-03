@@ -30,9 +30,11 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useNotifications } from "../../hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 const NotificationCenter = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { notifications, unreadCount, loading, error, markAsRead, markAllAsRead } = useNotifications(user);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -50,17 +52,17 @@ const NotificationCenter = () => {
       await markAsRead(notification.id);
     }
     
-    // Handle navigation based on notification type
+    // Handle navigation based on notification type (client-side — no reload)
     switch (notification.type) {
       case 'new_lead':
-        window.location.href = '/dashboard/leads';
+        navigate('/dashboard/leads');
         break;
       case 'brand_approved':
       case 'brand_rejected':
-        window.location.href = '/dashboard/brands';
+        navigate('/dashboard/brands');
         break;
       case 'chat_lead':
-        window.location.href = '/admin/chat-leads';
+        navigate('/admin/chat-leads');
         break;
       default:
         // No specific action

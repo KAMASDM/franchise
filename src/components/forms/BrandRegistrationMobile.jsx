@@ -67,6 +67,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import NotificationService from '../../utils/NotificationService';
 import analytics from '../../utils/analytics';
 import { useFormAutoSave } from '../../hooks/useFormAutoSave';
+import { withBrandSlug } from '../../utils/brandUtils';
 
 const MotionCard = motion(Card);
 const MotionBox = motion(Box);
@@ -565,7 +566,7 @@ const BrandRegistrationMobile = () => {
       };
 
       // Save to Firestore
-      await addDoc(collection(db, 'brands'), brandData);
+      await addDoc(collection(db, 'brands'), withBrandSlug(brandData));
 
       // Track success
       analytics.trackEvent('brand_registration_complete', {

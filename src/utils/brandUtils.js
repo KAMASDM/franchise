@@ -7,12 +7,21 @@
  */
 export const generateBrandSlug = (brandName) => {
   if (!brandName) return '';
-  
+
   return brandName
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 };
+
+/**
+ * Stamps the denormalized `slug` field onto brand data before writing.
+ * Keeping slug on the document lets brand pages load with a single
+ * where('slug','==',…) query instead of scanning the collection.
+ * Use on every create/update where brandName may be set or changed.
+ */
+export const withBrandSlug = (data) =>
+  data?.brandName ? { ...data, slug: generateBrandSlug(data.brandName) } : data;
 
 /**
  * Converts a slug back to a brand name for database queries

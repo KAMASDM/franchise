@@ -21,6 +21,7 @@ import {
   Chip
 } from "@mui/material";
 import BusinessModelSelector from "../components/brand/BusinessModelSelector";
+import { withBrandSlug } from "../utils/brandUtils";
 import { REVENUE_MODELS, SUPPORT_TYPES } from "../constants/businessModels";
 
 const steps = ["Brand Basics", "Business Models", "Investment Details", "Brand Story"];
@@ -79,7 +80,7 @@ const CreateBrandProfile = () => {
     }
 
     try {
-      await setDoc(doc(db, "brands", user.uid), formData, { merge: true });
+      await setDoc(doc(db, "brands", user.uid), withBrandSlug(formData), { merge: true });
       alert(`Section saved!`);
       if (activeStep < steps.length - 1) {
         setActiveStep((prev) => prev + 1);
