@@ -56,6 +56,8 @@ export default defineConfig({
       workbox: {
         skipWaiting: false,
         clientsClaim: false,
+        // Drop caches left behind by previous SW versions on activation
+        cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         runtimeCaching: [
           {
@@ -163,7 +165,10 @@ export default defineConfig({
         ]
       },
       devOptions: {
-        enabled: true,
+        // Keep the service worker out of `npm run dev` — dev-time caching
+        // causes stale-code confusion and workbox IDB race noise. Test PWA
+        // behavior against the real build with `npm run preview`.
+        enabled: false,
         type: 'module'
       }
     })
