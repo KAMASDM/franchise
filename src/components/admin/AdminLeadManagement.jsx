@@ -5,6 +5,7 @@ import { db } from '../../firebase/firebase';
 import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import logger from '../../utils/logger';
 import { showToast } from '../../utils/toastUtils';
+import { logAdminAction } from '../../services/auditLogService';
 import { exportLeads } from '../../utils/exportUtils';
 import { useSimpleSearch } from '../../hooks/useSimpleSearch';
 import { useArrayPagination } from '../../hooks/usePagination';
@@ -65,8 +66,14 @@ const AdminLeadManagement = () => {
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this lead?")) {
             try {
+                const lead = leads.find(l => l.id === id);
                 await deleteDoc(doc(db, "brandfranchiseInquiry", id));
-                setLeads(prev => prev.filter(lead => lead.id !== id));
+                setLeads(prev => prev.filter(l => l.id !== id));
+                logAdminAction('lead.delete', {
+                    targetType: 'lead',
+                    targetId: id,
+                    targetLabel: lead ? `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || lead.email : null,
+                });
             } catch (err) {
                 logger.error("Error deleting lead: ", err);
                 showToast.error("Failed to delete lead.");
@@ -77,6 +84,11 @@ const AdminLeadManagement = () => {
     const handleStatusChange = async (id, newStatus) => {
         try {
             await updateDoc(doc(db, "brandfranchiseInquiry", id), { status: newStatus });
+            logAdminAction('lead.status', {
+                targetType: 'lead',
+                targetId: id,
+                details: { newStatus },
+            });
             
             setLeads(prev => 
                 prev.map(lead => 

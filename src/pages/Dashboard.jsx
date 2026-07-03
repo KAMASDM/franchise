@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, lazy, Suspense } from "react";
 import {
   Box,
   Drawer,
@@ -57,21 +57,24 @@ import { motion } from "framer-motion";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import logger from "../utils/logger";
-import Help from "../components/dashboard/Help";
-import Overview from "../components/dashboard/Overview";
-import Brands from "../components/dashboard/Brands";
-import Settings from "../components/dashboard/Settings";
-import Leads from "../components/dashboard/Leads";
-import Locations from "../components/dashboard/Locations";
-import BrandRegistration from "../components/forms/BrandRegistrationNew";
-import BrandRegistrationMobile from "../components/forms/BrandRegistrationMobile";
-import BrandDetail from "../components/dashboard/BrandDetail";
 import NotificationCenter from "../components/common/NotificationCenter";
-import Review from "../components/dashboard/Review";
-import FAQs from "../components/dashboard/FAQs";
-import MarketingMaterials from "../components/dashboard/MarketingMaterials";
 import { useAdminStatus } from "../hooks/useAdminStatus";
 import { useAuth } from "../context/AuthContext";
+
+// Dashboard screens are lazy-loaded so opening /dashboard only fetches the
+// shell + Overview — the 3,900-line registration form loads on demand.
+const Help = lazy(() => import("../components/dashboard/Help"));
+const Overview = lazy(() => import("../components/dashboard/Overview"));
+const Brands = lazy(() => import("../components/dashboard/Brands"));
+const Settings = lazy(() => import("../components/dashboard/Settings"));
+const Leads = lazy(() => import("../components/dashboard/Leads"));
+const Locations = lazy(() => import("../components/dashboard/Locations"));
+const BrandRegistration = lazy(() => import("../components/forms/BrandRegistrationNew"));
+const BrandRegistrationMobile = lazy(() => import("../components/forms/BrandRegistrationMobile"));
+const BrandDetail = lazy(() => import("../components/dashboard/BrandDetail"));
+const Review = lazy(() => import("../components/dashboard/Review"));
+const FAQs = lazy(() => import("../components/dashboard/FAQs"));
+const MarketingMaterials = lazy(() => import("../components/dashboard/MarketingMaterials"));
 
 const drawerWidth = 240;
 
@@ -207,6 +210,13 @@ const Dashboard = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: isMobile ? 0.2 : 0.5 }}
     >
+      <Suspense
+        fallback={
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="40vh">
+            <CircularProgress />
+          </Box>
+        }
+      >
       <Routes>
         <Route path="/" element={<Overview />} />
         <Route
@@ -223,6 +233,7 @@ const Dashboard = () => {
         <Route path="settings" element={<Settings />} />
         <Route path="help" element={<Help />} />
       </Routes>
+      </Suspense>
     </motion.div>
   );
 

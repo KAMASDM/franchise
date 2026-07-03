@@ -38,6 +38,7 @@ import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/fir
 import logger from "../../utils/logger";
 import NotificationService from "../../utils/NotificationService";
 import { withBrandSlug } from "../../utils/brandUtils";
+import { logAdminAction } from "../../services/auditLogService";
 import BrandBrochureManager from "../brand/BrandBrochureManager";
 import AutoBrochureService from "../../services/AutoBrochureService";
 
@@ -323,6 +324,11 @@ const AdminBrandDetail = () => {
       setBrand((prev) => ({ ...prev, status: newStatus }));
       setEditedBrand((prev) => ({ ...prev, status: newStatus }));
       showSnack(`Brand ${newStatus === "active" ? "approved" : "deactivated"} successfully!`);
+      logAdminAction(newStatus === "active" ? "brand.approve" : "brand.deactivate", {
+        targetType: "brand",
+        targetId: id,
+        targetLabel: brand?.brandName,
+      });
     } catch (err) {
       logger.error("Error updating status:", err);
       showSnack('Failed to update status. Please try again.', 'error');
@@ -332,6 +338,7 @@ const AdminBrandDetail = () => {
   const handleDelete = async () => {
     try {
       await deleteDoc(doc(db, "brands", id));
+      logAdminAction("brand.delete", { targetType: "brand", targetId: id, targetLabel: brand?.brandName });
       showSnack('Brand deleted successfully!');
       navigate("/admin/brands");
     } catch (err) {

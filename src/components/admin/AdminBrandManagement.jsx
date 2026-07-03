@@ -4,12 +4,13 @@ import { useSimpleSearch } from '../../hooks/useSimpleSearch';
 import { useArrayPagination } from '../../hooks/usePagination';
 import { db } from '../../firebase/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, CircularProgress, Alert, Link, TextField, InputAdornment, IconButton, Pagination, Card, CardContent, Stack, Avatar, alpha, useTheme } from '@mui/material';
+import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, CircularProgress, Alert, Link, TextField, InputAdornment, IconButton, Pagination, Card, CardContent, Stack, Avatar, alpha, useTheme, Checkbox, Toolbar } from '@mui/material';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { Download, Search, Clear, CheckCircle, Cancel, Pending, Store } from '@mui/icons-material';
 import NotificationService from '../../utils/NotificationService';
 import logger from '../../utils/logger';
 import { showToast } from '../../utils/toastUtils';
+import { logAdminAction } from '../../services/auditLogService';
 import { exportBrands } from '../../utils/exportUtils';
 import { sendBrandApprovedEmail, sendBrandRejectedEmail } from '../../services/emailServiceNew';
 import AutoBrochureService from '../../services/AutoBrochureService';
@@ -33,6 +34,18 @@ const AdminBrandManagement = () => {
     const statusFilter = searchParams.get('status') || '';
     // Track rows with an in-flight status update to prevent double submission
     const [updatingIds, setUpdatingIds] = React.useState(() => new Set());
+    // Bulk selection (desktop table)
+    const [selectedIds, setSelectedIds] = React.useState(() => new Set());
+    const [bulkBusy, setBulkBusy] = React.useState(false);
+
+    const toggleSelected = (brandId) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(brandId)) next.delete(brandId);
+            else next.add(brandId);
+            return next;
+        });
+    };
 
     const setStatusFilter = (value) => {
         setSearchParams((prev) => {
@@ -74,14 +87,18 @@ const AdminBrandManagement = () => {
     // Ensure paginatedData is always an array
     const safePaginatedData = Array.isArray(paginatedData) ? paginatedData : [];
 
-    const handleApproval = async (brandId, newStatus) => {
-        if (updatingIds.has(brandId)) return; // already processing this row
-        setUpdatingIds((prev) => new Set(prev).add(brandId));
-        try {
-            const brandRef = doc(db, 'brands', brandId);
-            await updateDoc(brandRef, { status: newStatus });
-            showToast.success(newStatus === 'active' ? 'Brand approved' : 'Brand deactivated');
-            
+    // Core status-change flow shared by single-row and bulk actions.
+    // Throws on the Firestore write failing; notification/email/brochure
+    // side-effects are best-effort and never fail the change.
+    const processStatusChange = async (brandId, newStatus) => {
+        const brandRef = doc(db, 'brands', brandId);
+        await updateDoc(brandRef, { status: newStatus });
+        logAdminAction(newStatus === 'active' ? 'brand.approve' : 'brand.deactivate', {
+            targetType: 'brand',
+            targetId: brandId,
+            targetLabel: brands.find(b => b.id === brandId)?.brandName,
+        });
+
             // Find the brand data for notification
             const brand = brands.find(b => b.id === brandId);
             
@@ -140,7 +157,15 @@ const AdminBrandManagement = () => {
                     // Don't block approval if brochure generation fails
                 }
             }
-            // onSnapshot in useAllBrands will automatically reflect the status change
+        // onSnapshot in useAllBrands will automatically reflect the status change
+    };
+
+    const handleApproval = async (brandId, newStatus) => {
+        if (updatingIds.has(brandId)) return; // already processing this row
+        setUpdatingIds((prev) => new Set(prev).add(brandId));
+        try {
+            await processStatusChange(brandId, newStatus);
+            showToast.success(newStatus === 'active' ? 'Brand approved' : 'Brand deactivated');
         } catch (err) {
             logger.error("Error updating brand status:", err);
             showToast.error('Failed to update brand status. Please try again.');
@@ -150,6 +175,42 @@ const AdminBrandManagement = () => {
                 next.delete(brandId);
                 return next;
             });
+        }
+    };
+
+    const handleBulkStatusChange = async (newStatus) => {
+        // Only act on selected brands that are still visible in the current filter
+        const targetIds = [...selectedIds].filter((id) =>
+            filteredBrands.some((brand) => brand.id === id)
+        );
+        if (targetIds.length === 0 || bulkBusy) return;
+
+        setBulkBusy(true);
+        setUpdatingIds((prev) => new Set([...prev, ...targetIds]));
+        let succeeded = 0;
+        // Sequential on purpose: each change can trigger email + brochure
+        // generation, and hammering those in parallel risks rate limits.
+        for (const id of targetIds) {
+            try {
+                await processStatusChange(id, newStatus);
+                succeeded += 1;
+            } catch (err) {
+                logger.error('Bulk status change failed for brand:', id, err);
+            }
+        }
+        setUpdatingIds((prev) => {
+            const next = new Set(prev);
+            targetIds.forEach((id) => next.delete(id));
+            return next;
+        });
+        setSelectedIds(new Set());
+        setBulkBusy(false);
+
+        const verb = newStatus === 'active' ? 'approved' : 'deactivated';
+        if (succeeded === targetIds.length) {
+            showToast.success(`${succeeded} brand${succeeded === 1 ? '' : 's'} ${verb}`);
+        } else {
+            showToast.error(`${verb} ${succeeded} of ${targetIds.length} brands — check the console for failures`);
         }
     };
 
@@ -351,6 +412,46 @@ const AdminBrandManagement = () => {
                 />
             </Box>
             
+            {/* Bulk action bar (desktop selection) */}
+            {!isMobile && selectedIds.size > 0 && (
+                <Toolbar
+                    variant="dense"
+                    sx={{
+                        mb: 2,
+                        borderRadius: 2,
+                        bgcolor: alpha(theme.palette.primary.main, 0.08),
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                        gap: 2,
+                        flexWrap: 'wrap',
+                    }}
+                >
+                    <Typography variant="subtitle2" sx={{ flex: 1, minWidth: 140 }}>
+                        {selectedIds.size} selected
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        size="small"
+                        color="success"
+                        disabled={bulkBusy}
+                        onClick={() => handleBulkStatusChange('active')}
+                    >
+                        {bulkBusy ? 'Working…' : `Approve (${selectedIds.size})`}
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        color="error"
+                        disabled={bulkBusy}
+                        onClick={() => handleBulkStatusChange('inactive')}
+                    >
+                        Deactivate
+                    </Button>
+                    <Button size="small" disabled={bulkBusy} onClick={() => setSelectedIds(new Set())}>
+                        Clear
+                    </Button>
+                </Toolbar>
+            )}
+
             {/* Mobile Card View / Desktop Table View */}
             {isMobile ? (
                 <Box>
@@ -374,6 +475,28 @@ const AdminBrandManagement = () => {
                     <Table>
                         <TableHead>
                             <TableRow sx={{ bgcolor: 'primary.light' }}>
+                                <TableCell padding="checkbox">
+                                    <Checkbox
+                                        indeterminate={
+                                            safePaginatedData.some((b) => selectedIds.has(b.id)) &&
+                                            !safePaginatedData.every((b) => selectedIds.has(b.id))
+                                        }
+                                        checked={
+                                            safePaginatedData.length > 0 &&
+                                            safePaginatedData.every((b) => selectedIds.has(b.id))
+                                        }
+                                        onChange={(e) => {
+                                            setSelectedIds((prev) => {
+                                                const next = new Set(prev);
+                                                safePaginatedData.forEach((b) =>
+                                                    e.target.checked ? next.add(b.id) : next.delete(b.id)
+                                                );
+                                                return next;
+                                            });
+                                        }}
+                                        inputProps={{ 'aria-label': 'Select all brands on this page' }}
+                                    />
+                                </TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Brand Name</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Owner Email</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
@@ -383,7 +506,14 @@ const AdminBrandManagement = () => {
                         <TableBody>
                             {safePaginatedData.length > 0 ? (
                                 safePaginatedData.map((brand) => (
-                                    <TableRow key={brand.id} hover>
+                                    <TableRow key={brand.id} hover selected={selectedIds.has(brand.id)}>
+                                        <TableCell padding="checkbox">
+                                            <Checkbox
+                                                checked={selectedIds.has(brand.id)}
+                                                onChange={() => toggleSelected(brand.id)}
+                                                inputProps={{ 'aria-label': `Select ${brand.brandName}` }}
+                                            />
+                                        </TableCell>
                                         <TableCell>
                                             <Link component={RouterLink} to={`/admin/brands/${brand.id}`} underline="hover">
                                                 {brand.brandName}
@@ -427,7 +557,7 @@ const AdminBrandManagement = () => {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                                    <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                                         <Typography variant="body1" color="text.secondary">
                                             {loading ? 'Loading brands...' : 
                                              searchTerm ? 'No brands match your search criteria.' : 

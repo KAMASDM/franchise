@@ -4,6 +4,7 @@ import { db } from '../../firebase/firebase';
 import { collection, doc, writeBatch, getDocs, serverTimestamp } from 'firebase/firestore';
 import { Send } from '@mui/icons-material';
 import logger from '../../utils/logger';
+import { logAdminAction } from '../../services/auditLogService';
 
 const AdminNotifications = () => {
     const [title, setTitle] = useState('');
@@ -39,6 +40,11 @@ const AdminNotifications = () => {
 
             await batch.commit();
             setFeedback({ type: 'success', message: `Notification sent to ${usersSnapshot.size} users.` });
+            logAdminAction('notification.broadcast', {
+                targetType: 'broadcast',
+                targetLabel: title,
+                details: { recipients: usersSnapshot.size },
+            });
             setTitle('');
             setMessage('');
         } catch (error) {

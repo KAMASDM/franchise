@@ -37,7 +37,18 @@ service cloud.firestore {
     match /admins/{userId} {
       allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow list: if isAdmin();
-      allow write: if false;
+      // Admins can grant/revoke admin role (User Management promote/demote).
+      // Updates are pointless (the doc's existence is the flag) — keep denied.
+      allow create, delete: if isAdmin();
+      allow update: if false;
+    }
+
+    // Immutable admin audit trail: admins can append and read, nobody can
+    // edit or delete — history stays trustworthy.
+    match /auditLogs/{logId} {
+      allow get, list: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
     }
 
     match /users/{userId} {

@@ -11,6 +11,7 @@ import {
 import { format } from 'date-fns';
 import { AdminPanelSettings, Person, AddCircle, Email, CalendarToday, Search, PersonRemove } from '@mui/icons-material';
 import { useDevice } from '../../hooks/useDevice';
+import { logAdminAction } from '../../services/auditLogService';
 import { motion } from 'framer-motion';
 
 const MotionCard = motion(Card);
@@ -51,6 +52,11 @@ const AdminUserManagement = () => {
             await setDoc(doc(db, 'admins', userId), { isAdmin: true }, { merge: true });
             setUserRoles(prev => ({ ...prev, [userId]: 'Admin' }));
             setSnackbar({ open: true, message: 'User promoted to Admin.', severity: 'success' });
+            logAdminAction('user.promote', {
+                targetType: 'user',
+                targetId: userId,
+                targetLabel: users.find(u => u.id === userId)?.email,
+            });
         } catch (error) {
             console.error('Error promoting user:', error);
             setSnackbar({ open: true, message: 'Failed to promote user.', severity: 'error' });
@@ -62,6 +68,11 @@ const AdminUserManagement = () => {
             await deleteDoc(doc(db, 'admins', userId));
             setUserRoles(prev => ({ ...prev, [userId]: 'User' }));
             setSnackbar({ open: true, message: 'Admin role removed.', severity: 'success' });
+            logAdminAction('user.demote', {
+                targetType: 'user',
+                targetId: userId,
+                targetLabel: users.find(u => u.id === userId)?.email,
+            });
         } catch (error) {
             console.error('Error demoting user:', error);
             setSnackbar({ open: true, message: 'Failed to remove admin role.', severity: 'error' });

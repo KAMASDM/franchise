@@ -39,6 +39,7 @@ import {
   Info as InfoIcon,
   Send as SendIcon,
   MarkEmailRead as EmailConfigIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
@@ -105,6 +106,7 @@ const AdminDashboardMobile = ({ children }) => {
     { label: 'Engagement Emails', icon: <SendIcon />, path: '/admin/engagement-emails' },
     { label: 'Email Tester', icon: <EmailConfigIcon />, path: '/admin/email-tester' },
     { label: 'Email Config', icon: <SettingsIcon />, path: '/admin/email-config' },
+    { label: 'Activity Log', icon: <HistoryIcon />, path: '/admin/activity' },
   ];
 
   const getCurrentNavValue = () => {
