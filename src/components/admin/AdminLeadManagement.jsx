@@ -4,6 +4,7 @@ import { useAllBrands } from '../../hooks/useAllBrands';
 import { db } from '../../firebase/firebase';
 import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import logger from '../../utils/logger';
+import { showToast } from '../../utils/toastUtils';
 import { exportLeads } from '../../utils/exportUtils';
 import { useSimpleSearch } from '../../hooks/useSimpleSearch';
 import { useArrayPagination } from '../../hooks/usePagination';
@@ -58,7 +59,7 @@ const AdminLeadManagement = () => {
     }, [leads, debouncedSearchTerm, filters]);
 
     // Pagination
-    const { paginatedData, currentPage, totalPages, goToPage, nextPage, prevPage } = useArrayPagination(filteredLeads, 10);
+    const { paginatedData, currentPage, totalPages, goToPage } = useArrayPagination(filteredLeads, 10);
     const safePaginatedData = Array.isArray(paginatedData) ? paginatedData : [];
 
     const handleDelete = async (id) => {
@@ -68,16 +69,13 @@ const AdminLeadManagement = () => {
                 setLeads(prev => prev.filter(lead => lead.id !== id));
             } catch (err) {
                 logger.error("Error deleting lead: ", err);
-                alert("Failed to delete lead.");
+                showToast.error("Failed to delete lead.");
             }
         }
     };
 
     const handleStatusChange = async (id, newStatus) => {
         try {
-            const lead = leads.find(l => l.id === id);
-            const oldStatus = lead?.status || 'New';
-            
             await updateDoc(doc(db, "brandfranchiseInquiry", id), { status: newStatus });
             
             setLeads(prev => 
@@ -87,7 +85,7 @@ const AdminLeadManagement = () => {
             );
         } catch (err) {
             logger.error("Error updating status: ", err);
-            alert("Failed to update status.");
+            showToast.error("Failed to update lead status.");
         }
     };
 

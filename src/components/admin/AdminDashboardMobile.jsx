@@ -33,6 +33,12 @@ import {
   Close as CloseIcon,
   ContactMail as LeadsIcon,
   Email as EmailIcon,
+  Article as ArticleIcon,
+  VideoLibrary as VideoLibraryIcon,
+  Videocam as VideocamIcon,
+  Info as InfoIcon,
+  Send as SendIcon,
+  MarkEmailRead as EmailConfigIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
@@ -52,7 +58,6 @@ const AdminDashboardMobile = ({ children }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { spacing } = useDevice();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const mainNavItems = [
@@ -89,26 +94,17 @@ const AdminDashboardMobile = ({ children }) => {
   ];
 
   const secondaryNavItems = [
-    { 
-      label: 'Analytics', 
-      icon: <AnalyticsIcon />, 
-      path: '/admin/analytics' 
-    },
-    { 
-      label: 'Chat Leads', 
-      icon: <ChatIcon />, 
-      path: '/admin/chat-leads' 
-    },
-    { 
-      label: 'Messages', 
-      icon: <EmailIcon />, 
-      path: '/admin/messages' 
-    },
-    { 
-      label: 'Notifications', 
-      icon: <NotificationsIcon />, 
-      path: '/admin/notifications' 
-    },
+    { label: 'Analytics', icon: <AnalyticsIcon />, path: '/admin/analytics' },
+    { label: 'Chat Leads', icon: <ChatIcon />, path: '/admin/chat-leads' },
+    { label: 'Messages', icon: <EmailIcon />, path: '/admin/messages' },
+    { label: 'Blogs', icon: <ArticleIcon />, path: '/admin/blogs' },
+    { label: 'Testimonials', icon: <VideoLibraryIcon />, path: '/admin/testimonials' },
+    { label: 'Demo Video', icon: <VideocamIcon />, path: '/admin/demo-video' },
+    { label: 'About Us Content', icon: <InfoIcon />, path: '/admin/about-us' },
+    { label: 'Notifications', icon: <NotificationsIcon />, path: '/admin/notifications' },
+    { label: 'Engagement Emails', icon: <SendIcon />, path: '/admin/engagement-emails' },
+    { label: 'Email Tester', icon: <EmailConfigIcon />, path: '/admin/email-tester' },
+    { label: 'Email Config', icon: <SettingsIcon />, path: '/admin/email-config' },
   ];
 
   const getCurrentNavValue = () => {
@@ -182,13 +178,7 @@ const AdminDashboardMobile = ({ children }) => {
             </Typography>
           </Box>
 
-          <IconButton sx={{ mr: 1 }}>
-            <Badge badgeContent={3} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-
-          <Avatar 
+          <Avatar
             src={user?.photoURL} 
             alt={user?.displayName || 'Admin'}
             sx={{ 

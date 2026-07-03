@@ -5,33 +5,69 @@ import { useArrayPagination } from '../../hooks/usePagination';
 import { db } from '../../firebase/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, CircularProgress, Alert, Link, TextField, InputAdornment, IconButton, Pagination, Card, CardContent, Stack, Avatar, alpha, useTheme } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { Download, Search, Clear, CheckCircle, Cancel, Pending, Store } from '@mui/icons-material';
 import NotificationService from '../../utils/NotificationService';
 import logger from '../../utils/logger';
+import { showToast } from '../../utils/toastUtils';
 import { exportBrands } from '../../utils/exportUtils';
-import { sendBrandStatusUpdateEmail, sendBrandApprovedEmail, sendBrandRejectedEmail } from '../../services/emailServiceNew';
+import { sendBrandApprovedEmail, sendBrandRejectedEmail } from '../../services/emailServiceNew';
 import AutoBrochureService from '../../services/AutoBrochureService';
 import { getDoc } from 'firebase/firestore';
 import { useDevice } from '../../hooks/useDevice';
 import { motion } from 'framer-motion';
 
-const AdminBrandManagement = () => {
-    const { brands, loading, error, setBrands } = useAllBrands();
-    const { searchTerm, setSearchTerm, debouncedSearchTerm } = useSimpleSearch('', 300);
+const STATUS_TABS = [
+    { value: '', label: 'All' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+];
 
-    // Filter brands based on debounced search
+const AdminBrandManagement = () => {
+    const { brands, loading, error } = useAllBrands();
+    const { searchTerm, setSearchTerm, debouncedSearchTerm } = useSimpleSearch('', 300);
+    // Status filter lives in the URL so overview stat cards can deep-link
+    // (e.g. /admin/brands?status=pending) and refresh keeps the view.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const statusFilter = searchParams.get('status') || '';
+    // Track rows with an in-flight status update to prevent double submission
+    const [updatingIds, setUpdatingIds] = React.useState(() => new Set());
+
+    const setStatusFilter = (value) => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            if (value) next.set('status', value);
+            else next.delete('status');
+            return next;
+        }, { replace: true });
+    };
+
+    const statusCounts = React.useMemo(() => {
+        const counts = { pending: 0, active: 0, inactive: 0 };
+        (brands || []).forEach((brand) => {
+            if (counts[brand.status] !== undefined) counts[brand.status] += 1;
+        });
+        return counts;
+    }, [brands]);
+
+    // Filter brands based on status tab + debounced search
     const filteredBrands = React.useMemo(() => {
         if (!brands || !Array.isArray(brands)) return [];
-        if (!debouncedSearchTerm) return brands;
-        
-        const searchLower = debouncedSearchTerm.toLowerCase();
-        return brands.filter(brand => 
-            brand.brandName?.toLowerCase().includes(searchLower) ||
-            brand.brandOwnerInformation?.email?.toLowerCase().includes(searchLower) ||
-            brand.status?.toLowerCase().includes(searchLower)
-        );
-    }, [brands, debouncedSearchTerm]);
+        let results = statusFilter
+            ? brands.filter((brand) => brand.status === statusFilter)
+            : brands;
+
+        if (debouncedSearchTerm) {
+            const searchLower = debouncedSearchTerm.toLowerCase();
+            results = results.filter(brand =>
+                brand.brandName?.toLowerCase().includes(searchLower) ||
+                brand.brandOwnerInformation?.email?.toLowerCase().includes(searchLower) ||
+                brand.status?.toLowerCase().includes(searchLower)
+            );
+        }
+        return results;
+    }, [brands, debouncedSearchTerm, statusFilter]);
 
     const { paginatedData, currentPage, totalPages, goToPage } = useArrayPagination(filteredBrands, 10);
     
@@ -39,9 +75,12 @@ const AdminBrandManagement = () => {
     const safePaginatedData = Array.isArray(paginatedData) ? paginatedData : [];
 
     const handleApproval = async (brandId, newStatus) => {
+        if (updatingIds.has(brandId)) return; // already processing this row
+        setUpdatingIds((prev) => new Set(prev).add(brandId));
         try {
             const brandRef = doc(db, 'brands', brandId);
             await updateDoc(brandRef, { status: newStatus });
+            showToast.success(newStatus === 'active' ? 'Brand approved' : 'Brand deactivated');
             
             // Find the brand data for notification
             const brand = brands.find(b => b.id === brandId);
@@ -104,6 +143,13 @@ const AdminBrandManagement = () => {
             // onSnapshot in useAllBrands will automatically reflect the status change
         } catch (err) {
             logger.error("Error updating brand status:", err);
+            showToast.error('Failed to update brand status. Please try again.');
+        } finally {
+            setUpdatingIds((prev) => {
+                const next = new Set(prev);
+                next.delete(brandId);
+                return next;
+            });
         }
     };
 
@@ -189,27 +235,29 @@ const AdminBrandManagement = () => {
                         {/* Actions */}
                         <Stack direction="row" spacing={1}>
                             {(brand.status === 'pending' || brand.status === 'inactive') && (
-                                <Button 
-                                    variant="contained" 
-                                    size="small" 
-                                    color="success" 
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    color="success"
+                                    disabled={updatingIds.has(brand.id)}
                                     onClick={() => handleApproval(brand.id, 'active')}
                                     fullWidth
                                     sx={{ minHeight: 40 }}
                                 >
-                                    Approve
+                                    {updatingIds.has(brand.id) ? 'Approving…' : 'Approve'}
                                 </Button>
                             )}
                             {brand.status === 'active' && (
-                                <Button 
-                                    variant="outlined" 
-                                    size="small" 
-                                    color="error" 
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    color="error"
+                                    disabled={updatingIds.has(brand.id)}
                                     onClick={() => handleApproval(brand.id, 'inactive')}
                                     fullWidth
                                     sx={{ minHeight: 40 }}
                                 >
-                                    Deactivate
+                                    {updatingIds.has(brand.id) ? 'Updating…' : 'Deactivate'}
                                 </Button>
                             )}
                         </Stack>
@@ -244,14 +292,32 @@ const AdminBrandManagement = () => {
                 <Button
                     variant="contained"
                     startIcon={<Download />}
-                    onClick={() => exportBrands(brands)}
-                    disabled={brands.length === 0}
+                    onClick={() => exportBrands(filteredBrands)}
+                    disabled={filteredBrands.length === 0}
                     sx={{ minHeight: 48 }}
                 >
-                    {isMobile ? 'Export' : `Export (${brands.length})`}
+                    {isMobile ? 'Export' : `Export (${filteredBrands.length})`}
                 </Button>
             </Box>
             
+            {/* Status Filter Tabs */}
+            <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', useFlexGap: true }}>
+                {STATUS_TABS.map((tab) => {
+                    const count = tab.value ? statusCounts[tab.value] : brands.length;
+                    const selected = statusFilter === tab.value;
+                    return (
+                        <Chip
+                            key={tab.label}
+                            label={`${tab.label} (${count})`}
+                            color={selected ? 'primary' : 'default'}
+                            variant={selected ? 'filled' : 'outlined'}
+                            onClick={() => setStatusFilter(tab.value)}
+                            sx={{ fontWeight: 600 }}
+                        />
+                    );
+                })}
+            </Stack>
+
             {/* Search Bar */}
             <Box sx={{ mb: 3 }}>
                 <TextField
@@ -335,13 +401,25 @@ const AdminBrandManagement = () => {
                                         </TableCell>
                                         <TableCell>
                                             {(brand.status === 'pending' || brand.status === 'inactive') && (
-                                                <Button variant="contained" size="small" color="success" onClick={() => handleApproval(brand.id, 'active')}>
-                                                    Approve
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    color="success"
+                                                    disabled={updatingIds.has(brand.id)}
+                                                    onClick={() => handleApproval(brand.id, 'active')}
+                                                >
+                                                    {updatingIds.has(brand.id) ? 'Approving…' : 'Approve'}
                                                 </Button>
                                             )}
                                             {brand.status === 'active' && (
-                                                <Button variant="outlined" size="small" color="error" onClick={() => handleApproval(brand.id, 'inactive')}>
-                                                    Deactivate
+                                                <Button
+                                                    variant="outlined"
+                                                    size="small"
+                                                    color="error"
+                                                    disabled={updatingIds.has(brand.id)}
+                                                    onClick={() => handleApproval(brand.id, 'inactive')}
+                                                >
+                                                    {updatingIds.has(brand.id) ? 'Updating…' : 'Deactivate'}
                                                 </Button>
                                             )}
                                         </TableCell>

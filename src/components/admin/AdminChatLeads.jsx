@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useChatLeads } from '../../hooks/useChatLeads';
 import { db } from '../../firebase/firebase';
 import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import logger from '../../utils/logger';
+import { showToast } from '../../utils/toastUtils';
 import { exportToCSV, formatDataForExport } from '../../utils/exportUtils';
 import { useSimpleSearch } from '../../hooks/useSimpleSearch';
 import { useArrayPagination } from '../../hooks/usePagination';
@@ -43,7 +44,7 @@ const AdminChatLeads = () => {
                 setLeads(prev => prev.filter(lead => lead.id !== id));
             } catch (err) {
                 logger.error("Error deleting chat lead: ", err);
-                alert("Failed to delete lead.");
+                showToast.error("Failed to delete lead.");
             }
         }
     };
@@ -58,7 +59,7 @@ const AdminChatLeads = () => {
             );
         } catch (err) {
             logger.error("Error updating status: ", err);
-            alert("Failed to update status.");
+            showToast.error("Failed to update lead status.");
         }
     };
 

@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useContactSubmissions } from '../../hooks/useContactSubmissions';
 import { db } from '../../firebase/firebase';
 import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import logger from '../../utils/logger';
+import { showToast } from '../../utils/toastUtils';
 import { exportToCSV, formatDataForExport } from '../../utils/exportUtils';
 import { useSimpleSearch } from '../../hooks/useSimpleSearch';
 import { useArrayPagination } from '../../hooks/usePagination';
@@ -43,7 +44,7 @@ const AdminContactMessages = () => {
                 setSubmissions(prev => prev.filter(sub => sub.id !== id));
             } catch (err) {
                 logger.error("Error deleting document: ", err);
-                alert("Failed to delete message.");
+                showToast.error("Failed to delete message.");
             }
         }
     };
@@ -58,7 +59,7 @@ const AdminContactMessages = () => {
             );
         } catch (err) {
             logger.error("Error updating status: ", err);
-            alert("Failed to update status.");
+            showToast.error("Failed to update message status.");
         }
     };
 

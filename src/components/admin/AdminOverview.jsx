@@ -79,7 +79,7 @@ const StatCard = ({ icon, title, value, color, linkTo, index }) => {
 
 const AdminOverview = () => {
     const { stats, loading } = useAdminStats();
-    const { isMobile, spacing } = useDevice();
+    const { isMobile } = useDevice();
     const theme = useTheme();
 
     if (loading) {
@@ -94,8 +94,8 @@ const AdminOverview = () => {
         { icon: <People fontSize="large" />, title: "Total Users", value: stats.totalUsers, color: theme.palette.primary.main, linkTo: "/admin/users" },
         { icon: <Store fontSize="large" />, title: "Total Brands", value: stats.totalBrands, color: theme.palette.secondary.main, linkTo: "/admin/brands" },
         { icon: <Leaderboard fontSize="large" />, title: "Total Leads", value: stats.totalLeads, color: theme.palette.info.main, linkTo: "/admin/leads" },
-        { icon: <PendingActions fontSize="large" />, title: "Pending Brands", value: stats.pendingBrands, color: theme.palette.warning.main, linkTo: "/admin/brands" },
-        { icon: <CheckCircle fontSize="large" />, title: "Active Brands", value: stats.activeBrands, color: theme.palette.success.main, linkTo: "/admin/brands" },
+        { icon: <PendingActions fontSize="large" />, title: "Pending Brands", value: stats.pendingBrands, color: theme.palette.warning.main, linkTo: "/admin/brands?status=pending" },
+        { icon: <CheckCircle fontSize="large" />, title: "Active Brands", value: stats.activeBrands, color: theme.palette.success.main, linkTo: "/admin/brands?status=active" },
         { icon: <Visibility fontSize="large" />, title: "Total Page Views", value: stats.totalViews, color: theme.palette.grey[700], linkTo: "/admin/analytics" },
     ];
 
