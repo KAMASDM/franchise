@@ -39,13 +39,22 @@ export const useBrand = ({ brandName, slug, id }, user = null) => {
           let foundBrand = null;
 
           // Fast path: brands created/updated since the slug field was
-          // denormalized resolve with a single-document query.
-          const slugSnapshot = await getDocs(
-            query(brandsRef, where("slug", "==", slug), firestoreLimit(1))
-          );
-          if (!slugSnapshot.empty) {
-            const docSnap = slugSnapshot.docs[0];
-            foundBrand = { id: docSnap.id, ...docSnap.data() };
+          // denormalized resolve with a single-document query. Security rules
+          // only allow queries scoped to what the caller can read, so try the
+          // public (active) scope first, then the signed-in owner's own brands.
+          const slugScopes = [where("status", "==", "active")];
+          if (user?.uid) {
+            slugScopes.push(where("userId", "==", user.uid));
+          }
+          for (const scope of slugScopes) {
+            const slugSnapshot = await getDocs(
+              query(brandsRef, where("slug", "==", slug), scope, firestoreLimit(1))
+            );
+            if (!slugSnapshot.empty) {
+              const docSnap = slugSnapshot.docs[0];
+              foundBrand = { id: docSnap.id, ...docSnap.data() };
+              break;
+            }
           }
 
           // Legacy fallback: older docs have no slug field, so derive it from

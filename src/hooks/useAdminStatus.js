@@ -4,24 +4,38 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 
 export const useAdminStatus = () => {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [isAdmin, setIsAdmin] = useState(false);
-    const [loading, setLoading] = useState(true);
+    // Which uid the current isAdmin answer belongs to — until it matches the
+    // signed-in user we're still loading (avoids a stale "not admin" flash
+    // that made AdminRoute bounce hard-refreshed /admin URLs to /dashboard).
+    const [checkedUid, setCheckedUid] = useState(undefined);
 
     useEffect(() => {
+        if (authLoading) return;
+        let cancelled = false;
+
         const checkAdmin = async () => {
+            let admin = false;
             if (user) {
-                const adminRef = doc(db, 'admins', user.uid);
-                const adminDoc = await getDoc(adminRef);
-                setIsAdmin(adminDoc.exists());
-            } else {
-                setIsAdmin(false);
+                try {
+                    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+                    admin = adminDoc.exists();
+                } catch {
+                    admin = false;
+                }
             }
-            setLoading(false);
+            if (!cancelled) {
+                setIsAdmin(admin);
+                setCheckedUid(user?.uid ?? null);
+            }
         };
 
         checkAdmin();
-    }, [user]);
+        return () => { cancelled = true; };
+    }, [user, authLoading]);
 
-    return { isAdmin, loading };
+    const loading = authLoading || checkedUid !== (user?.uid ?? null);
+
+    return { isAdmin: loading ? false : isAdmin, loading };
 };

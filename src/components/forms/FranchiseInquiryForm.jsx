@@ -25,11 +25,9 @@ import {
   addDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import NotificationService from "../../utils/NotificationService";
 import { INVESTMENT_RANGES, BUSINESS_EXPERIENCE_OPTIONS, TIMELINE_OPTIONS } from "../../constants";
 import logger from "../../utils/logger";
-import { sendNewLeadInquiryEmail, sendInquirySentConfirmationEmail } from "../../services/emailServiceNew";
-import { doc, getDoc } from "firebase/firestore";
+import { sendInquirySentConfirmationEmail } from "../../services/emailServiceNew";
 import PhoneVerification from "../verification/PhoneVerification";
 import EmailVerification from "../verification/EmailVerification";
 
@@ -182,40 +180,14 @@ const FranchiseInquiryForm = ({ brand, onClose, onSuccess }) => {
         updatedAt: serverTimestamp(),
       };
 
-      const docRef = await addDoc(
+      await addDoc(
         collection(db, "brandfranchiseInquiry"),
         inquiryData
       );
 
-      // Send in-app notification to brand owner
-      await NotificationService.sendLeadNotification(
-        brand.userId, 
-        { ...inquiryData, id: docRef.id }
-      );
-
-      // Send email notification to brand owner
-      try {
-        // Get brand owner details
-        const brandOwnerDoc = await getDoc(doc(db, "users", brand.userId));
-        const brandOwnerData = brandOwnerDoc.data();
-        
-        if (brandOwnerData?.email) {
-          await sendNewLeadInquiryEmail({
-            brandOwnerEmail: brandOwnerData.email,
-            brandOwnerName: brandOwnerData.displayName || 'Brand Owner',
-            brandName: brand.brandName,
-            inquirerName: `${formData.firstName} ${formData.lastName}`,
-            inquirerEmail: formData.email,
-            inquirerPhone: formData.phone,
-            message: formData.comments,
-            investmentRange: formData.budget,
-          });
-          logger.info('New lead inquiry email sent to brand owner:', brandOwnerData.email);
-        }
-      } catch (emailError) {
-        logger.error('Failed to send lead inquiry email:', emailError);
-        // Don't block the inquiry submission if email fails
-      }
+      // The brand owner's in-app notification and email are sent server-side
+      // by the onInquiryCreated Cloud Function (inquirers can't read the
+      // owner's profile, and the owner's address must stay out of the browser).
 
       // Send confirmation email to the user
       try {

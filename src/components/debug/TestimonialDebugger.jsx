@@ -5,7 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
+import { db } from '../../firebase/firebase';
 import { Box, Typography, Paper, CircularProgress } from '@mui/material';
 
 const TestimonialDebugger = () => {

@@ -120,6 +120,82 @@ const AdminRoute = ({ children }) => {
 };
 
 
+// Public routes. Defined at module level so its component identity is stable —
+// declared inside App it was a new component type on every render, so each
+// navigation (even a ?query change) unmounted and remounted the whole page.
+const PublicRoutes = () => (
+  <Routes>
+    {/* Public Routes */}
+    <Route path="/" element={<Home />} />
+    <Route path="/about" element={<About />} />
+    <Route path="/brands" element={<Brands />} />
+    <Route path="/brand/:slug" element={<BrandDetail />} />
+    <Route path="/blogs" element={<Blog />} />
+    <Route path="/blog/:id" element={<BlogDetail />} />
+    <Route path="/contact" element={<Contact />} />
+    <Route path="/faq" element={<FAQ />} />
+    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+    <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+    
+    {/* Authentication */}
+    <Route path="/login" element={<AuthPage />} />
+    <Route path="/register" element={<AuthPage />} />
+    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    
+    {/* Favorites and Chat History */}
+    <Route path="/favorites" element={<FavoritesPage />} />
+    <Route path="/chat-history" element={<ChatHistoryPage standalone={true} />} />
+    
+    {/* Investor Pitch Deck */}
+    <Route path="/investors" element={<InvestorPitchDeck />} />
+    
+    {/* Brand Registration */}
+    <Route path="/create-brand-profile" element={<CreateBrandProfile />} />
+    
+    {/* Location Analysis */}
+    <Route 
+      path="/location-analysis" 
+      element={
+        <ProtectedRoute>
+          <LocationAnalysis />
+        </ProtectedRoute>
+      } 
+    />
+
+    {/* Location Analysis Enhanced (New) */}
+    <Route 
+      path="/location-analysis-enhanced" 
+      element={
+        <ProtectedRoute>
+          <LocationAnalysisEnhanced />
+        </ProtectedRoute>
+      } 
+    />
+    
+    {/* Location Finder Guide */}
+    <Route path="/location-finder-guide" element={<LocationFinderGuide />} />
+    
+    {/* Debug Route - dev only */}
+    {import.meta.env.DEV && (
+      <Route path="/debug-brands" element={<BrandDebugger />} />
+    )}
+    
+    {/* Debug route - only available in development */}
+    {import.meta.env.DEV && FirestoreTest && (
+      <Route path="/test-firestore" element={<FirestoreTest />} />
+    )}
+    
+    {/* Testimonials Debug - only in development */}
+    {import.meta.env.DEV && TestimonialDebugger && (
+      <Route path="/debug-testimonials" element={<TestimonialDebugger />} />
+    )}
+
+    {/* Catch-all 404 */}
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
+
 function App() {
   const location = useLocation();
   const { isMobile } = useDevice();
@@ -127,79 +203,6 @@ function App() {
   const isDashboardRoute = location.pathname.startsWith("/dashboard");
   const isAdminRoute = location.pathname.startsWith("/admin");
   const showPublicLayout = !isDashboardRoute && !isAdminRoute;
-
-  // Public routes content
-  const PublicRoutes = () => (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<Home />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/brands" element={<Brands />} />
-      <Route path="/brand/:slug" element={<BrandDetail />} />
-      <Route path="/blogs" element={<Blog />} />
-      <Route path="/blog/:id" element={<BlogDetail />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/faq" element={<FAQ />} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-      
-      {/* Authentication */}
-      <Route path="/login" element={<AuthPage />} />
-      <Route path="/register" element={<AuthPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      
-      {/* Favorites and Chat History */}
-      <Route path="/favorites" element={<FavoritesPage />} />
-      <Route path="/chat-history" element={<ChatHistoryPage standalone={true} />} />
-      
-      {/* Investor Pitch Deck */}
-      <Route path="/investors" element={<InvestorPitchDeck />} />
-      
-      {/* Brand Registration */}
-      <Route path="/create-brand-profile" element={<CreateBrandProfile />} />
-      
-      {/* Location Analysis */}
-      <Route 
-        path="/location-analysis" 
-        element={
-          <ProtectedRoute>
-            <LocationAnalysis />
-          </ProtectedRoute>
-        } 
-      />
-
-      {/* Location Analysis Enhanced (New) */}
-      <Route 
-        path="/location-analysis-enhanced" 
-        element={
-          <ProtectedRoute>
-            <LocationAnalysisEnhanced />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Location Finder Guide */}
-      <Route path="/location-finder-guide" element={<LocationFinderGuide />} />
-      
-      {/* Debug Route - dev only */}
-      {import.meta.env.DEV && (
-        <Route path="/debug-brands" element={<BrandDebugger />} />
-      )}
-      
-      {/* Debug route - only available in development */}
-      {import.meta.env.DEV && FirestoreTest && (
-        <Route path="/test-firestore" element={<FirestoreTest />} />
-      )}
-      
-      {/* Testimonials Debug - only in development */}
-      {import.meta.env.DEV && TestimonialDebugger && (
-        <Route path="/debug-testimonials" element={<TestimonialDebugger />} />
-      )}
-
-      {/* Catch-all 404 */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
 
   return (
     <DarkModeProvider>

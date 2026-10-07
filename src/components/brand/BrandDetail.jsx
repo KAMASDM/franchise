@@ -65,6 +65,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { motion } from "framer-motion";
 import { useBrand } from "../../hooks/useBrand";
+import { useAuth } from "../../context/AuthContext";
 import { useRecentlyViewed } from "../../hooks/useRecentlyViewed";
 import { useGamification } from "../../hooks/useGamification";
 import FranchiseInquiryForm from "../forms/FranchiseInquiryForm";
@@ -100,8 +101,9 @@ const BrandDetail = () => {
   const theme = useTheme();
   const { slug } = useParams();
   const navigate = useNavigate();
-  // Use slug directly instead of converting to brandName for better matching
-  const { brand, loading, error } = useBrand({ slug });
+  const { user } = useAuth();
+  // Pass the user so owners can preview their own pending listing
+  const { brand, loading, error } = useBrand({ slug }, user);
   const { addRecentBrand } = useRecentlyViewed();
   const { trackBrandView, trackInquiry } = useGamification();
   const [showInquiryForm, setShowInquiryForm] = useState(false);

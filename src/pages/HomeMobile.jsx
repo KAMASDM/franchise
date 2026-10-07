@@ -32,7 +32,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useDevice } from '../hooks/useDevice';
-import { useAllBrands } from '../hooks/useAllBrands';
+import { useBrands } from '../hooks/useBrands';
 import { useVideoTestimonials } from '../hooks/useVideoTestimonials';
 import { getBrandUrl } from '../utils/brandUtils';
 import VideoTestimonialCarousel from '../components/common/VideoTestimonialCarousel';
@@ -52,12 +52,18 @@ const MotionCard = motion(Card);
 const HomeMobile = () => {
   const navigate = useNavigate();
   const { spacing } = useDevice();
-  const { brands, loading } = useAllBrands();
+  // Public page: active listings only (useAllBrands is the admin feed)
+  const { brands, loading } = useBrands();
   const { testimonials, loading: testimonialsLoading } = useVideoTestimonials();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const featuredBrands = brands?.slice(0, 10) || [];
-  const topInvestments = brands?.sort((a, b) => (b.brandInvestment || 0) - (a.brandInvestment || 0)).slice(0, 5) || [];
+  // Sort copies — `brands` is shared with useBrands' module-level cache
+  const featuredBrands = [...(brands || [])]
+    .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0))
+    .slice(0, 10);
+  const topInvestments = [...(brands || [])]
+    .sort((a, b) => (b.brandInvestment || 0) - (a.brandInvestment || 0))
+    .slice(0, 5);
 
   // Quick stats — real numbers derived from live brand data
   const industryCount = new Set((brands || []).map((b) => b.brandCategory).filter(Boolean)).size;

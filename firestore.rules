@@ -21,15 +21,33 @@ service cloud.firestore {
         && request.resource.data.views == currentViews() + 1;
     }
 
-    // Only the fields we expect are present on a brand-view document
-    function isValidBrandView() {
-      let allowed = ['brandId', 'viewedAt', 'userId', 'sessionId'];
-      return request.resource.data.keys().hasOnly(allowed);
+    // Anonymous view counter (BrandCard/BrandListItem): only the expected
+    // fields, the doc id matches its brand, the owner id is the brand's real
+    // owner, and every write bumps totalViews by exactly one.
+    function isValidBrandView(brandId) {
+      let data = request.resource.data;
+      let allowed = ['brandId', 'brandOwnerId', 'totalViews', 'lastUpdated',
+                     'viewedAt', 'userId', 'sessionId'];
+      let previous = resource == null ? 0 : resource.data.get('totalViews', 0);
+      return data.keys().hasOnly(allowed)
+        && data.brandId == brandId
+        && data.brandOwnerId == get(/databases/$(database)/documents/brands/$(brandId)).data.userId
+        && data.totalViews == previous + 1;
     }
 
     // Validate contact/lead form submissions — limit size to prevent flooding
     function isValidPublicSubmission() {
       return request.resource.data.size() <= 30;
+    }
+
+    // Franchise inquiries notify brandOwnerId by email (onInquiryCreated
+    // function), so it must be the real owner of the brand being inquired
+    // about — otherwise anyone could make us email arbitrary users.
+    function isValidInquiry() {
+      let data = request.resource.data;
+      return isValidPublicSubmission()
+        && data.status == 'New'
+        && data.brandOwnerId == get(/databases/$(database)/documents/brands/$(data.brandId)).data.userId;
     }
 
     // --- Collection Rules ---
@@ -63,28 +81,37 @@ service cloud.firestore {
       allow create: if isSignedIn();
     }
 
+    // `read` covers get AND list, so queries must be constrained to what the
+    // caller may see: where('status','==','active') for the public,
+    // where('userId','==',uid) for owners; only admins may query unfiltered.
     match /brands/{brandId} {
-      allow get: if resource.data.status == 'active' || isAdmin()
+      allow read: if resource.data.status == 'active' || isAdmin()
         || (isSignedIn() && request.auth.uid == resource.data.userId);
-      allow list: if true;
-      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
-      allow update: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
+      // New listings always start in the admin review queue
+      allow create: if isSignedIn()
+        && request.auth.uid == request.resource.data.userId
+        && request.resource.data.status == 'pending';
+      // Owners may edit their listing but not approve it or hand it to
+      // someone else; the only status change they can make is back to pending.
+      allow update: if isAdmin() || (isSignedIn()
+        && request.auth.uid == resource.data.userId
+        && request.resource.data.userId == resource.data.userId
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+            || request.resource.data.status == 'pending'));
       allow delete: if isAdmin();
     }
 
+    // Leads carry investor PII — only the brand's owner and admins may read.
+    // Owner queries must filter where('brandOwnerId','==',uid).
     match /brandfranchiseInquiry/{inquiryId} {
-      // Public can submit franchise inquiries; validate field count to limit abuse
-      allow create: if isValidPublicSubmission();
-      allow get: if isSignedIn() && (request.auth.uid == resource.data.brandOwnerId || isAdmin());
-      allow list: if isSignedIn();
+      allow create: if isValidInquiry();
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.brandOwnerId || isAdmin());
       allow update, delete: if isAdmin();
     }
 
     match /brandViews/{brandId} {
-      allow get: if isSignedIn() && (request.auth.uid == resource.data.brandOwnerId || isAdmin());
-      allow list: if isSignedIn();
-      // Allow anonymous view tracking but validate written fields to prevent data abuse
-      allow create, update: if isValidBrandView();
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.brandOwnerId || isAdmin());
+      allow create, update: if isValidBrandView(brandId);
       allow delete: if isAdmin();
     }
 
@@ -115,8 +142,8 @@ service cloud.firestore {
     }
 
     match /blogs/{blogId} {
+      // Covers list too: public queries must filter where('status','==','published')
       allow read: if resource.data.status == 'published' || isAdmin();
-      allow list: if true;
       allow create, delete: if isAdmin();
       allow update: if isAdmin() || isBlogViewIncrement();
     }

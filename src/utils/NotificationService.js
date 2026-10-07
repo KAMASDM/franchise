@@ -11,60 +11,8 @@ import logger from './logger';
 
 export class NotificationService {
   
-  static async sendLeadNotification(brandOwnerId, leadData) {
-    try {
-      // Check if user exists before sending notification
-      const userRef = doc(db, "users", brandOwnerId);
-      const userSnap = await getDoc(userRef);
-      
-      if (!userSnap.exists()) {
-        console.warn(`User ${brandOwnerId} not found, skipping notification`);
-        return;
-      }
-
-      const userData = userSnap.data();
-
-      const notificationData = {
-        type: "new_lead",
-        title: "New Franchise Inquiry",
-        message: `${leadData.firstName} ${leadData.lastName} is interested in your ${leadData.brandName} franchise`,
-        leadId: leadData.id || null,
-        brandName: leadData.brandName,
-        prospectName: `${leadData.firstName} ${leadData.lastName}`,
-        prospectEmail: leadData.email,
-        budget: leadData.budget,
-        location: leadData.userAddress?.city || leadData.brandFranchiseLocation?.city || "Not specified",
-        read: false,
-        createdAt: serverTimestamp(),
-      };
-
-      // Save to Firestore
-      await addDoc(
-        collection(db, "users", brandOwnerId, "notifications"), 
-        notificationData
-      );
-
-      console.log(`✅ Lead notification sent to user ${brandOwnerId}`);
-
-      // Get user notification preferences
-      const settings = this.getUserSettings(brandOwnerId);
-
-      // Send push notification if enabled and permission granted
-      if (settings.push.newLeads && pushNotifications.getPermissionStatus() === 'granted') {
-        try {
-          await pushNotifications.notifyNewLead(leadData);
-          logger.log('✅ Push notification sent');
-        } catch (error) {
-          logger.error('Failed to send push notification:', error);
-        }
-      } else if (settings.push.newLeads && pushNotifications.getPermissionStatus() !== 'granted') {
-        logger.warn('⚠️ Push notifications enabled but permission not granted');
-      }
-    } catch (error) {
-      console.error("❌ Error sending lead notification:", error);
-      // Don't throw error to avoid breaking the lead creation process
-    }
-  }
+  // New-lead notifications are sent server-side by the onInquiryCreated
+  // Cloud Function (functions/index.js).
 
   static async sendBrandApprovalNotification(brandOwnerId, brandData, approved = true) {
     try {

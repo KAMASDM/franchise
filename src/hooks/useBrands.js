@@ -13,8 +13,11 @@ const brandsCache = {
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const useBrands = (user = null, options = {}) => {
-  const [brands, setBrands] = useState(brandsCache.data || []); // Always start with empty array
-  const [loading, setLoading] = useState(false);
+  // The module cache only holds the public (active) list — never seed an
+  // owner's view with it, and report loading until real data is in hand.
+  const hasPublicCache = !user?.uid && !!brandsCache.data;
+  const [brands, setBrands] = useState(hasPublicCache ? brandsCache.data : []);
+  const [loading, setLoading] = useState(!hasPublicCache);
   const [error, setError] = useState(null);
   const fetchedRef = useRef(false);
   

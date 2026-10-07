@@ -14,78 +14,6 @@ const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 const model = genAI ? genAI.getGenerativeModel({ model: "gemini-2.0-flash" }) : null;
 
 // ---------------------------------------------------------------------------
-// CORS — restricted to configured origins only
-// ---------------------------------------------------------------------------
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-  : ["http://localhost:5173", "http://localhost:3000"];
-
-const setCorsHeaders = (req, res) => {
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) {
-    res.set("Access-Control-Allow-Origin", origin);
-    res.set("Vary", "Origin");
-  }
-  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.set("Access-Control-Max-Age", "3600");
-};
-
-// ---------------------------------------------------------------------------
-// Firebase ID token verification
-// ---------------------------------------------------------------------------
-const verifyToken = async (req) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return { authenticated: false, user: null };
-  }
-  try {
-    const idToken = authHeader.slice(7);
-    const decoded = await admin.auth().verifyIdToken(idToken);
-    return { authenticated: true, user: decoded };
-  } catch {
-    return { authenticated: false, user: null };
-  }
-};
-
-// ---------------------------------------------------------------------------
-// Rate limiting — in-memory per IP / UID
-// Authenticated users: 20 req/min; anonymous: 5 req/min
-// ---------------------------------------------------------------------------
-const rateLimitMap = new Map();
-
-// Periodic cleanup to prevent unbounded memory growth (every 10 min)
-setInterval(() => {
-  const cutoff = Date.now() - 10 * 60 * 1000;
-  for (const [key, timestamps] of rateLimitMap.entries()) {
-    const recent = timestamps.filter((t) => t > cutoff);
-    if (recent.length === 0) rateLimitMap.delete(key);
-    else rateLimitMap.set(key, recent);
-  }
-}, 10 * 60 * 1000);
-
-const checkRateLimit = (identifier, maxRequests, windowMs) => {
-  const now = Date.now();
-  const windowStart = now - windowMs;
-  const timestamps = (rateLimitMap.get(identifier) || []).filter((t) => t > windowStart);
-  if (timestamps.length >= maxRequests) {
-    rateLimitMap.set(identifier, timestamps);
-    return false;
-  }
-  timestamps.push(now);
-  rateLimitMap.set(identifier, timestamps);
-  return true;
-};
-
-const getRateLimitKey = (req, authResult) => {
-  if (authResult.authenticated && authResult.user) return `uid:${authResult.user.uid}`;
-  const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim()
-    || req.connection?.remoteAddress
-    || "unknown";
-  return `ip:${ip}`;
-};
-
-// ---------------------------------------------------------------------------
 // Input sanitization for prompt injection prevention
 // ---------------------------------------------------------------------------
 const sanitizeField = (val, maxLen = 200) => {
@@ -93,114 +21,6 @@ const sanitizeField = (val, maxLen = 200) => {
   // Strip characters that could break prompt structure
   return val.replace(/[`\\]/g, "").trim().substring(0, maxLen);
 };
-
-// ---------------------------------------------------------------------------
-// Cloud Function: sendMessage
-// ---------------------------------------------------------------------------
-exports.sendMessage = functions
-  .runWith({ timeoutSeconds: 60, memory: "512MB" })
-  .https
-  .onRequest(async (req, res) => {
-    setCorsHeaders(req, res);
-    if (req.method === "OPTIONS") return res.status(204).send("");
-    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-
-    try {
-      const authResult = await verifyToken(req);
-      const key = getRateLimitKey(req, authResult);
-      const maxReq = authResult.authenticated ? 20 : 5;
-
-      if (!checkRateLimit(key, maxReq, 60000)) {
-        return res.status(429).json({ error: "Rate limit exceeded. Please try again later." });
-      }
-
-      const { message, chatHistory, systemPrompt } = req.body;
-
-      if (!message || typeof message !== "string") {
-        return res.status(400).json({ error: "Valid message is required" });
-      }
-      if (message.length > 1000) {
-        return res.status(400).json({ error: "Message too long. Maximum 1000 characters." });
-      }
-      if (chatHistory && !Array.isArray(chatHistory)) {
-        return res.status(400).json({ error: "chatHistory must be an array" });
-      }
-      if (systemPrompt && (typeof systemPrompt !== "string" || systemPrompt.length > 2000)) {
-        return res.status(400).json({ error: "Invalid systemPrompt" });
-      }
-
-      if (!model) return res.status(503).json({ error: "Service temporarily unavailable" });
-
-      // Limit history to last 20 turns to cap token usage
-      const sanitizedHistory = (chatHistory || []).slice(-20);
-
-      const chat = model.startChat({
-        history: sanitizedHistory,
-        generationConfig: { maxOutputTokens: 1000 },
-        systemInstruction: systemPrompt
-          ? { parts: [{ text: systemPrompt }] }
-          : undefined,
-      });
-
-      const result = await chat.sendMessage(message);
-      const text = result.response.text();
-
-      return res.status(200).json({ success: true, response: text });
-    } catch (error) {
-      console.error("Error in sendMessage:", error.message);
-      return res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-// ---------------------------------------------------------------------------
-// Cloud Function: startChat
-// ---------------------------------------------------------------------------
-exports.startChat = functions
-  .runWith({ timeoutSeconds: 60, memory: "512MB" })
-  .https
-  .onRequest(async (req, res) => {
-    setCorsHeaders(req, res);
-    if (req.method === "OPTIONS") return res.status(204).send("");
-    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-
-    try {
-      const authResult = await verifyToken(req);
-      const key = getRateLimitKey(req, authResult);
-      const maxReq = authResult.authenticated ? 10 : 3;
-
-      if (!checkRateLimit(key, maxReq, 60000)) {
-        return res.status(429).json({ error: "Rate limit exceeded. Please try again later." });
-      }
-
-      const { systemPrompt, initialMessage } = req.body;
-
-      if (!systemPrompt || !initialMessage) {
-        return res.status(400).json({ error: "systemPrompt and initialMessage are required" });
-      }
-      if (typeof systemPrompt !== "string" || systemPrompt.length > 2000) {
-        return res.status(400).json({ error: "Invalid systemPrompt" });
-      }
-      if (typeof initialMessage !== "string" || initialMessage.length > 1000) {
-        return res.status(400).json({ error: "Invalid initialMessage" });
-      }
-
-      if (!model) return res.status(503).json({ error: "Service temporarily unavailable" });
-
-      const chat = model.startChat({
-        history: [],
-        generationConfig: { maxOutputTokens: 1000 },
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-      });
-
-      const result = await chat.sendMessage(initialMessage);
-      const text = result.response.text();
-
-      return res.status(200).json({ success: true, response: text });
-    } catch (error) {
-      console.error("Error in startChat:", error.message);
-      return res.status(500).json({ error: "Internal server error" });
-    }
-  });
 
 // ---------------------------------------------------------------------------
 // Cloud Function: generateContent (callable — requires authentication)
@@ -363,3 +183,184 @@ Keep the same length (±20 words). Return ONLY the improved version without expl
     }
   });
 
+
+// ---------------------------------------------------------------------------
+// Firestore trigger: onInquiryCreated
+// Notifies a brand owner (in-app + email) about a new franchise inquiry.
+// Runs server-side because inquirers can't read the owner's users/ doc, and
+// the email address must never be exposed to the browser.
+// ---------------------------------------------------------------------------
+const APP_URL = (process.env.APP_URL || "https://ikama.in").replace(/\/$/, "");
+
+const escapeHtml = (val) => String(val ?? "")
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#39;");
+
+const buildLeadEmailHtml = (d) => {
+  const row = (label, value) => `
+        <div style="margin: 8px 0; padding: 8px 0; border-bottom: 1px solid #e3f2fd;">
+          <strong style="color: #333;">${label}:</strong> <span style="color: #555;">${escapeHtml(value)}</span>
+        </div>`;
+  const message = d.message ? `
+      <div style="background-color: #fff8f0; border-left: 4px solid #ff9800; padding: 15px 20px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #ff9800;">Message:</h3>
+        <p style="margin: 0; font-size: 14px; color: #555555; line-height: 1.6; white-space: pre-line;">${escapeHtml(d.message)}</p>
+      </div>` : "";
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <div style="background: linear-gradient(135deg, #5a76a9 0%, #3a5483 100%); padding: 30px 20px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">ikama</h1>
+    </div>
+    <div style="padding: 40px 30px;">
+      <h2 style="font-size: 24px; color: #5a76a9; margin-bottom: 20px; text-align: center;">New Franchise Inquiry!</h2>
+      <p style="font-size: 16px; color: #555555; line-height: 1.6;">Hello <strong>${escapeHtml(d.ownerName)}</strong>,</p>
+      <p style="font-size: 16px; color: #555555; line-height: 1.6;">
+        Great news! Someone is interested in <strong>${escapeHtml(d.brandName)}</strong>.
+      </p>
+      <div style="background-color: #f0f7ff; border-left: 4px solid #5a76a9; padding: 15px 20px; margin: 20px 0; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #5a76a9;">Inquiry Details:</h3>${row("Name", d.inquirerName)}${row("Email", d.inquirerEmail)}${row("Phone", d.inquirerPhone)}${row("Investment Range", d.budget)}${row("Location", d.location)}
+      </div>${message}
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${APP_URL}/dashboard/leads" style="display: inline-block; padding: 14px 32px; background-color: #5a76a9; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">
+          View in Dashboard
+        </a>
+      </div>
+    </div>
+    <div style="background-color: #f9f9f9; padding: 30px; text-align: center; border-top: 1px solid #eeeeee;">
+      <p style="font-size: 12px; color: #999999;"><a href="mailto:support@ikama.in" style="color: #5a76a9;">support@ikama.in</a></p>
+    </div>
+  </div>
+</body>
+</html>`;
+};
+
+// EmailJS REST API. Server-side sends need the account's private key and
+// "Allow EmailJS API for non-browser applications" enabled (Account → Security).
+const sendEmailJs = async ({ toEmail, toName, subject, html }) => {
+  const {
+    EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, EMAILJS_PRIVATE_KEY,
+  } = process.env;
+  if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY || !EMAILJS_PRIVATE_KEY) {
+    console.warn("EmailJS server credentials not configured in functions/.env — skipping lead email");
+    return false;
+  }
+  const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      service_id: EMAILJS_SERVICE_ID,
+      template_id: EMAILJS_TEMPLATE_ID,
+      user_id: EMAILJS_PUBLIC_KEY,
+      accessToken: EMAILJS_PRIVATE_KEY,
+      template_params: {
+        to_email: toEmail,
+        to_name: toName,
+        from_name: "ikama",
+        reply_to: "support@ikama.in",
+        subject,
+        message: html,
+        html_content: html,
+      },
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`EmailJS ${response.status}: ${await response.text()}`);
+  }
+  return true;
+};
+
+exports.onInquiryCreated = functions.firestore
+  .document("brandfranchiseInquiry/{inquiryId}")
+  .onCreate(async (snap, context) => {
+    const { inquiryId } = context.params;
+    const lead = snap.data() || {};
+    const ownerId = lead.brandOwnerId;
+    if (!ownerId || !lead.brandId) {
+      console.warn(`Inquiry ${inquiryId} has no brandOwnerId/brandId — skipping`);
+      return;
+    }
+
+    // Defense in depth (rules check this too): the owner must own the brand
+    const db = admin.firestore();
+    const brandSnap = await db.doc(`brands/${lead.brandId}`).get();
+    if (!brandSnap.exists || brandSnap.get("userId") !== ownerId) {
+      console.warn(`Inquiry ${inquiryId}: brandOwnerId does not own brand ${lead.brandId} — skipping`);
+      return;
+    }
+
+    const prospectName = `${lead.firstName || ""} ${lead.lastName || ""}`.trim() || "Someone";
+    const location = lead.userAddress?.city || lead.brandFranchiseLocation?.city || "Not specified";
+
+    // Notification id = inquiry id: create() fails on retry, so a re-delivered
+    // event can't double-notify or double-email.
+    try {
+      await db.doc(`users/${ownerId}/notifications/${inquiryId}`).create({
+        type: "new_lead",
+        title: "New Franchise Inquiry",
+        message: `${prospectName} is interested in your ${lead.brandName} franchise`,
+        leadId: inquiryId,
+        brandName: lead.brandName || "",
+        prospectName,
+        prospectEmail: lead.email || "",
+        budget: lead.budget || "",
+        location,
+        read: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      if (error.code === 6) { // ALREADY_EXISTS
+        console.log(`Inquiry ${inquiryId} already processed`);
+        return;
+      }
+      throw error;
+    }
+
+    // Owner email: profile doc first, then the auth record
+    let ownerEmail = null;
+    let ownerName = "Brand Owner";
+    const ownerSnap = await db.doc(`users/${ownerId}`).get();
+    if (ownerSnap.exists) {
+      ownerEmail = ownerSnap.get("email") || null;
+      ownerName = ownerSnap.get("displayName") || ownerName;
+    }
+    if (!ownerEmail) {
+      try {
+        const authUser = await admin.auth().getUser(ownerId);
+        ownerEmail = authUser.email || null;
+        ownerName = authUser.displayName || ownerName;
+      } catch (error) {
+        console.warn(`Could not load auth record for ${ownerId}:`, error.message);
+      }
+    }
+    if (!ownerEmail) {
+      console.warn(`No email for brand owner ${ownerId} — in-app notification only`);
+      return;
+    }
+
+    try {
+      await sendEmailJs({
+        toEmail: ownerEmail,
+        toName: ownerName,
+        subject: `New Franchise Inquiry for ${lead.brandName || "your brand"}`,
+        html: buildLeadEmailHtml({
+          ownerName,
+          brandName: lead.brandName,
+          inquirerName: prospectName,
+          inquirerEmail: lead.email,
+          inquirerPhone: lead.phone || "Not provided",
+          budget: lead.budget || "Not specified",
+          location,
+          message: lead.comments,
+        }),
+      });
+    } catch (error) {
+      // The in-app notification already landed; don't retry the whole trigger
+      console.error(`Lead email for inquiry ${inquiryId} failed:`, error.message);
+    }
+  });
